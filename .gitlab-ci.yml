@@ -16,10 +16,12 @@ include:
       - '/ci-templates/mr-rules.yml'
       - '/ci-templates/reuse.yml'
       - '/ci-templates/timeouts.yml'
+      - '/ci-templates/badges.yml'
 
 stages:
   - lint
   - test
+  - deploy
 
 variables:
   VAUCHI_SCRIPTS_REF: "ci-templates-v2026.10.31"
@@ -93,3 +95,11 @@ contract:breaking:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# The pipeline badge the group README shows
+# (https://vauchi.gitlab.io/contract/badges/pipeline.json) comes from the
+# shared template: a Pages deploy on main, no script of this repository's
+# own. Pages visibility must be enabled on the project for shields.io to
+# read it.
+pages:
+  extends: .badges-pages
