@@ -20,7 +20,6 @@ use crate::{ActionSpec, BindingId};
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationAxis {
     Horizontal,
     Vertical,
@@ -33,7 +32,6 @@ pub enum PresentationAxis {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationListStyle {
     #[default]
     Rows,
@@ -49,7 +47,6 @@ impl PresentationListStyle {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationTextStyle {
     Heading,
     Body,
@@ -61,7 +58,6 @@ pub enum PresentationTextStyle {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationInputKind {
     Text,
     Email,
@@ -76,7 +72,6 @@ pub enum PresentationInputKind {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationTone {
     Neutral,
     Accent,
@@ -88,7 +83,6 @@ pub enum PresentationTone {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationImageShape {
     Natural,
     Circle,
@@ -162,7 +156,6 @@ impl<'de> Deserialize<'de> for QrPlacement {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationQrErrorCorrection {
     Low,
     Medium,
@@ -174,7 +167,6 @@ pub enum PresentationQrErrorCorrection {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationQrSize {
     Standard,
     Compact,
@@ -183,7 +175,6 @@ pub enum PresentationQrSize {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum PresentationQrPurpose {
     Display,
     Capture,
@@ -192,7 +183,6 @@ pub enum PresentationQrPurpose {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum InputValue {
     Text(String),
     Boolean(bool),
@@ -240,7 +230,6 @@ pub struct PresentationRow {
 
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[non_exhaustive]
 pub enum PresentationNode {
     Text {
         id: Option<BindingId>,
