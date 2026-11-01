@@ -29,15 +29,15 @@
 use serde::{Deserialize, Serialize};
 
 mod ble_observation;
+mod camera;
+mod command_target;
+mod event_json;
 pub mod exchange_types;
+pub mod executor;
 pub mod fixtures;
 pub mod network_cost;
 #[cfg(feature = "schema-gen")]
 pub mod schema;
-mod camera;
-mod command_target;
-mod event_json;
-pub mod executor;
 pub use ble_observation::{BleAdvertisementObservation, BleObservationError, BleServiceUuid};
 pub use camera::CameraPurpose;
 pub use command_target::CommandTarget;
@@ -870,7 +870,9 @@ pub enum Event {
     /// metered, or unknown. Shells report it on every network change; core
     /// decides what to run on it, such as "Wi-Fi only" content updates
     /// (vauchi/private#733 D6).
-    NetworkCostChanged { cost: crate::network_cost::NetworkCost },
+    NetworkCostChanged {
+        cost: crate::network_cost::NetworkCost,
+    },
 
     /// Raw UUIDs observed by the native BLE scanner. Core decodes any
     /// protocol token; hardware adapters never interpret UUID payloads.

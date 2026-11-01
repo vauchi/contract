@@ -5,8 +5,12 @@
 //! Writes `schema/vauchi-contract-v1.json` from the types.
 
 fn main() {
-    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/schema/vauchi-contract-v1.json");
-    let text = serde_json::to_string_pretty(&vauchi_contract::schema::generate()).expect("schema serializes");
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/schema/vauchi-contract-v1.json"
+    );
+    let text = serde_json::to_string_pretty(&vauchi_contract::schema::generate())
+        .expect("schema serializes");
     std::fs::write(path, text + "\n").expect("write the schema file");
     println!("wrote {path}");
 }
