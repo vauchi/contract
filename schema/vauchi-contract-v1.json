@@ -1,0 +1,5005 @@
+{
+  "command": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+      "AccessibilitySpec": {
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "type": "object"
+      },
+      "ActionSpec": {
+        "properties": {
+          "accessibility_label": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "icon_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interaction_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "shortcut": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/StandardShortcut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tone": {
+            "$ref": "#/definitions/ActionTone"
+          }
+        },
+        "required": [
+          "accessibility_label",
+          "enabled",
+          "interaction_id",
+          "label"
+        ],
+        "type": "object"
+      },
+      "ActionTone": {
+        "oneOf": [
+          {
+            "enum": [
+              "standard",
+              "destructive"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Consequential but reversible or protective (verify a fingerprint, schedule a deletion, start recovery): shells draw it with the warning colour as an outline, never as the filled primary and never in the destructive style.",
+            "enum": [
+              "serious"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "AlertSpec": {
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "title"
+        ],
+        "type": "object"
+      },
+      "AnimationToken": {
+        "description": "Animation intent for [`Command::Celebrate`]. Closed enum — platforms map to a native one-beat animation, respecting reduce-motion.",
+        "oneOf": [
+          {
+            "description": "The two cards meet — the exchange-success beat (~600 ms, then still).",
+            "enum": [
+              "cards_meet"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "No animation.",
+            "enum": [
+              "none"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "ApplicationMenuRole": {
+        "description": "Native placement hints; action meaning remains in Core's opaque bindings.",
+        "enum": [
+          "file",
+          "other"
+        ],
+        "type": "string"
+      },
+      "ApplicationMenuSpec": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/definitions/ActionSpec"
+            },
+            "type": "array"
+          },
+          "label": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/definitions/ApplicationMenuRole"
+          }
+        },
+        "required": [
+          "items",
+          "label",
+          "role"
+        ],
+        "type": "object"
+      },
+      "BleLinkDirection": {
+        "description": "Which physical direction a BLE link was established in, reported by the shell on [`Event::BleConnected`]. This is the ground truth for the exchange protocol role: the GATT **central** (it dialed out) drives the handshake as initiator; the GATT **peripheral** (it was connected to) responds. Deriving the role from the physical link — not the pre-connection token tiebreak — is what lets asymmetric BLE discovery self-heal: whichever side actually connects becomes the initiator, even if the token said otherwise (`_private/docs/designs/2026-07-22-role-tiebreak-and-glare-design.md`).",
+        "oneOf": [
+          {
+            "description": "This device is the GATT central — it dialed out to the peer's peripheral.",
+            "enum": [
+              "Outbound"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "This device is the GATT peripheral — the peer connected to it.",
+            "enum": [
+              "Inbound"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "CameraPurpose": {
+        "description": "What a [`super::Command::CameraCapture`] produces.",
+        "oneOf": [
+          {
+            "description": "Decode QR codes until stopped, reporting each as `Event::QrScanned`.",
+            "enum": [
+              "qr_scan"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Take one photo, reported as `Event::ImageReceived`.",
+            "enum": [
+              "photo"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "ChoiceOption": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "type": "object"
+      },
+      "ContextBar": {
+        "properties": {
+          "back": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "info": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explains the surface: opens an `OverlayKind::Information` overlay. Absent where Core has no text for the surface or the person turned help off; omitted on the wire so older shells see the four slots."
+          },
+          "navigation": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "primary": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "secondary": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "DirectEndpoint": {
+        "description": "Where a shell finds the peer of a direct (USB cable / local TCP) swap, and how long it may take. Core's policy, executed by every shell (#764).",
+        "properties": {
+          "browse_timeout_ms": {
+            "description": "How long to browse before falling back; one browse per swap.",
+            "format": "uint32",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "fallback_host": {
+            "description": "Host to reach the peer on when the browse finds nothing: the phone's USB-forwarded listener on this machine.",
+            "type": "string"
+          },
+          "io_timeout_ms": {
+            "description": "Deadline for connecting and for each read and write.",
+            "format": "uint32",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "port": {
+            "description": "TCP port to reach the peer on when the browse finds nothing.",
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "service_type": {
+            "description": "DNS-SD service type to browse for the peer's address.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "browse_timeout_ms",
+          "fallback_host",
+          "io_timeout_ms",
+          "port",
+          "service_type"
+        ],
+        "type": "object"
+      },
+      "DocumentSpec": {
+        "description": "A machine-readable document Core prepared for a shell that asked for one. The shell writes `data` out unread; `schema` is a Core-owned, versioned identifier (ADR-066 Amendment 2026-09-26 (b)).",
+        "properties": {
+          "data": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "media_type": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "media_type",
+          "schema"
+        ],
+        "type": "object"
+      },
+      "ExportFileSpec": {
+        "properties": {
+          "data": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "suggested_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "mime_type",
+          "suggested_name"
+        ],
+        "type": "object"
+      },
+      "FilePickPurpose": {
+        "description": "Why a file picker is being opened — lets frontends label the dialog (e.g., \"Import Contacts\" vs \"Import Backup\") without hardcoded strings.\n\nVariants map 1:1 to a label key in the locale store. `Other` covers future imports (e.g., key-bundle import) without forcing every consumer to update for a new well-known purpose.",
+        "oneOf": [
+          {
+            "description": "vCard / VCF import on top of the contacts engine.",
+            "enum": [
+              "ImportContacts"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Encrypted vauchi backup blob.",
+            "enum": [
+              "ImportBackup"
+            ],
+            "type": "string"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Reserved for future imports — frontends look up `label_key` in the locale store.",
+            "properties": {
+              "Other": {
+                "properties": {
+                  "label_key": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label_key"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Other"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "HapticPattern": {
+        "description": "Haptic intent for [`Command::Celebrate`]. Closed enum — platforms map to native patterns (e.g. `UINotificationFeedbackGenerator.success`).",
+        "oneOf": [
+          {
+            "description": "The platform's \"success\" notification haptic.",
+            "enum": [
+              "success"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "A single light tap.",
+            "enum": [
+              "light"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "No haptic.",
+            "enum": [
+              "none"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "InvocationOutcome": {
+        "description": "How a one-shot invocation ended. Deliberately generic: shells map it to their own status convention (the CLI to exit codes) without learning why.",
+        "enum": [
+          "succeeded",
+          "failed",
+          "invalid_input",
+          "unavailable",
+          "denied"
+        ],
+        "type": "string"
+      },
+      "NavigationItem": {
+        "description": "One destination in the persistent navigation surface (bottom bar on phone, sidebar on desktop). Reuses the same opaque `interaction_id` an equivalent overlay item would use, so a tap routes identically whether the shell renders it persistently or inside `PresentOverlay`.",
+        "properties": {
+          "accessibility_label": {
+            "type": "string"
+          },
+          "badge_count": {
+            "format": "uint32",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "icon_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interaction_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "selected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accessibility_label",
+          "badge_count",
+          "interaction_id",
+          "label",
+          "selected"
+        ],
+        "type": "object"
+      },
+      "NavigationSpec": {
+        "description": "The complete set of persistent navigation destinations for a surface. Empty when the surface offers no destinations (e.g. a locked app), so a shell hides the bar rather than rendering it with nothing in it.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/definitions/NavigationItem"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "NotificationSpec": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "category_id": {
+            "type": "string"
+          },
+          "category_options": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "channel_id": {
+            "type": "string"
+          },
+          "deep_link_uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notification_id": {
+            "description": "Opaque OS replacement identity. Forward unchanged; never parse it. Absent only for older command producers that posted anonymously.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "urgency": {
+            "$ref": "#/definitions/NotificationUrgency"
+          }
+        },
+        "required": [
+          "body",
+          "category_id",
+          "category_options",
+          "channel_id",
+          "title",
+          "urgency"
+        ],
+        "type": "object"
+      },
+      "NotificationUrgency": {
+        "enum": [
+          "default",
+          "high",
+          "urgent"
+        ],
+        "type": "string"
+      },
+      "Orientation": {
+        "description": "Screen orientation a frontend should pin to via [`Command::SetOrientationLock`]. Values mirror the platform-native vocabulary (`Activity.requestedOrientation` on Android, `UIInterfaceOrientationMask` on iOS) but are platform-neutral — each frontend maps to its OS API.",
+        "oneOf": [
+          {
+            "description": "Portrait, top of the device pointing up.",
+            "enum": [
+              "Portrait"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Landscape, with no preference for left or right rotation. Most platforms map this to \"user-rotatable landscape\" (the device can rotate between left and right freely while staying landscape-locked).",
+            "enum": [
+              "Landscape"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "OverlayKind": {
+        "oneOf": [
+          {
+            "enum": [
+              "navigation",
+              "action_menu"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Text about the surface, no actions beyond dismissing it.",
+            "enum": [
+              "information"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "OverlaySpec": {
+        "properties": {
+          "body": {
+            "description": "Prose for an `Information` overlay; omitted on the wire otherwise.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "close_label": {
+            "description": "The visible and spoken label of the overlay's way out. A shell that draws a Close uses it; dismissing still reports `OverlayDismissed`. Omitted on the wire when absent, so older shells see nothing new.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/definitions/ActionSpec"
+            },
+            "type": "array"
+          },
+          "kind": {
+            "$ref": "#/definitions/OverlayKind"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "PaneLayout": {
+        "enum": [
+          "single",
+          "split"
+        ],
+        "type": "string"
+      },
+      "PresentationAxis": {
+        "enum": [
+          "horizontal",
+          "vertical"
+        ],
+        "type": "string"
+      },
+      "PresentationColors": {
+        "description": "The active theme's colours by role, as `#rrggbb`. A `None` role is one the theme leaves out; the shell paints its nearest required role.",
+        "properties": {
+          "accent": {
+            "type": "string"
+          },
+          "background": {
+            "type": "string"
+          },
+          "border": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "focus_ring": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "success": {
+            "type": "string"
+          },
+          "surface": {
+            "type": "string"
+          },
+          "surface_elevated": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "surface_input": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "surface_muted": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "text_muted": {
+            "type": "string"
+          },
+          "text_on_accent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accent",
+          "background",
+          "border",
+          "error",
+          "success",
+          "surface",
+          "text",
+          "text_muted",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "PresentationImageShape": {
+        "enum": [
+          "natural",
+          "circle"
+        ],
+        "type": "string"
+      },
+      "PresentationInputKind": {
+        "enum": [
+          "text",
+          "email",
+          "phone",
+          "url",
+          "password",
+          "number",
+          "search",
+          "pin"
+        ],
+        "type": "string"
+      },
+      "PresentationListStyle": {
+        "description": "How a shell draws a `List`'s rows. `Rows` is the ordinary list; `Buttons` draws each activatable row as a native button, for a short set of commands that must read as tappable at a glance (the exchange screen's switch-camera and cancel beside the camera preview).",
+        "enum": [
+          "rows",
+          "buttons"
+        ],
+        "type": "string"
+      },
+      "PresentationNode": {
+        "oneOf": [
+          {
+            "enum": [
+              "Divider"
+            ],
+            "type": "string"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Text": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "style": {
+                    "$ref": "#/definitions/PresentationTextStyle"
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "content",
+                  "style"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Text"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Input": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "binding_id": {
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "input_kind": {
+                    "$ref": "#/definitions/PresentationInputKind"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "max_length": {
+                    "format": "uint",
+                    "minimum": 0.0,
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "placeholder": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "validation_error": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "binding_id",
+                  "enabled",
+                  "input_kind",
+                  "label",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Input"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Toggle": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "binding_id": {
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "binding_id",
+                  "enabled",
+                  "label",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Toggle"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Choice": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "binding_id": {
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "options": {
+                    "items": {
+                      "$ref": "#/definitions/ChoiceOption"
+                    },
+                    "type": "array"
+                  },
+                  "selected": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "binding_id",
+                  "enabled",
+                  "label",
+                  "options"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Choice"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Group": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "axis": {
+                    "$ref": "#/definitions/PresentationAxis"
+                  },
+                  "children": {
+                    "items": {
+                      "$ref": "#/definitions/PresentationNode"
+                    },
+                    "type": "array"
+                  },
+                  "id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "axis",
+                  "children"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Group"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "List": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "paging": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/PresentationPaging"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "rows": {
+                    "items": {
+                      "$ref": "#/definitions/PresentationRow"
+                    },
+                    "type": "array"
+                  },
+                  "searchable": {
+                    "type": "boolean"
+                  },
+                  "style": {
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/PresentationListStyle"
+                      }
+                    ],
+                    "description": "Omitted on the wire when `Rows`, so every existing fixture and shell keeps working unchanged."
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "id",
+                  "rows",
+                  "searchable"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "List"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Image": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "activation": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/ActionSpec"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "brightness": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "data": {
+                    "items": {
+                      "format": "uint8",
+                      "minimum": 0.0,
+                      "type": "integer"
+                    },
+                    "type": [
+                      "array",
+                      "null"
+                    ]
+                  },
+                  "fallback_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "shape": {
+                    "$ref": "#/definitions/PresentationImageShape"
+                  },
+                  "size": {
+                    "description": "Square, in logical units, the picture is fitted into with its aspect kept and never wider than the space it is given. `None` leaves the shell's own sizing (avatars size from the touch target). Absent on the wire when `None`, so shells that predate it keep decoding.",
+                    "format": "uint16",
+                    "minimum": 0.0,
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "brightness",
+                  "shape"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Image"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Status": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "activation": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/ActionSpec"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "badge": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "detail": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "icon_token": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "tone": {
+                    "$ref": "#/definitions/PresentationTone"
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "title",
+                  "tone"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Status"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Qr": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "error_correction": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/PresentationQrErrorCorrection"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "The error-correction level to draw a display code at. Absent leaves it to the shell, which draws at medium."
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "payloads": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "placement": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/QrPlacement"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Where in the node's square to draw a display code. Absent means the full square, centred."
+                  },
+                  "purpose": {
+                    "$ref": "#/definitions/PresentationQrPurpose"
+                  },
+                  "size": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/PresentationQrSize"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "The size of a display code's square. Absent means standard."
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "id",
+                  "payloads",
+                  "purpose"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Qr"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Confirmation": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "cancel": {
+                    "$ref": "#/definitions/ActionSpec"
+                  },
+                  "confirm": {
+                    "$ref": "#/definitions/ActionSpec"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "warning": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "cancel",
+                  "confirm",
+                  "id",
+                  "warning"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Confirmation"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Slider": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "binding_id": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "maximum": {
+                    "format": "double",
+                    "type": "number"
+                  },
+                  "maximum_icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "minimum": {
+                    "format": "double",
+                    "type": "number"
+                  },
+                  "minimum_icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "step": {
+                    "format": "double",
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "value": {
+                    "format": "double",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "accessibility",
+                  "binding_id",
+                  "label",
+                  "maximum",
+                  "minimum",
+                  "value"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Slider"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Progress": {
+                "properties": {
+                  "accessibility": {
+                    "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "value": {
+                    "format": "double",
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "accessibility"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "Progress"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "PresentationPaging": {
+        "properties": {
+          "offset": {
+            "format": "uint",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "total_count": {
+            "format": "uint",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "window": {
+            "format": "uint",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "offset",
+          "total_count",
+          "window"
+        ],
+        "type": "object"
+      },
+      "PresentationProfile": {
+        "properties": {
+          "active_surface": {
+            "type": "string"
+          },
+          "detail_surface": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pane_layout": {
+            "$ref": "#/definitions/PaneLayout"
+          },
+          "primary_surface": {
+            "type": "string"
+          },
+          "window_class": {
+            "$ref": "#/definitions/WindowClass"
+          }
+        },
+        "required": [
+          "active_surface",
+          "pane_layout",
+          "primary_surface",
+          "window_class"
+        ],
+        "type": "object"
+      },
+      "PresentationQrErrorCorrection": {
+        "description": "How much of a display code is redundancy. Lower levels fit the same payload in fewer, larger modules, which a camera resolves from closer or through more blur; higher levels survive more damage.",
+        "enum": [
+          "low",
+          "medium"
+        ],
+        "type": "string"
+      },
+      "PresentationQrPurpose": {
+        "enum": [
+          "display",
+          "capture"
+        ],
+        "type": "string"
+      },
+      "PresentationQrSize": {
+        "description": "How large a shell draws a display code's square. `Compact` is for a short window, where the standard square would leave the camera beside it no room; each shell maps it to its own smaller size.",
+        "enum": [
+          "standard",
+          "compact"
+        ],
+        "type": "string"
+      },
+      "PresentationRow": {
+        "properties": {
+          "accessibility": {
+            "$ref": "#/definitions/AccessibilitySpec"
+          },
+          "activation": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "controls": {
+            "items": {
+              "$ref": "#/definitions/PresentationNode"
+            },
+            "type": "array"
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "fallback_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "icon_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_data": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "info": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ActionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explains the row's item: opens an `OverlayKind::Information` overlay with text for it (vauchi/private#479). Absent where Core has no text or the person turned help off; omitted on the wire so older shells see the row they know."
+          },
+          "secondary_actions": {
+            "items": {
+              "$ref": "#/definitions/ActionSpec"
+            },
+            "type": "array"
+          },
+          "selected": {
+            "type": "boolean"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessibility",
+          "controls",
+          "enabled",
+          "secondary_actions",
+          "selected",
+          "title"
+        ],
+        "type": "object"
+      },
+      "PresentationTextStyle": {
+        "enum": [
+          "heading",
+          "body",
+          "caption",
+          "monospace",
+          "muted"
+        ],
+        "type": "string"
+      },
+      "PresentationTokens": {
+        "properties": {
+          "colors": {
+            "$ref": "#/definitions/PresentationColors"
+          },
+          "corner_radius": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "minimum_target_size": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "spacing_large": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "spacing_medium": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "spacing_small": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "colors",
+          "corner_radius",
+          "minimum_target_size",
+          "spacing_large",
+          "spacing_medium",
+          "spacing_small"
+        ],
+        "type": "object"
+      },
+      "PresentationTone": {
+        "enum": [
+          "neutral",
+          "accent",
+          "success",
+          "warning",
+          "error"
+        ],
+        "type": "string"
+      },
+      "QrPlacement": {
+        "description": "Where inside its square a display code is drawn: the code's side and the offset of its top-left corner, in permille of the square's side.\n\nBuilt only through [`Self::new`] and deserialisation, both of which keep the code inside the square and at least half its side, so a held value never asks a shell to draw outside its node.",
+        "properties": {
+          "size": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "x": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "y": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "size",
+          "x",
+          "y"
+        ],
+        "type": "object"
+      },
+      "SoundToken": {
+        "description": "Sound intent for [`Command::Celebrate`]. Closed enum — platforms map to a bundled asset; respecting the ringer is the frontend's call.",
+        "oneOf": [
+          {
+            "description": "The short exchange chime (\"clinking glasses\").",
+            "enum": [
+              "exchange_chime"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "No sound.",
+            "enum": [
+              "none"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "StandardShortcut": {
+        "enum": [
+          "back",
+          "activate_primary",
+          "undo",
+          "import"
+        ],
+        "type": "string"
+      },
+      "SurfaceLayout": {
+        "enum": [
+          "scroll",
+          "fixed",
+          "pinned"
+        ],
+        "type": "string"
+      },
+      "SurfaceSpec": {
+        "properties": {
+          "accessibility_label": {
+            "type": "string"
+          },
+          "layout": {
+            "$ref": "#/definitions/SurfaceLayout"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/definitions/PresentationNode"
+            },
+            "type": "array"
+          },
+          "revision": {
+            "description": "Monotonic Core-owned replacement generation for this surface.",
+            "format": "uint64",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "subtitle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "surface_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "tokens": {
+            "$ref": "#/definitions/PresentationTokens"
+          }
+        },
+        "required": [
+          "accessibility_label",
+          "layout",
+          "nodes",
+          "revision",
+          "surface_id",
+          "title",
+          "tokens"
+        ],
+        "type": "object"
+      },
+      "ToastSpec": {
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "type": "object"
+      },
+      "UserPresenceBinding": {
+        "description": "Which operating-system check guards a secret sealed for [`Command::CreateUserPresenceSecret`]. A biometric seal stops opening when the enrolled fingers or faces change, so a new enrolment, which needs only the device password, cannot read it (#778).",
+        "oneOf": [
+          {
+            "description": "Only the biometrics enrolled when the secret was sealed.",
+            "enum": [
+              "biometry"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "The device credential (passcode or login password), or biometrics.",
+            "enum": [
+              "device_credential"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "WindowClass": {
+        "enum": [
+          "compact",
+          "medium",
+          "expanded"
+        ],
+        "type": "string"
+      }
+    },
+    "description": "A command from core to the frontend requesting a hardware action.\n\nFrontends match on these and dispatch to platform-specific APIs (camera, BLE stack, NFC reader, audio subsystem). Commands that the platform cannot fulfil should be answered with [`Event::HardwareUnavailable`].",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "description": "Display a QR code containing `data`.",
+        "properties": {
+          "QrDisplay": {
+            "properties": {
+              "data": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "QrDisplay"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Request the frontend to open a QR scanner (camera).",
+        "enum": [
+          "QrRequestScan"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Core-computed wakeup schedule (ADR-030/031 command + ADR-044 Am2a: generic timer *data*, not a per-feature flag). Core stays the single authority on *when* the app-level heartbeat is due; the humble shell translates this into its platform wakeup — a desktop in-process interval/thread, iOS `BGAppRefreshTask`, Android `WorkManager` — and, when it fires, reports [`Event::WakeupFired`], which runs due work and emits the *next* `ScheduleWakeup`. All fields are relative seconds from now (the OS APIs take intervals, and it frees the shell from reading core's clock). Every interval is a *hint*: the OS may fire late, coalesce, or skip — wakeup work is elapsed-based and idempotent, so a missed or doubled wake is safe.",
+        "properties": {
+          "ScheduleWakeup": {
+            "properties": {
+              "deadline_secs": {
+                "description": "Latest the work should ideally run by; the shell picks a higher-fidelity mechanism if this is tight.",
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "delay_millis": {
+                "description": "How long the shell waits before reporting [`Event::WakeupFired`], in milliseconds: `earliest_millis`, else `earliest_secs`, never past `deadline_secs`. Core computes it so shells stop deriving it from the fields above, which they did three different ways (vauchi/private#548). Set only through `Command::schedule_wakeup`.",
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "earliest_millis": {
+                "description": "Sub-second override for `earliest_secs`, when the work being driven is finer-grained than a second. A shell that cannot schedule below a second ignores this and uses `earliest_secs`, so it is additive.\n\nExists because a live QR exchange advances its display from this heartbeat: whole seconds pinned it at one frame per second against a ~300 ms design, and the peer's camera decodes ~30 frames per second (device-measured 2026-08-19).",
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "earliest_secs": {
+                "description": "Earliest the shell should wake core (never earlier — battery floor).",
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "min_interval_secs": {
+                "description": "Minimum spacing between wakes the shell should honor (coalesce).",
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "deadline_secs",
+              "delay_millis",
+              "earliest_secs",
+              "min_interval_secs"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ScheduleWakeup"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Start advertising the vauchi BLE service with the given payload.",
+        "properties": {
+          "BleStartAdvertising": {
+            "properties": {
+              "payload": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "service_uuid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "payload",
+              "service_uuid"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleStartAdvertising"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Start scanning for vauchi BLE peripherals.",
+        "properties": {
+          "BleStartScanning": {
+            "properties": {
+              "service_uuid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "service_uuid"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleStartScanning"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Connect to a discovered BLE device.",
+        "properties": {
+          "BleConnect": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "device_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleConnect"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Write data to a BLE characteristic on the link to `device_id`.\n\n`device_id` addresses the target link so shells holding more than one live link (glare) route the write to the right peer instead of an implicit \"current\" connection (`_private/docs/designs/2026-07-22-role-tiebreak-and-glare-design.md`).",
+        "properties": {
+          "BleWriteCharacteristic": {
+            "properties": {
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              },
+              "uuid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "data",
+              "device_id",
+              "direction",
+              "uuid"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleWriteCharacteristic"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Read data from a BLE characteristic on the link to `device_id`.",
+        "properties": {
+          "BleReadCharacteristic": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              },
+              "uuid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "device_id",
+              "direction",
+              "uuid"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleReadCharacteristic"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Disconnect one specific BLE link, addressed by peer and direction.\n\nTargeted (not \"disconnect everything\") so glare resolution can drop exactly the losing link while the surviving link keeps carrying the handshake.",
+        "properties": {
+          "BleDisconnect": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              }
+            },
+            "required": [
+              "device_id",
+              "direction"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleDisconnect"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Activate the NFC interface and prepare to exchange `payload`.\n\n`apdus` is the same payload already framed by core (`exchange::nfc_apdu::frame_command`: SELECT, then the EXCHANGE chain). A reader shell transmits each frame verbatim and reports every response as [`Event::NfcApduReceived`]; a responder gets an empty list because it only listens. `payload` stays for shells that still frame on their own.",
+        "properties": {
+          "NfcActivate": {
+            "properties": {
+              "apdus": {
+                "default": [],
+                "items": {
+                  "items": {
+                    "format": "uint8",
+                    "minimum": 0.0,
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "payload": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "payload"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "NfcActivate"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Deactivate the NFC interface.",
+        "enum": [
+          "NfcDeactivate"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Send a continuation APDU on the already-active NFC session. Used by the multi-phase handshake after the initial `NfcActivate`: the frontend keeps the tag connection alive and transmits `data` opaquely, then surfaces the peer's response as `Event::NfcDataReceived`.\n\n`apdus` carries the frames core already built: the EXCHANGE chain on the reader side, the complete response APDU (`data || SW`) on the HCE side. Shells that forward raw bytes use it and ignore `data`.",
+        "properties": {
+          "NfcSendApdu": {
+            "properties": {
+              "apdus": {
+                "default": [],
+                "items": {
+                  "items": {
+                    "format": "uint8",
+                    "minimum": 0.0,
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "NfcSendApdu"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Emit ultrasonic PCM samples encoding a challenge.\n\nCore has already FSK-encoded the challenge bytes; the frontend just plays the samples through the device speaker. Mono float PCM at `sample_rate`.",
+        "properties": {
+          "AudioEmitChallenge": {
+            "properties": {
+              "sample_rate": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "samples": {
+                "items": {
+                  "format": "float",
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "sample_rate",
+              "samples"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "AudioEmitChallenge"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Listen for an ultrasonic response within `timeout_ms`.\n\n`sample_rate` is the suggested capture rate; if the device's preferred rate differs, the frontend reports its actual rate in [`Event::AudioSamplesRecorded`].",
+        "properties": {
+          "AudioListenForResponse": {
+            "properties": {
+              "sample_rate": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "timeout_ms": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "sample_rate",
+              "timeout_ms"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "AudioListenForResponse"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Stop all audio operations.",
+        "enum": [
+          "AudioStop"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "Start accelerometer sampling for proximity verification.",
+        "enum": [
+          "AccelerometerStart"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "Stop accelerometer sampling.",
+        "enum": [
+          "AccelerometerStop"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Deposit encrypted card into relay escrow gate.",
+        "properties": {
+          "RelayEscrowDeposit": {
+            "properties": {
+              "encrypted_card": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "gate_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "slot_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "ttl_seconds": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "encrypted_card",
+              "gate_hash",
+              "slot_hash",
+              "ttl_seconds"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RelayEscrowDeposit"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Check relay escrow gate readiness (poll until ready).\n\nFrontends should poll at `suggested_interval_ms` with exponential backoff (cap at 5 min). Report `RelayEscrowReady` when gate has ≥2 deposits, or `RelayEscrowFailed` on error/timeout.",
+        "properties": {
+          "RelayEscrowCheck": {
+            "properties": {
+              "gate_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "suggested_interval_ms": {
+                "description": "Suggested initial polling interval in milliseconds.",
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "gate_hash",
+              "suggested_interval_ms"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RelayEscrowCheck"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Retrieve blob from relay escrow gate.",
+        "properties": {
+          "RelayEscrowRetrieve": {
+            "properties": {
+              "gate_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "slot_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "gate_hash",
+              "slot_hash"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RelayEscrowRetrieve"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Show system share sheet with a URL.",
+        "properties": {
+          "ShowShareSheet": {
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ShowShareSheet"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Stop BLE scanning (saves battery after discovery completes).",
+        "enum": [
+          "BleStopScanning"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Swap opaque bytes with the peer over a direct transport (USB cable / local TCP). The wired exchange issues this command once per leg (key payload, then encrypted card); the bytes carry no leg discriminator and the shell must not need one (ADR-066).\n\nThe frontend should: 1. Send `payload` to the peer over a fresh TCP connection 2. Receive the peer's bytes from the same connection 3. Report them via [`Event::DirectPayloadReceived`]\n\nThe `is_initiator` flag determines send/recv ordering to avoid deadlock (initiator sends first, responder receives first).\n\n`endpoint` is where and how long to look for the peer; the shell executes it and decides none of it (#764).",
+        "properties": {
+          "DirectSend": {
+            "properties": {
+              "endpoint": {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/DirectEndpoint"
+                  }
+                ],
+                "default": {
+                  "browse_timeout_ms": 5000,
+                  "fallback_host": "127.0.0.1",
+                  "io_timeout_ms": 10000,
+                  "port": 19283,
+                  "service_type": "_vauchi-exchange._tcp.local."
+                }
+              },
+              "is_initiator": {
+                "type": "boolean"
+              },
+              "payload": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "is_initiator",
+              "payload"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "DirectSend"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Request the frontend to open the device photo library / gallery.\n\nFrontend should return [`Event::ImageReceived`] with the selected image bytes, or [`Event::ImagePickCancelled`] if the user dismisses the picker.",
+        "enum": [
+          "ImagePickFromLibrary"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "Request the frontend to capture an image from the device camera.\n\nFrontend should return [`Event::ImageReceived`] with the captured image bytes, or [`Event::ImagePickCancelled`] if the user cancels.",
+        "enum": [
+          "ImageCaptureFromCamera"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "Request the frontend to open a file picker for image files.\n\nUsed on desktop platforms where a photo library may not exist. Frontend should return [`Event::ImageReceived`] with the selected image bytes, or [`Event::ImagePickCancelled`] if the user cancels.",
+        "enum": [
+          "ImagePickFromFile"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Switch the active camera between front- and rear-facing.\n\nUsed by the multi-stage face-to-face exchange screen so the user can flip the scanner orientation without the frontend owning the preference. `use_front == true` selects the front camera.",
+        "properties": {
+          "SwitchCamera": {
+            "properties": {
+              "use_front": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "use_front"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SwitchCamera"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Request the frontend to open a file picker.\n\n`accepted_mime_types` is advisory — frontends may default to a coarser superset on platforms where the OS picker doesn't filter by MIME (e.g., older Android versions). `accepted_extensions` carries the same filter as lowercase, dot-less extensions for pickers that filter by extension or UTType instead (WinUI, iOS); an empty list means \"any file\". Both lists are derived from `purpose` (see [`FilePickPurpose::accepted_extensions`]), so shells never need a MIME table (ADR-066). `purpose` lets the frontend label the picker dialog without hardcoding strings; label text comes from core's locale store via `t(key)`.\n\nFrontend should return [`Event::FilePickedFromUser`] with the selected file's bytes, or [`Event::FilePickCancelledByUser`] if the user dismisses the picker.\n\nDistinct from [`Command::ImagePickFromFile`]: that variant returns [`Event::ImageReceived`] which is shaped for avatar normalization. File picking returns raw bytes plus filename for arbitrary payloads (vCard, encrypted backup blob, future key bundles, etc.).",
+        "properties": {
+          "FilePickFromUser": {
+            "properties": {
+              "accepted_extensions": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "accepted_mime_types": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "max_bytes": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "purpose": {
+                "$ref": "#/definitions/FilePickPurpose"
+              }
+            },
+            "required": [
+              "accepted_mime_types",
+              "purpose"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "FilePickFromUser"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Set the device screen brightness, optionally restoring the platform default when `level` is `None`.\n\nUsed by screens that need a specific brightness for their hardware to function (e.g., the multi-stage face-to-face exchange uses 65% brightness so the front camera is not over-exposed when scanning a peer's QR). The frontend is responsible for snapshotting the prior value on the *first* `Some(level)` after a `None` (or app start) so the subsequent `None` correctly restores it.\n\nFrontends that have no programmatic brightness control (e.g., desktop, where the OS owns it) answer with [`Event::HardwareUnavailable { transport: \"screen_brightness\" }`] — core should treat that as \"request honoured at platform default\" and not retry.\n\nPer `2026-05-01-screen-id-metadata-in-core` cousin `2026-05-04-exchange-command-screen-presentation`, ADR-031 §Hardware. Phase 1 of the FaceToFaceExchangeView retirement.",
+        "properties": {
+          "SetScreenBrightness": {
+            "properties": {
+              "level": {
+                "format": "float",
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetScreenBrightness"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Disable or re-enable the platform's idle / auto-lock timer.\n\n`disabled = true` keeps the screen awake (used by the multi-stage exchange so a longer-than-30s handshake doesn't trigger the device's auto-lock). `disabled = false` restores the platform default on screen exit. Idempotent — frontends MAY ignore a redundant set/clear.\n\nFrontends that have no programmatic idle-timer control answer with [`Event::HardwareUnavailable { transport: \"idle_timer\" }`].\n\nPhase 1 of the FaceToFaceExchangeView retirement (companion to [`Command::SetScreenBrightness`]).",
+        "properties": {
+          "SetIdleTimerDisabled": {
+            "properties": {
+              "disabled": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "disabled"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetIdleTimerDisabled"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Lock or unlock the device's screen orientation.\n\n`Some(orientation)` pins the screen to the requested orientation (e.g., `Portrait` so the multi-stage face-to-face exchange QR / camera layout stays stable while the user is moving the device); `None` restores the platform default (typically follows the device's physical rotation).\n\nFrontends that don't programmatically own orientation (`linux-gtk`, `linux-qt`, `windows`, desktop `macos` — windowed apps don't lock device rotation) answer with [`Event::HardwareUnavailable { transport: \"orientation_lock\" }`].\n\nPhase 2c of `2026-05-04-exchange-command-screen-presentation` — retires the orientation `DisposableEffect` in `android/app/src/main/kotlin/app/vauchi/ui/FaceToFaceExchangeScreen.kt`.",
+        "properties": {
+          "SetOrientationLock": {
+            "properties": {
+              "orientation": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Orientation"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetOrientationLock"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "deprecated": true,
+        "description": "Retired card-leg command. Core never emits it any more: the encrypted card rides [`Command::DirectSend`] like the key payload. The variant stays for one release so shells built against the split contract still compile; remove it (and `Event::DirectCardReceived`) in the release after every shell handles the card leg as a plain `DirectSend`.",
+        "properties": {
+          "DirectSendCard": {
+            "properties": {
+              "ciphertext": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "is_initiator": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "ciphertext",
+              "is_initiator"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "DirectSendCard"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Request the device's current location (ADR-051 contact annotations): used at an in-person exchange to record *where we met*. The frontend resolves permission and replies with [`Event::LocationResult`], or [`Event::PermissionDenied { transport: \"location\" }`] if the user declines, or [`Event::HardwareUnavailable`] if there is no location provider. `timeout_ms` bounds how long the frontend waits for a fix.",
+        "properties": {
+          "LocationRequest": {
+            "properties": {
+              "timeout_ms": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "timeout_ms"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "LocationRequest"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Render the exchange-success ceremony: a celebratory haptic + sound + animation (`designs/2026-06-06-exchange-ceremony-design.md`). The tokens are closed intent enums looked up against a static per-platform table (Wire-Humble kind rule) — core never sends assets or frequencies. Frontends skip any axis they can't render; the others still play. Emitted exactly once per validated exchange success, never on failure, and byte-identical regardless of auth mode (ADR-032 duress parity).",
+        "properties": {
+          "Celebrate": {
+            "properties": {
+              "animation": {
+                "$ref": "#/definitions/AnimationToken"
+              },
+              "haptic": {
+                "$ref": "#/definitions/HapticPattern"
+              },
+              "sound": {
+                "$ref": "#/definitions/SoundToken"
+              }
+            },
+            "required": [
+              "animation",
+              "haptic",
+              "sound"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "Celebrate"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Atomically replace the contextual controls associated with a surface.",
+        "properties": {
+          "SetContextBar": {
+            "properties": {
+              "bar": {
+                "$ref": "#/definitions/ContextBar"
+              },
+              "revision": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "bar",
+              "revision",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetContextBar"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Atomically replace the persistent navigation surface (bottom bar on phone, sidebar on desktop) for a surface, including which destination is currently selected. Emitted alongside [`Command::SetContextBar`] so shells that render a persistent bar need not open the navigation overlay to discover destinations; a shell that ignores this command keeps working off the overlay. Empty `navigation.items` (e.g. a locked app) means the bar has nothing to show.",
+        "properties": {
+          "SetNavigation": {
+            "properties": {
+              "navigation": {
+                "$ref": "#/definitions/NavigationSpec"
+              },
+              "revision": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "navigation",
+              "revision",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetNavigation"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Present navigation or secondary actions for a surface.",
+        "properties": {
+          "PresentOverlay": {
+            "properties": {
+              "overlay": {
+                "$ref": "#/definitions/OverlaySpec"
+              },
+              "revision": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "overlay",
+              "revision",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PresentOverlay"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Dismiss an overlay Core previously presented for a surface.\n\nCore emits this when the affordance that opened an overlay is activated again, so the context-bar buttons toggle. A shell that has already dismissed the overlay natively — and said so with [`Event::OverlayDismissed`] — treats this as a no-op; dismissal is idempotent so the two paths cannot race into an inconsistent view.",
+        "properties": {
+          "DismissOverlay": {
+            "properties": {
+              "kind": {
+                "$ref": "#/definitions/OverlayKind"
+              },
+              "revision": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "revision",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "DismissOverlay"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Apply Core's structural composition for the current window.",
+        "properties": {
+          "SetPresentationProfile": {
+            "properties": {
+              "profile": {
+                "$ref": "#/definitions/PresentationProfile"
+              }
+            },
+            "required": [
+              "profile"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetPresentationProfile"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Atomically replace one named surface with fully prepared, domain-free presentation primitives.",
+        "properties": {
+          "ReplaceSurface": {
+            "properties": {
+              "surface": {
+                "$ref": "#/definitions/SurfaceSpec"
+              }
+            },
+            "required": [
+              "surface"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ReplaceSurface"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Present a prepared native alert.",
+        "properties": {
+          "PresentAlert": {
+            "properties": {
+              "alert": {
+                "$ref": "#/definitions/AlertSpec"
+              }
+            },
+            "required": [
+              "alert"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PresentAlert"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Present transient informational feedback.",
+        "properties": {
+          "ShowToast": {
+            "properties": {
+              "toast": {
+                "$ref": "#/definitions/ToastSpec"
+              }
+            },
+            "required": [
+              "toast"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ShowToast"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Open a prepared URL using the platform default handler.",
+        "properties": {
+          "OpenExternalUrl": {
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "OpenExternalUrl"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Offer prepared bytes through the platform save/share mechanism.",
+        "properties": {
+          "ExportFile": {
+            "properties": {
+              "file": {
+                "$ref": "#/definitions/ExportFileSpec"
+              }
+            },
+            "required": [
+              "file"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ExportFile"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Write a Core-prepared machine-readable document to the shell's primary output, unread.",
+        "properties": {
+          "EmitDocument": {
+            "properties": {
+              "document": {
+                "$ref": "#/definitions/DocumentSpec"
+              }
+            },
+            "required": [
+              "document"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "EmitDocument"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "End a one-shot invocation with a generic outcome.",
+        "properties": {
+          "FinishInvocation": {
+            "properties": {
+              "outcome": {
+                "$ref": "#/definitions/InvocationOutcome"
+              }
+            },
+            "required": [
+              "outcome"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "FinishInvocation"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Perform the platform's default back behavior.",
+        "enum": [
+          "PerformNativeBack"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "Reset platform-owned application state after Core wiped its data.",
+        "enum": [
+          "ResetApplication"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "The theme catalog changed: read the selected theme again and apply it. Shells apply themes natively, so new themes otherwise wait for a restart (vauchi/private#733).",
+        "enum": [
+          "ReloadTheme"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Post a fully prepared operating-system notification.",
+        "properties": {
+          "PostNotification": {
+            "properties": {
+              "notification": {
+                "$ref": "#/definitions/NotificationSpec"
+              }
+            },
+            "required": [
+              "notification"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PostNotification"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Run the platform biometric prompt (LAContext, BiometricPrompt) for the lock screen's biometric unlock action. Success arrives as [`Event::BiometricUnlockSucceeded`]; a shell without the hardware answers [`Event::HardwareUnavailable`].",
+        "enum": [
+          "RequestBiometricUnlock"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Delete the secret the shell handed over under `handle`: Core now holds what it protected in secure storage (vauchi/private#580). The handle is the shell's own opaque name, echoed back unchanged.",
+        "properties": {
+          "ForgetStoredSecret": {
+            "properties": {
+              "handle": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "handle"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ForgetStoredSecret"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Make 32 random bytes and seal them in the platform keystore so that reading them back needs the operating system's own user-presence check, of the kind `binding` names, every time; run that check now, with `prompt` as its reason, and answer [`Event::UserPresenceSecretCreated`]. A shell that cannot answers [`Event::HardwareUnavailable`] (#712, #778).",
+        "properties": {
+          "CreateUserPresenceSecret": {
+            "properties": {
+              "binding": {
+                "$ref": "#/definitions/UserPresenceBinding"
+              },
+              "prompt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "binding",
+              "prompt"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "CreateUserPresenceSecret"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Run the operating system's user-presence check with `prompt` as its reason, unseal the secret from [`Command::CreateUserPresenceSecret`] and answer [`Event::UserPresenceSecretRevealed`], or [`Event::UserPresenceSecretMissing`] when the sealed item is gone (#712, #778).",
+        "properties": {
+          "RevealUserPresenceSecret": {
+            "properties": {
+              "prompt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "prompt"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RevealUserPresenceSecret"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Keep `state` in the platform's per-device app storage, outside Core's storage, in place of what was kept before; hand it back unchanged as `restorable_state` in every render-context push, before storage opens too. Only Core reads it (vauchi/private#814).",
+        "properties": {
+          "SaveRestorableState": {
+            "properties": {
+              "state": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SaveRestorableState"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Replace Core's native menu contributions. Sent only after the shell reports application-menu availability. Native Quit remains shell-owned.",
+        "properties": {
+          "SetApplicationMenu": {
+            "properties": {
+              "menus": {
+                "items": {
+                  "$ref": "#/definitions/ApplicationMenuSpec"
+                },
+                "type": "array"
+              },
+              "revision": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "menus",
+              "revision",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetApplicationMenu"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "A bounded operation for executors advertising correlated file results. Echo `request_id` unchanged in one `FilePickCompleted` event.",
+        "properties": {
+          "PickFile": {
+            "properties": {
+              "accepted_extensions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "accepted_mime_types": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "max_bytes": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "request_id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "accepted_extensions",
+              "accepted_mime_types",
+              "max_bytes",
+              "request_id",
+              "title"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PickFile"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Dismiss the picker and discard work for this opaque operation id.",
+        "properties": {
+          "CancelFilePick": {
+            "properties": {
+              "request_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "request_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "CancelFilePick"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Ask the person for the OS permission `transport` needs (ADR-077): the hardware shell reported [`Event::PermissionRequired`], and a prompt is display work. Answer [`Event::PermissionGranted`] or [`Event::PermissionDenied`].",
+        "properties": {
+          "RequestPermission": {
+            "properties": {
+              "transport": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "transport"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RequestPermission"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Show the hardware shell's live camera preview for `preview_id` in the camera area of the current surface (ADR-077).",
+        "properties": {
+          "CameraViewport": {
+            "properties": {
+              "preview_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "preview_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "CameraViewport"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Start the camera for `purpose`, previewing into the display shell's [`Command::CameraViewport`] with the same `preview_id`.",
+        "properties": {
+          "CameraCapture": {
+            "properties": {
+              "preview_id": {
+                "type": "string"
+              },
+              "purpose": {
+                "$ref": "#/definitions/CameraPurpose"
+              }
+            },
+            "required": [
+              "preview_id",
+              "purpose"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "CameraCapture"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Stop the capture `preview_id` and release the camera.",
+        "properties": {
+          "CameraStop": {
+            "properties": {
+              "preview_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "preview_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "CameraStop"
+        ],
+        "type": "object"
+      }
+    ],
+    "title": "Command"
+  },
+  "event": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+      "AudioCapability": {
+        "description": "Represents device audio capabilities.",
+        "oneOf": [
+          {
+            "description": "Device supports full ultrasonic audio (speaker + microphone)",
+            "enum": [
+              "Full"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Device can only emit ultrasonic audio (no microphone)",
+            "enum": [
+              "EmitOnly"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Device can only receive ultrasonic audio (no speaker)",
+            "enum": [
+              "ReceiveOnly"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Device does not support ultrasonic audio",
+            "enum": [
+              "None"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "BiometricType": {
+        "description": "Type of biometric hardware available on the device.",
+        "oneOf": [
+          {
+            "description": "Fingerprint sensor (Touch ID, Android fingerprint).",
+            "enum": [
+              "Fingerprint"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Face recognition (Face ID, Android face unlock).",
+            "enum": [
+              "FaceId"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Iris scanner.",
+            "enum": [
+              "Iris"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "BleAdvertisementObservation": {
+        "description": "Bounded native observations, without decoded exchange state. UUID bytes use network order (the order in the conventional hexadecimal UUID).",
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rssi": {
+            "format": "int16",
+            "type": "integer"
+          },
+          "service_uuids": {
+            "items": {
+              "$ref": "#/definitions/BleServiceUuid"
+            },
+            "maxItems": 32,
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "rssi",
+          "service_uuids"
+        ],
+        "type": "object"
+      },
+      "BleLinkDirection": {
+        "description": "Which physical direction a BLE link was established in, reported by the shell on [`Event::BleConnected`]. This is the ground truth for the exchange protocol role: the GATT **central** (it dialed out) drives the handshake as initiator; the GATT **peripheral** (it was connected to) responds. Deriving the role from the physical link — not the pre-connection token tiebreak — is what lets asymmetric BLE discovery self-heal: whichever side actually connects becomes the initiator, even if the token said otherwise (`_private/docs/designs/2026-07-22-role-tiebreak-and-glare-design.md`).",
+        "oneOf": [
+          {
+            "description": "This device is the GATT central — it dialed out to the peer's peripheral.",
+            "enum": [
+              "Outbound"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "This device is the GATT peripheral — the peer connected to it.",
+            "enum": [
+              "Inbound"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "BleServiceUuid": {
+        "description": "Preserve the native UUID width where the OS exposes it. `Normalized` explicitly records that the OS expanded a UUID and lost its wire width.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Uuid16": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Uuid16"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Uuid32": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 4,
+                "minItems": 4,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Uuid32"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Uuid128": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 16,
+                "minItems": 16,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Uuid128"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Normalized": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 16,
+                "minItems": 16,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Normalized"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ColorScheme": {
+        "description": "The operating system's light or dark appearance setting.",
+        "enum": [
+          "light",
+          "dark"
+        ],
+        "type": "string"
+      },
+      "DeviceCapabilities": {
+        "description": "Static description of device hardware capabilities.\n\nPopulated once at app startup by the platform layer (iOS/Android/Desktop). All fields use `#[serde(default)]` for backward compatibility when deserializing from older versions that may not include newer fields.",
+        "properties": {
+          "audio": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/AudioCapability"
+              }
+            ],
+            "default": "None",
+            "description": "Device audio capabilities (for ultrasonic proximity verification)."
+          },
+          "biometric_type": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/BiometricType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Type of biometric hardware, if available."
+          },
+          "can_seal_user_presence": {
+            "default": false,
+            "description": "The shell can seal a secret behind the operating system's own user-presence check (biometric or device credential) and answers `Command::CreateUserPresenceSecret` / `RevealUserPresenceSecret` (#712). Off until a shell implements them.",
+            "type": "boolean"
+          },
+          "device_name": {
+            "default": null,
+            "description": "Human-readable device model name reported by the platform, used as the default name when joining an existing identity from this device.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_accelerometer": {
+            "default": false,
+            "description": "Device has an accelerometer (for Bump/Shake proximity).",
+            "type": "boolean"
+          },
+          "has_biometrics": {
+            "default": false,
+            "description": "Device supports biometric authentication.",
+            "type": "boolean"
+          },
+          "has_ble": {
+            "default": false,
+            "description": "Device has Bluetooth Low Energy hardware.",
+            "type": "boolean"
+          },
+          "has_camera": {
+            "default": false,
+            "description": "Device has a camera (for QR code scanning).",
+            "type": "boolean"
+          },
+          "has_internet": {
+            "default": false,
+            "description": "Device has internet connectivity (for relay/Link/Web modes).",
+            "type": "boolean"
+          },
+          "has_nfc": {
+            "default": false,
+            "description": "Device has NFC hardware (for NFC Active exchange).",
+            "type": "boolean"
+          },
+          "has_secure_enclave": {
+            "default": false,
+            "description": "Device has a secure enclave / hardware security module.",
+            "type": "boolean"
+          },
+          "has_usb_port": {
+            "default": false,
+            "description": "Device has a USB port capable of data transfer (for Cable exchange).",
+            "type": "boolean"
+          },
+          "platform": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Platform"
+              }
+            ],
+            "default": "Unknown",
+            "description": "Platform identifier."
+          }
+        },
+        "type": "object"
+      },
+      "FilePickFailure": {
+        "enum": [
+          "read_failed",
+          "too_large",
+          "invalid_request",
+          "unsupported_file"
+        ],
+        "type": "string"
+      },
+      "FilePickOutcome": {
+        "oneOf": [
+          {
+            "enum": [
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "selected": {
+                "properties": {
+                  "bytes": {
+                    "items": {
+                      "format": "uint8",
+                      "minimum": 0.0,
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  },
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "bytes",
+                  "filename"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "selected"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "failed": {
+                "properties": {
+                  "code": {
+                    "$ref": "#/definitions/FilePickFailure"
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "failed"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "InputMode": {
+        "enum": [
+          "touch",
+          "pointer",
+          "keyboard"
+        ],
+        "type": "string"
+      },
+      "InputValue": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "boolean": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "boolean"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "choice": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "choice"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "number": {
+                "format": "double",
+                "type": "number"
+              }
+            },
+            "required": [
+              "number"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "MotionPreference": {
+        "enum": [
+          "full",
+          "reduced"
+        ],
+        "type": "string"
+      },
+      "NetworkCost": {
+        "description": "What the current network costs, as the shell reports it.",
+        "enum": [
+          "unmetered",
+          "metered",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "OverlayKind": {
+        "oneOf": [
+          {
+            "enum": [
+              "navigation",
+              "action_menu"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Text about the surface, no actions beyond dismissing it.",
+            "enum": [
+              "information"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "Platform": {
+        "description": "Platform the app is running on.",
+        "enum": [
+          "Android",
+          "Ios",
+          "Desktop",
+          "Web",
+          "Unknown"
+        ],
+        "type": "string"
+      }
+    },
+    "description": "A hardware event reported by the frontend back to core.\n\nThese are the results of previously issued [`Command`]s or asynchronous hardware notifications (e.g., BLE discovery, NFC tap).",
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "description": "The user scanned a QR code containing `data`.",
+        "properties": {
+          "QrScanned": {
+            "properties": {
+              "data": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "QrScanned"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Per-frame scan progress from the camera viewfinder.\n\nFrontends send this periodically (e.g., every 200-500 ms) while the QR scanner is active. Core uses the rolling detection rate to compute a [`ScanQuality`] indicator for the viewfinder frame color.\n\n- `detected`: whether a QR code was found in this frame - `confidence`: optional platform-specific confidence score (0-100) - `frame_skipped`: true if the scanner skipped this frame (e.g., sharpness gating). Skipped frames are excluded from the quality calculation — they indicate camera settling, not wrong pointing.",
+        "properties": {
+          "QrScanProgress": {
+            "properties": {
+              "confidence": {
+                "format": "uint8",
+                "minimum": 0.0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "detected": {
+                "type": "boolean"
+              },
+              "frame_skipped": {
+                "default": false,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "detected"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "QrScanProgress"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Where this device is reachable on the network it just joined, or `None` when it left one (ADR-070).\n\nAn observation about the platform, like every other variant here: the shell enumerates its interfaces — core cannot, for the same reason it cannot browse for peers (ADR-030/031) — and core decides what to do with it. Shells report on network change and pass `None` when leaving, so a stale address is never advertised to a joiner that cannot reach it.",
+        "properties": {
+          "LocalNetworkAddressChanged": {
+            "properties": {
+              "address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "LocalNetworkAddressChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "What the current network costs: unmetered (Wi-Fi, Ethernet), metered, or unknown. Shells report it on every network change; core decides what to run on it, such as \"Wi-Fi only\" content updates (vauchi/private#733 D6).",
+        "properties": {
+          "NetworkCostChanged": {
+            "properties": {
+              "cost": {
+                "$ref": "#/definitions/NetworkCost"
+              }
+            },
+            "required": [
+              "cost"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "NetworkCostChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Raw UUIDs observed by the native BLE scanner. Core decodes any protocol token; hardware adapters never interpret UUID payloads.",
+        "properties": {
+          "BleAdvertisementObserved": {
+            "$ref": "#/definitions/BleAdvertisementObservation"
+          }
+        },
+        "required": [
+          "BleAdvertisementObserved"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Compatibility observation carrying an already decoded advertisement token. New scanners report `BleAdvertisementObserved` instead.",
+        "properties": {
+          "BleDeviceDiscovered": {
+            "properties": {
+              "adv_data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "id": {
+                "type": "string"
+              },
+              "rssi": {
+                "format": "int16",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "adv_data",
+              "id",
+              "rssi"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleDeviceDiscovered"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Successfully connected to a BLE device. `direction` reports whether this device dialed out (GATT central → [`BleLinkDirection::Outbound`]) or was connected to (GATT peripheral → [`BleLinkDirection::Inbound`]); the handshake role is derived from it, not from the token tiebreak.",
+        "properties": {
+          "BleConnected": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              }
+            },
+            "required": [
+              "device_id",
+              "direction"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleConnected"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Data read from a BLE characteristic (response to `BleReadCharacteristic`).\n\n`device_id` names the link the data arrived on so core can reject events from a stale/losing link under glare instead of feeding them into the surviving session.",
+        "properties": {
+          "BleCharacteristicRead": {
+            "properties": {
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              },
+              "uuid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "data",
+              "device_id",
+              "direction",
+              "uuid"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleCharacteristicRead"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "BLE characteristic notification received (unsolicited push from peripheral). `device_id` names the link the notification arrived on (see [`Event::BleCharacteristicRead`]).",
+        "properties": {
+          "BleCharacteristicNotified": {
+            "properties": {
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              },
+              "uuid": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "data",
+              "device_id",
+              "direction",
+              "uuid"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleCharacteristicNotified"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "One BLE link was lost or closed. `device_id` + `direction` identify exactly which link, so dropping a losing glare link is distinguishable from losing the surviving session's link.",
+        "properties": {
+          "BleDisconnected": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              },
+              "direction": {
+                "$ref": "#/definitions/BleLinkDirection"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "device_id",
+              "direction",
+              "reason"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleDisconnected"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "NFC data received from a tap exchange (legacy shape: readers pass `data || SW1 SW2`, the HCE responder passes the bare payload).",
+        "properties": {
+          "NfcDataReceived": {
+            "properties": {
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "NfcDataReceived"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Raw bytes off the NFC wire, decoded by core: a response APDU on the reader side, a command APDU on the HCE side.",
+        "properties": {
+          "NfcApduReceived": {
+            "properties": {
+              "bytes": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "bytes"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "NfcApduReceived"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The OS NFC session failed (tag lost, session invalidated, transceive error). `reason` is the OS description; core decides what it means for the exchange.",
+        "properties": {
+          "NfcFailed": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "reason"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "NfcFailed"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Raw PCM samples from a microphone listen.\n\nCore decodes the FSK signal internally — the frontend ships whatever it captured at its native rate. Mono float PCM.",
+        "properties": {
+          "AudioSamplesRecorded": {
+            "properties": {
+              "sample_rate": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "samples": {
+                "items": {
+                  "format": "float",
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "sample_rate",
+              "samples"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "AudioSamplesRecorded"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "A hardware operation failed.",
+        "properties": {
+          "HardwareError": {
+            "properties": {
+              "error": {
+                "type": "string"
+              },
+              "transport": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "error",
+              "transport"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "HardwareError"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The requested hardware is not available on this platform.",
+        "properties": {
+          "HardwareUnavailable": {
+            "properties": {
+              "transport": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "transport"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "HardwareUnavailable"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The user denied the required permission for this hardware.\n\nDistinct from `HardwareUnavailable` (hardware absent) — the hardware exists but the OS permission was denied. Frontends should send this when a runtime permission prompt is rejected (camera, BLE, microphone).",
+        "properties": {
+          "PermissionDenied": {
+            "properties": {
+              "transport": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "transport"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PermissionDenied"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The device's current location, in reply to [`Command::LocationRequest`] (ADR-051 contact annotations). Coordinates are decimal degrees; `accuracy_meters` is the provider's reported horizontal accuracy, if any.",
+        "properties": {
+          "LocationResult": {
+            "properties": {
+              "accuracy_meters": {
+                "format": "float",
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "latitude": {
+                "format": "double",
+                "type": "number"
+              },
+              "longitude": {
+                "format": "double",
+                "type": "number"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "LocationResult"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Accelerometer sample from the device.\n\nAcceleration is reported in milli-g (thousandths of standard gravity) to avoid `f32` and keep the type `Eq`-compatible across FFI boundaries.",
+        "properties": {
+          "AccelerometerData": {
+            "properties": {
+              "timestamp_ms": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "x_milli_g": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "y_milli_g": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "z_milli_g": {
+                "format": "int32",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "timestamp_ms",
+              "x_milli_g",
+              "y_milli_g",
+              "z_milli_g"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "AccelerometerData"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Impact detected by the device accelerometer.",
+        "properties": {
+          "ImpactDetected": {
+            "properties": {
+              "magnitude_milli_g": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "timestamp_ms": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "magnitude_milli_g",
+              "timestamp_ms"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ImpactDetected"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Relay escrow gate has reached required deposit count.",
+        "properties": {
+          "RelayEscrowReady": {
+            "properties": {
+              "gate_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "gate_hash"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RelayEscrowReady"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Relay escrow deposit/retrieve failed or gate expired.",
+        "properties": {
+          "RelayEscrowFailed": {
+            "properties": {
+              "gate_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "gate_hash",
+              "reason"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RelayEscrowFailed"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "User shared the link via share sheet.",
+        "enum": [
+          "LinkShared"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Link was opened by peer, providing their public key.",
+        "properties": {
+          "LinkOpened": {
+            "properties": {
+              "peer_public_key": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "peer_public_key"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "LinkOpened"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Blob retrieved from relay escrow gate (response to `RelayEscrowRetrieve`).",
+        "properties": {
+          "RelayEscrowBlobReceived": {
+            "properties": {
+              "blob": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "gate_hash": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "blob",
+              "gate_hash"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RelayEscrowBlobReceived"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The peer's bytes received over a direct transport.\n\nSent by the frontend after completing the TCP swap requested by [`Command::DirectSend`]. Core decides from the exchange phase whether the bytes are the peer's key payload or its encrypted card; the shell forwards them unchanged (ADR-066).",
+        "properties": {
+          "DirectPayloadReceived": {
+            "properties": {
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "DirectPayloadReceived"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Image data received from photo library, camera, or file picker.\n\nThe frontend sends raw image bytes (PNG, JPEG, etc.) — core handles format detection and normalization to WebP.",
+        "properties": {
+          "ImageReceived": {
+            "properties": {
+              "data": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "data"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ImageReceived"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "The user cancelled the image picker / camera without selecting.",
+        "enum": [
+          "ImagePickCancelled"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "File data received from a [`Command::FilePickFromUser`] request.\n\n`bytes` is the entire file payload (no decoding — decoding lives in core). `filename` is the OS-reported display name; some platforms do not expose it, in which case the frontend reports an empty string.",
+        "properties": {
+          "FilePickedFromUser": {
+            "properties": {
+              "bytes": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "filename": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "bytes",
+              "filename"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "FilePickedFromUser"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "The user dismissed the file picker without selecting a file.",
+        "enum": [
+          "FilePickCancelledByUser"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "Platform biometric authentication (LAContext on iOS, BiometricPrompt on Android) succeeded. Core consults its duress-PIN state to decide the next step; the result rides back to the frontend as `ActionResult::BiometricUnlockOutcome`.",
+        "enum": [
+          "BiometricUnlockSucceeded"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "MTU negotiated for the active BLE connection. `mtu` is the raw value reported by the GATT stack (Android `MTU_CHANGED` callback, CoreBluetooth `maximumWriteValueLength + 3`). Core subtracts the 3-byte ATT header internally before chunking via `BleChunker::new(data, mtu - 3)`.\n\nDecoupled from `BleConnected` so a re-negotiation mid-session (Android `requestMtu` after connect) has a home, and so platforms whose connection completes before MTU resolves don't have to delay `BleConnected` waiting for it. Frontends that don't programmatically observe MTU (desktop Bluetooth stacks) simply never emit this event — the chunker stays at `BLE_DEFAULT_USABLE` (20 bytes per ATT minimum).\n\nPer `_private/docs/designs/2026-05-28-slice-32m-phase-0-event-command-mapping-design.md` §3.2.",
+        "properties": {
+          "BleMtuNegotiated": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              },
+              "mtu": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "device_id",
+              "mtu"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleMtuNegotiated"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "deprecated": true,
+        "description": "Retired card-leg event, still accepted for one release and handled exactly like [`Event::DirectPayloadReceived`]. Remove it together with `Command::DirectSendCard` once every shell reports the card leg as `DirectPayloadReceived`.",
+        "properties": {
+          "DirectCardReceived": {
+            "properties": {
+              "ciphertext": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "ciphertext"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "DirectCardReceived"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "A Core-minted interaction on a presented surface was activated.",
+        "properties": {
+          "ActionActivated": {
+            "properties": {
+              "interaction_id": {
+                "type": "string"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "interaction_id",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ActionActivated"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Available presentation facts changed for the current window.",
+        "properties": {
+          "PresentationEnvironmentChanged": {
+            "properties": {
+              "available_height": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "available_width": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "color_scheme": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ColorScheme"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "`None` from a shell that does not report it; Core then paints the dark default (vauchi/private#814)."
+              },
+              "input_modes": {
+                "items": {
+                  "$ref": "#/definitions/InputMode"
+                },
+                "type": "array"
+              },
+              "motion": {
+                "$ref": "#/definitions/MotionPreference"
+              }
+            },
+            "required": [
+              "available_height",
+              "available_width",
+              "input_modes",
+              "motion"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PresentationEnvironmentChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "A visible surface became the target of user interaction.",
+        "properties": {
+          "SurfaceActivated": {
+            "properties": {
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SurfaceActivated"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Native or contextual Back was requested for a surface.",
+        "properties": {
+          "BackRequested": {
+            "properties": {
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BackRequested"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "A presented overlay was dismissed without activating an item.",
+        "properties": {
+          "OverlayDismissed": {
+            "properties": {
+              "kind": {
+                "$ref": "#/definitions/OverlayKind"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "OverlayDismissed"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "A raw value changed for an opaque binding on the current surface.",
+        "properties": {
+          "ValueChanged": {
+            "properties": {
+              "binding_id": {
+                "type": "string"
+              },
+              "surface_id": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/definitions/InputValue"
+              }
+            },
+            "required": [
+              "binding_id",
+              "surface_id",
+              "value"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ValueChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The user signalled completion on an opaque binding — the platform's own \"done\" affordance (Return, IME action, Enter).\n\nAn observation, not an intent: the shell reports that the gesture happened and Core decides what it means. A shell that has no such affordance simply never sends it.",
+        "properties": {
+          "InputSubmitted": {
+            "properties": {
+              "binding_id": {
+                "type": "string"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "binding_id",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "InputSubmitted"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "An opaque binding lost input focus without the user submitting.\n\nPaired with `InputSubmitted` so Core can tell \"finished typing and confirmed\" from \"typed, then went elsewhere\" — the two need different treatment when text is still uncommitted.",
+        "properties": {
+          "InputFocusEnded": {
+            "properties": {
+              "binding_id": {
+                "type": "string"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "binding_id",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "InputFocusEnded"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The operating system delivered an opaque application deep link.",
+        "properties": {
+          "DeepLinkOpened": {
+            "properties": {
+              "uri": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "uri"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "DeepLinkOpened"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "The application moved to the background or lost its active session.",
+        "enum": [
+          "AppBackgrounded"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The user made the platform's refresh gesture (pull to refresh, a refresh key) on `surface_id`. An observation only: Core validates the surface as for [`Event::BackRequested`], decides what to refresh and presents the outcome, so the shell never reads a sync result (vauchi/private#762).",
+        "properties": {
+          "RefreshRequested": {
+            "properties": {
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "RefreshRequested"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The OS allows this app `runs` background executions per `window_secs` (Android's App Standby bucket); `runs` 0 means no known limit. An observation only: Core draws the background schedule within it.",
+        "properties": {
+          "BackgroundBudgetObserved": {
+            "properties": {
+              "runs": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "window_secs": {
+                "format": "uint32",
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "runs",
+              "window_secs"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BackgroundBudgetObserved"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "Core reported that background state changed outside an interaction.\n\nShells receive only a parameter-free wake signal, then return this canonical event. Core owns cache invalidation and emits the complete replacement command batch; no screen identifiers cross the boundary.",
+        "enum": [
+          "PresentationInvalidated"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The GATT link to `device_id` is ready to carry payload: services discovered, characteristics resolved, and the peer's notification subscription confirmed.\n\nDecoupled from [`Event::BleConnected`] for the same reason as [`Event::BleMtuNegotiated`]: platforms reach \"connected\" and \"usable\" at different moments, and delaying `BleConnected` until both hold would lose the connection signal the chrome needs.\n\nIt exists because treating \"connected\" as \"ready\" is what breaks the BLE modes. iOS reports connection before subscriptions resolve and applies no write backpressure, so a card write can reach the peer ahead of its KeyAck — which `orchestrator::ble_handshake_machine` treats as terminal, dropping the late KeyAck and killing the exchange. Android already waits for the same conditions internally, so it can report this immediately after its existing wait.\n\nOptional: a platform that never emits it leaves Core exactly as it was, so this cannot regress the shells that do not send it.\n\nPhase C of `_private/docs/planning/todo/2026-07-20-exchange-modes-regression-safe-completion-plan.md`.",
+        "properties": {
+          "BleGattReady": {
+            "properties": {
+              "device_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "device_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "BleGattReady"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The operating system confirmed the user and the shell sealed a fresh secret, answering [`Command::CreateUserPresenceSecret`].",
+        "properties": {
+          "UserPresenceSecretCreated": {
+            "properties": {
+              "secret": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "secret"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "UserPresenceSecretCreated"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The operating system confirmed the user and the shell unsealed the secret, answering [`Command::RevealUserPresenceSecret`].",
+        "properties": {
+          "UserPresenceSecretRevealed": {
+            "properties": {
+              "secret": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "secret"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "UserPresenceSecretRevealed"
+        ],
+        "type": "object"
+      },
+      {
+        "description": "The user dismissed the operating system's user-presence check.",
+        "enum": [
+          "UserPresenceCheckCancelled"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "The sealed secret is gone, answering [`Command::RevealUserPresenceSecret`]: the enrolment changed or the keystore lost the item, unlike [`Event::HardwareUnavailable`], which says this device cannot run the check at all (#778).",
+        "enum": [
+          "UserPresenceSecretMissing"
+        ],
+        "type": "string"
+      },
+      {
+        "description": "A timer armed by [`Command::ScheduleWakeup`] fired. May also be sent once at startup to bootstrap scheduling. Core runs due work and returns prepared effects, including notifications and the next timer, through the canonical command batch. Callers must execute [`Command::PostNotification`] before adopting this event instead of the legacy wakeup API; notification handoff is at most once.",
+        "enum": [
+          "WakeupFired"
+        ],
+        "type": "string"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Whether this window can render prepared native application menus.",
+        "properties": {
+          "ApplicationMenuAvailabilityChanged": {
+            "properties": {
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "available"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "ApplicationMenuAvailabilityChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Support for PickFile, CancelFilePick and correlated typed outcomes.",
+        "properties": {
+          "FilePickerCapabilitiesChanged": {
+            "properties": {
+              "correlated_results": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "correlated_results"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "FilePickerCapabilitiesChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "FilePickCompleted": {
+            "properties": {
+              "outcome": {
+                "$ref": "#/definitions/FilePickOutcome"
+              },
+              "request_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "outcome",
+              "request_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "FilePickCompleted"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The OS's hardware shell reports what the device can do (ADR-077). Its report attaches it: Core then delivers hardware commands to the hardware shell instead of the display shell.",
+        "properties": {
+          "HardwareCapabilitiesReported": {
+            "properties": {
+              "capabilities": {
+                "$ref": "#/definitions/DeviceCapabilities"
+              }
+            },
+            "required": [
+              "capabilities"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "HardwareCapabilitiesReported"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The hardware shell needs the person's OS permission for `transport` before it can run a command (ADR-077); Core has the display shell ask.",
+        "properties": {
+          "PermissionRequired": {
+            "properties": {
+              "transport": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "transport"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PermissionRequired"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "The person granted the permission a [`Command::RequestPermission`] asked for.",
+        "properties": {
+          "PermissionGranted": {
+            "properties": {
+              "transport": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "transport"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "PermissionGranted"
+        ],
+        "type": "object"
+      }
+    ],
+    "title": "Event"
+  },
+  "schema_version": 1
+}
