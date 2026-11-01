@@ -23,7 +23,6 @@ pub enum EventOrigin {
     Debug, Clone, Copy, PartialEq, Eq, Hash, Default, serde::Serialize, serde::Deserialize,
 )]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum ExchangeTransport {
     /// QR exchange: both sides display and scan QR codes.
     /// Both use fresh ephemeral X25519 keys for full forward secrecy.
@@ -60,7 +59,6 @@ pub enum ExchangeTransport {
 
 /// Confidence level of physical proximity during contact exchange.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[non_exhaustive]
 pub enum ProximityConfidence {
     /// High confidence: verified by ultrasonic audio or NFC tap.
     High,
@@ -76,7 +74,6 @@ pub enum ProximityConfidence {
 /// Represents device audio capabilities.
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
-#[non_exhaustive]
 pub enum AudioCapability {
     /// Device supports full ultrasonic audio (speaker + microphone)
     Full,
@@ -157,7 +154,6 @@ pub struct DeviceCapabilities {
 /// Type of biometric hardware available on the device.
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[non_exhaustive]
 pub enum BiometricType {
     /// Fingerprint sensor (Touch ID, Android fingerprint).
     Fingerprint,
@@ -170,7 +166,6 @@ pub enum BiometricType {
 /// Platform the app is running on.
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[non_exhaustive]
 pub enum Platform {
     Android,
     Ios,

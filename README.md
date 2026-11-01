@@ -20,4 +20,8 @@ on the files below, and on nothing from Core; only an app links Core.
 Versioning: the contract's version line runs alongside Core's and starts
 at 0.95.0 (owner, 2026-11-01); minors are additive, and the breaking-change
 check compares the schema against the last release and refuses a removed
-or retyped field, a removed variant or a tightened bound.
+or retyped field, a removed variant or a tightened bound. The Rust enums
+are exhaustive on purpose: Core is the one translator and must handle
+every variant, so a new variant fails its build instead of falling through
+a wildcard arm; a Rust shell that matches exhaustively gets the same
+signal.
