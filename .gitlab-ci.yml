@@ -1,0 +1,95 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The shell contract (ADR-078): format, clippy and the tests on every MR and
+# on main; the committed schema must be the generated one (a test), and the
+# schema must not break a shell built against the last release
+# (contract:breaking, ADR-078 item 8). Templates come from vauchi/scripts,
+# pinned like the other repositories.
+
+include:
+  - project: 'vauchi/scripts'
+    ref: ci-templates-v2026.10.31
+    file:
+      - '/ci-templates/rust-base.yml'
+      - '/ci-templates/mr-rules.yml'
+      - '/ci-templates/reuse.yml'
+      - '/ci-templates/timeouts.yml'
+
+stages:
+  - lint
+  - test
+
+variables:
+  VAUCHI_SCRIPTS_REF: "ci-templates-v2026.10.31"
+
+lint:format:
+  extends: [.rust-runner-nocache, .lint-format, .mr-or-main, .timeout-quick]
+  needs: []
+
+lint:clippy:
+  extends: [.rust-runner-readonly, .mr-or-main, .timeout-standard]
+  stage: lint
+  needs: []
+  script:
+    - cargo clippy --all-targets --features schema-gen -- -D warnings
+
+# The breaking-change check is pure Python; it is tested on every MR that
+# touches it, and on main, with seeded removals that must fail (CC-27).
+check:schema-breaking:
+  stage: lint
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/alpine:3.21
+  tags: [docker]
+  needs: []
+  before_script:
+    - apk add --no-cache python3
+  script:
+    - sh ci/tests/check-schema-breaking.test.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - ci/check-schema-breaking.py
+        - ci/tests/check-schema-breaking.test.sh
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# `cargo test --features schema-gen` includes tests/schema_fresh.rs: the
+# committed schema/vauchi-contract-v1.json must equal the generated one.
+test:unit:
+  extends: [.rust-runner, .mr-or-main, .timeout-standard]
+  stage: test
+  needs:
+    - job: lint:format
+      optional: true
+  script:
+    - cargo test --all-targets --features schema-gen
+
+# The schema may only grow between releases: compared with the last v* tag,
+# a removed property or variant, a retyped field, a new required property
+# or a tightened bound fails the MR. The first release has no previous tag
+# and passes with that said.
+contract:breaking:
+  stage: test
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/alpine:3.21
+  tags: [docker]
+  needs: []
+  variables:
+    GIT_DEPTH: 0
+  before_script:
+    - apk add --no-cache python3 git
+  script:
+    - |
+      set -eu
+      git fetch --quiet --tags origin
+      last=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+      if [ -z "$last" ]; then
+        echo "no previous release tag: nothing to compare against"
+        exit 0
+      fi
+      git show "$last:schema/vauchi-contract-v1.json" > /tmp/last-schema.json
+      echo "comparing against $last"
+      python3 ci/check-schema-breaking.py /tmp/last-schema.json schema/vauchi-contract-v1.json
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
