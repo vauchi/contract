@@ -10,8 +10,11 @@
 #[test]
 fn the_committed_schema_is_the_generated_one() {
     let committed: serde_json::Value = serde_json::from_str(
-        &std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/schema/vauchi-contract-v1.json"))
-            .expect("schema/vauchi-contract-v1.json is committed"),
+        &std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/schema/vauchi-contract-v1.json"
+        ))
+        .expect("schema/vauchi-contract-v1.json is committed"),
     )
     .expect("the committed schema is JSON");
     let generated = vauchi_contract::schema::generate();
