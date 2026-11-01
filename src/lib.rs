@@ -67,7 +67,6 @@ pub use presentation::{
 /// [`Event::HardwareUnavailable`].
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[non_exhaustive]
 pub enum Command {
     /// Display a QR code containing `data`.
     QrDisplay { data: String },
@@ -632,7 +631,6 @@ pub enum UserPresenceBinding {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum HapticPattern {
     /// The platform's "success" notification haptic.
     Success,
@@ -647,7 +645,6 @@ pub enum HapticPattern {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum SoundToken {
     /// The short exchange chime ("clinking glasses").
     ExchangeChime,
@@ -660,7 +657,6 @@ pub enum SoundToken {
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum AnimationToken {
     /// The two cards meet — the exchange-success beat (~600 ms, then still).
     CardsMeet,
@@ -675,7 +671,6 @@ pub enum AnimationToken {
 /// each frontend maps to its OS API.
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[non_exhaustive]
 pub enum Orientation {
     /// Portrait, top of the device pointing up.
     Portrait,
@@ -696,7 +691,6 @@ pub enum Orientation {
 /// (`_private/docs/designs/2026-07-22-role-tiebreak-and-glare-design.md`).
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[non_exhaustive]
 pub enum BleLinkDirection {
     /// This device is the GATT central — it dialed out to the peer's peripheral.
     Outbound,
@@ -712,7 +706,6 @@ pub enum BleLinkDirection {
 /// to update for a new well-known purpose.
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[non_exhaustive]
 pub enum FilePickPurpose {
     /// vCard / VCF import on top of the contacts engine.
     ImportContacts,
@@ -832,7 +825,6 @@ impl Command {
 /// asynchronous hardware notifications (e.g., BLE discovery, NFC tap).
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[non_exhaustive]
 pub enum Event {
     /// The user scanned a QR code containing `data`.
     QrScanned { data: String },
