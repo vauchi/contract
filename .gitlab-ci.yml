@@ -67,6 +67,27 @@ test:unit:
   script:
     - cargo test --all-targets --features schema-gen
 
+# The two envelopes may name no Vauchi feature or domain concept (ADR-066):
+# the test reads the retired vocabulary from vauchi/scripts'
+# humble_check_rules.json, so the scripts checkout is cloned beside the
+# run, as Core's validate:schema job did while the types were Core's.
+validate:schema:
+  extends: [.rust-runner, .mr-or-main, .timeout-standard]
+  stage: test
+  needs: []
+  before_script:
+    - !reference [.self-hosted, before_script]
+    - |
+      VAUCHI_CI_SCRIPTS_DIR=$(mktemp -d)
+      export VAUCHI_CI_SCRIPTS_DIR
+      git -C "${VAUCHI_CI_SCRIPTS_DIR}" init -q
+      git -C "${VAUCHI_CI_SCRIPTS_DIR}" remote add origin https://gitlab.com/vauchi/scripts.git
+      git -C "${VAUCHI_CI_SCRIPTS_DIR}" fetch -q --depth=1 origin "${VAUCHI_SCRIPTS_REF}"
+      git -C "${VAUCHI_CI_SCRIPTS_DIR}" checkout -q --detach FETCH_HEAD
+      test -f "$VAUCHI_CI_SCRIPTS_DIR/scripts/humble_check_rules.json"
+  script:
+    - cargo test --features schema-gen --test domain_vocabulary_boundary
+
 # The schema may only grow between releases: compared with the last v* tag,
 # a removed property or variant, a retyped field, a new required property
 # or a tightened bound fails the MR. The first release has no previous tag
