@@ -17,6 +17,7 @@ on the files below, and on nothing from Core; only an app links Core.
   `vauchi_contract::fixtures` and fetched as files by the Swift, Kotlin
   and C++ shells.
 
-Versioning: semver on the schema. Minors are additive; the breaking-change
+Versioning: the contract's version line runs alongside Core's and starts
+at 0.95.0 (owner, 2026-11-01); minors are additive, and the breaking-change
 check compares the schema against the last release and refuses a removed
 or retyped field, a removed variant or a tightened bound.
