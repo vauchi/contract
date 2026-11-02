@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# File-size baseline for the contract crate (VRS04, check-file-size.sh).
+# src/lib.rs is Core's vauchi-core/src/platform.rs moved here by ADR-078
+# (private#1013); Core's baseline marked it exempt, and the move dropped
+# that entry.
+src/lib.rs exempt
