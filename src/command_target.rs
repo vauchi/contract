@@ -61,7 +61,8 @@ impl Command {
             | Self::RevealUserPresenceSecret { .. }
             | Self::SaveRestorableState { .. }
             | Self::CameraCapture { .. }
-            | Self::CameraStop { .. } => CommandTarget::Hardware,
+            | Self::CameraStop { .. }
+            | Self::BleStopAdvertising => CommandTarget::Hardware,
             Self::QrDisplay { .. }
             | Self::ShowShareSheet { .. }
             | Self::ImagePickFromLibrary

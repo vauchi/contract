@@ -536,6 +536,9 @@ pub enum Command {
     },
     /// Stop the capture `preview_id` and release the camera.
     CameraStop { preview_id: String },
+    /// Stop the advertising [`Command::BleStartAdvertising`] started; the
+    /// hardware shell keeps advertising until Core sends this (ADR-077).
+    BleStopAdvertising,
 }
 
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
@@ -795,6 +798,7 @@ impl Command {
             Self::CameraViewport { .. } => "CameraViewport",
             Self::CameraCapture { .. } => "CameraCapture",
             Self::CameraStop { .. } => "CameraStop",
+            Self::BleStopAdvertising => "BleStopAdvertising",
             Self::SetNavigation { .. } => "SetNavigation",
             Self::PresentOverlay { .. } => "PresentOverlay",
             Self::DismissOverlay { .. } => "DismissOverlay",

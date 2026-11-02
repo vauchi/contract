@@ -3172,6 +3172,13 @@
           "CameraStop"
         ],
         "type": "object"
+      },
+      {
+        "description": "Stop the advertising [`Command::BleStartAdvertising`] started; the hardware shell keeps advertising until Core sends this (ADR-077).",
+        "enum": [
+          "BleStopAdvertising"
+        ],
+        "type": "string"
       }
     ],
     "title": "Command"
