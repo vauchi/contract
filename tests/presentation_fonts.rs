@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 //! The presentation tokens may carry the theme's font families (ADR-078
 //! step 4c, owner 2026-11-02), so a display shell renders them from the
 //! batch instead of reading the app's theme. The block is optional: a
