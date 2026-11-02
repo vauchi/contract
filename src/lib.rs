@@ -52,11 +52,11 @@ pub use presentation::{
     BindingId, ChoiceOption, ColorScheme, ContextBar, DocumentSpec, ExportFileSpec, InputMode,
     InputValue, InteractionId, InvocationOutcome, MotionPreference, NavigationItem, NavigationSpec,
     NotificationSpec, NotificationUrgency, OverlayKind, OverlaySpec, PaneLayout, PresentationAxis,
-    PresentationColors, PresentationIdError, PresentationImageShape, PresentationInputKind,
-    PresentationListStyle, PresentationNode, PresentationPaging, PresentationProfile,
-    PresentationQrErrorCorrection, PresentationQrPurpose, PresentationQrSize, PresentationRow,
-    PresentationTextStyle, PresentationTokens, PresentationTone, QrPlacement, StandardShortcut,
-    SurfaceId, SurfaceLayout, SurfaceSpec, ToastSpec, WindowClass,
+    PresentationColors, PresentationFonts, PresentationIdError, PresentationImageShape,
+    PresentationInputKind, PresentationListStyle, PresentationNode, PresentationPaging,
+    PresentationProfile, PresentationQrErrorCorrection, PresentationQrPurpose, PresentationQrSize,
+    PresentationRow, PresentationTextStyle, PresentationTokens, PresentationTone, QrPlacement,
+    StandardShortcut, SurfaceId, SurfaceLayout, SurfaceSpec, ToastSpec, WindowClass,
 };
 
 /// A command from core to the frontend requesting a hardware action.

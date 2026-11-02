@@ -48,6 +48,21 @@ pub struct PresentationTokens {
     pub corner_radius: u16,
     pub minimum_target_size: u16,
     pub colors: Box<PresentationColors>,
+    /// The theme's font families, so a display shell renders them from
+    /// the batch (ADR-078 step 4c). Absent from a Core that predates it;
+    /// a shell then keeps its bundled families.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fonts: Option<PresentationFonts>,
+}
+
+/// The three font families a theme names: display for titles, body for
+/// text, mono for codes and identifiers.
+#[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PresentationFonts {
+    pub display: String,
+    pub body: String,
+    pub mono: String,
 }
 
 /// The active theme's colours by role, as `#rrggbb`. A `None` role is one
