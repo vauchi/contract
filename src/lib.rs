@@ -1218,6 +1218,15 @@ mod tests {
 
     // @internal
     #[test]
+    fn ble_stop_advertising_is_a_hardware_command_named_on_the_wire() {
+        let cmd: Command = serde_json::from_str("\"BleStopAdvertising\"").unwrap();
+        assert_eq!(cmd, Command::BleStopAdvertising);
+        assert_eq!(cmd.target(), CommandTarget::Hardware);
+        assert_eq!(cmd.variant_name(), "BleStopAdvertising");
+    }
+
+    // @internal
+    #[test]
     fn audio_listen_stores_timeout() {
         let cmd = Command::AudioListenForResponse {
             timeout_ms: 5000,
