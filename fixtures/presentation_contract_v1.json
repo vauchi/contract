@@ -2,17 +2,88 @@
   "schema_version": 1,
   "file_picker_contract": {
     "commands": [
-      {"PickFile": {"request_id": "opaque-file-1", "title": "Prepared picker title", "accepted_mime_types": ["application/octet-stream"], "accepted_extensions": ["data"], "max_bytes": 3}},
-      {"CancelFilePick": {"request_id": "opaque-file-1"}}
+      {
+        "PickFile": {
+          "accepted_extensions": [
+            "data"
+          ],
+          "accepted_mime_types": [
+            "application/octet-stream"
+          ],
+          "max_bytes": 3,
+          "request_id": "opaque-file-1",
+          "title": "Prepared picker title"
+        }
+      },
+      {
+        "CancelFilePick": {
+          "request_id": "opaque-file-1"
+        }
+      }
     ],
     "events": [
-      {"FilePickerCapabilitiesChanged": {"correlated_results": true}},
-      {"FilePickCompleted": {"request_id": "opaque-file-1", "outcome": {"selected": {"bytes": [0, 128, 255], "filename": "chosen.data"}}}},
-      {"FilePickCompleted": {"request_id": "opaque-file-1", "outcome": "cancelled"}},
-      {"FilePickCompleted": {"request_id": "opaque-file-1", "outcome": {"failed": {"code": "read_failed"}}}},
-      {"FilePickCompleted": {"request_id": "opaque-file-1", "outcome": {"failed": {"code": "too_large"}}}},
-      {"FilePickCompleted": {"request_id": "opaque-file-1", "outcome": {"failed": {"code": "invalid_request"}}}},
-      {"FilePickCompleted": {"request_id": "opaque-file-1", "outcome": {"failed": {"code": "unsupported_file"}}}}
+      {
+        "FilePickerCapabilitiesChanged": {
+          "correlated_results": true
+        }
+      },
+      {
+        "FilePickCompleted": {
+          "outcome": {
+            "selected": {
+              "bytes": [0,128,255],
+              "filename": "chosen.data"
+            }
+          },
+          "request_id": "opaque-file-1"
+        }
+      },
+      {
+        "FilePickCompleted": {
+          "outcome": "cancelled",
+          "request_id": "opaque-file-1"
+        }
+      },
+      {
+        "FilePickCompleted": {
+          "outcome": {
+            "failed": {
+              "code": "read_failed"
+            }
+          },
+          "request_id": "opaque-file-1"
+        }
+      },
+      {
+        "FilePickCompleted": {
+          "outcome": {
+            "failed": {
+              "code": "too_large"
+            }
+          },
+          "request_id": "opaque-file-1"
+        }
+      },
+      {
+        "FilePickCompleted": {
+          "outcome": {
+            "failed": {
+              "code": "invalid_request"
+            }
+          },
+          "request_id": "opaque-file-1"
+        }
+      },
+      {
+        "FilePickCompleted": {
+          "outcome": {
+            "failed": {
+              "code": "unsupported_file"
+            }
+          },
+          "request_id": "opaque-file-1"
+        }
+      }
     ]
   },
   "effect_commands": [
