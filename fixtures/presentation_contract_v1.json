@@ -133,6 +133,11 @@
               "surface_elevated": "#303042",
               "text_on_accent": "#0A0A0A",
               "focus_ring": "#89b4fa"
+            },
+            "fonts": {
+              "display": "Bricolage Grotesque",
+              "body": "Hanken Grotesk",
+              "mono": "JetBrains Mono"
             }
           },
           "nodes": [
@@ -357,6 +362,11 @@
                   "surface_elevated": "#303042",
                   "text_on_accent": "#0A0A0A",
                   "focus_ring": "#89b4fa"
+                },
+                "fonts": {
+                  "display": "Bricolage Grotesque",
+                  "body": "Hanken Grotesk",
+                  "mono": "JetBrains Mono"
                 }
               },
               "nodes": [
@@ -488,6 +498,11 @@
                   "surface_elevated": "#303042",
                   "text_on_accent": "#0A0A0A",
                   "focus_ring": "#89b4fa"
+                },
+                "fonts": {
+                  "display": "Bricolage Grotesque",
+                  "body": "Hanken Grotesk",
+                  "mono": "JetBrains Mono"
                 }
               },
               "nodes": [
@@ -609,6 +624,11 @@
           "surface_elevated": "#303042",
           "text_on_accent": "#0A0A0A",
           "focus_ring": "#89b4fa"
+        },
+        "fonts": {
+          "display": "Bricolage Grotesque",
+          "body": "Hanken Grotesk",
+          "mono": "JetBrains Mono"
         }
       },
       "nodes": [
