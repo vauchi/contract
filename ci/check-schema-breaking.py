@@ -53,6 +53,13 @@ def _variants(node: dict[str, Any]) -> dict[str, dict[str, Any]] | None:
 
 
 def compare(old: Any, new: Any, path: str, breaks: list[str]) -> None:
+    if old == new or old is False or new is True:
+        return
+    if new is False or (old is True and new != {}):
+        breaks.append(f"{path}: schema became more restrictive")
+        return
+    if old is True:
+        old = {}
     if not isinstance(old, dict) or not isinstance(new, dict):
         return
     if "$ref" in old and old.get("$ref") != new.get("$ref"):
@@ -76,15 +83,17 @@ def compare(old: Any, new: Any, path: str, breaks: list[str]) -> None:
     for key in UPPER:
         if key in old and key in new and new[key] < old[key]:
             breaks.append(f"{path}: {key} tightened from {old[key]} to {new[key]}")
-        if key in new and key not in old and key in ("maxLength", "maxItems", "maximum"):
+        if key in new and key not in old:
             breaks.append(f"{path}: {key} {new[key]} added where none was")
     for key in LOWER:
+        if key in new and key not in old:
+            breaks.append(f"{path}: {key} {new[key]} added where none was")
         if key in old and key in new and new[key] > old[key]:
             breaks.append(f"{path}: {key} tightened from {old[key]} to {new[key]}")
     if "items" in old and "items" in new:
         compare(old["items"], new["items"], f"{path}[]", breaks)
-    if "additionalProperties" in old and "additionalProperties" in new:
-        compare(old["additionalProperties"], new["additionalProperties"], f"{path}.*", breaks)
+    compare(old.get("additionalProperties", True), new.get("additionalProperties", True),
+            f"{path}.*", breaks)
     ov, nv = _variants(old), _variants(new)
     if ov is not None and nv is not None:
         for key, arm in ov.items():
