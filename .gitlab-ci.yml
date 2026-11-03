@@ -10,21 +10,29 @@
 
 include:
   - project: 'vauchi/scripts'
-    ref: ci-templates-v2026.10.31
+    ref: 618760e5c3682005e505e42160fb59c059100e40
     file:
       - '/ci-templates/rust-base.yml'
+      - '/ci-templates/auto-tag.yml'
       - '/ci-templates/mr-rules.yml'
       - '/ci-templates/reuse.yml'
       - '/ci-templates/timeouts.yml'
       - '/ci-templates/badges.yml'
 
 stages:
+  - auto-tag
   - lint
   - test
   - deploy
 
+# A version bump merged to main is the release: the job pushes
+# v<Cargo.toml version> when that tag does not exist yet, so the tag always
+# sits on the merged commit (private#1045).
+auto-tag:version:
+  extends: .auto-tag
+
 variables:
-  VAUCHI_SCRIPTS_REF: "ci-templates-v2026.10.31"
+  VAUCHI_SCRIPTS_REF: "618760e5c3682005e505e42160fb59c059100e40"
 
 lint:format:
   extends: [.rust-runner-nocache, .lint-format, .mr-or-main, .timeout-quick]
