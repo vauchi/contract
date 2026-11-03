@@ -120,7 +120,9 @@ contract:breaking:
     - |
       set -eu
       git fetch --quiet --tags origin
-      last=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+      # One ref from git itself: `git tag | head -n 1` let head close the
+      # pipe while git still wrote, and the job died with SIGPIPE (141).
+      last=$(git for-each-ref --count=1 --sort=-v:refname --format='%(refname:short)' 'refs/tags/v*')
       if [ -z "$last" ]; then
         echo "no previous release tag: nothing to compare against"
         exit 0
