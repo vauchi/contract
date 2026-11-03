@@ -185,7 +185,10 @@ pub struct OverlaySpec {
     pub body: Option<String>,
     /// The visible and spoken label of the overlay's way out. A shell that
     /// draws a Close uses it; dismissing still reports `OverlayDismissed`.
-    /// Omitted on the wire when absent, so older shells see nothing new.
+    /// Core fills it for every overlay; a shell that gets none draws an
+    /// icon-only close named by the overlay's accessibility label and
+    /// chooses no word of its own (ADR-066). Optional on the wire because
+    /// minors are additive (ADR-078 item 8).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub close_label: Option<String>,
 }
@@ -241,6 +244,11 @@ pub struct PresentationProfile {
     pub primary_surface: SurfaceId,
     pub detail_surface: Option<SurfaceId>,
     pub active_surface: SurfaceId,
+    /// The window's title, prepared by Core so the shell picks no copy of
+    /// its own (ADR-066). Omitted on the wire when absent; a shell then
+    /// leaves the title it has.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub window_title: Option<String>,
 }
 
 /// One destination in the persistent navigation surface (bottom bar on

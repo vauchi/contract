@@ -570,7 +570,7 @@
             ]
           },
           "close_label": {
-            "description": "The visible and spoken label of the overlay's way out. A shell that draws a Close uses it; dismissing still reports `OverlayDismissed`. Omitted on the wire when absent, so older shells see nothing new.",
+            "description": "The visible and spoken label of the overlay's way out. A shell that draws a Close uses it; dismissing still reports `OverlayDismissed`. Core fills it for every overlay; a shell that gets none draws an icon-only close named by the overlay's accessibility label and chooses no word of its own (ADR-066). Optional on the wire because minors are additive (ADR-078 item 8).",
             "type": [
               "string",
               "null"
@@ -993,6 +993,13 @@
                     },
                     "type": "array"
                   },
+                  "search_placeholder": {
+                    "description": "The search field's placeholder when `searchable`, prepared by Core. Omitted on the wire when absent; the field then shows none.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
                   "searchable": {
                     "type": "boolean"
                   },
@@ -1159,6 +1166,20 @@
                 "properties": {
                   "accessibility": {
                     "$ref": "#/definitions/AccessibilitySpec"
+                  },
+                  "capture_placeholder": {
+                    "description": "A capture's text field placeholder, prepared by Core. Omitted on the wire when absent; the field then shows none.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "capture_submit_label": {
+                    "description": "A capture's submit button label, prepared by Core. Omitted on the wire when absent; the button is then named by `accessibility`.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "error_correction": {
                     "anyOf": [
@@ -1403,6 +1424,13 @@
           },
           "window_class": {
             "$ref": "#/definitions/WindowClass"
+          },
+          "window_title": {
+            "description": "The window's title, prepared by Core so the shell picks no copy of its own (ADR-066). Omitted on the wire when absent; a shell then leaves the title it has.",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [

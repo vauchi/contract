@@ -277,6 +277,10 @@ pub enum PresentationNode {
         searchable: bool,
         paging: Option<PresentationPaging>,
         accessibility: AccessibilitySpec,
+        /// The search field's placeholder when `searchable`, prepared by
+        /// Core. Omitted on the wire when absent; the field then shows none.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        search_placeholder: Option<String>,
         /// Omitted on the wire when `Rows`, so every existing fixture and
         /// shell keeps working unchanged.
         #[serde(default, skip_serializing_if = "PresentationListStyle::is_rows")]
@@ -325,6 +329,14 @@ pub enum PresentationNode {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         size: Option<PresentationQrSize>,
         accessibility: AccessibilitySpec,
+        /// A capture's text field placeholder, prepared by Core. Omitted on
+        /// the wire when absent; the field then shows none.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        capture_placeholder: Option<String>,
+        /// A capture's submit button label, prepared by Core. Omitted on the
+        /// wire when absent; the button is then named by `accessibility`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        capture_submit_label: Option<String>,
     },
     Confirmation {
         id: BindingId,
