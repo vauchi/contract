@@ -65,9 +65,9 @@ def compare(old: Any, new: Any, path: str, breaks: list[str]) -> None:
     if "$ref" in old and old.get("$ref") != new.get("$ref"):
         breaks.append(f"{path}: reference changed from {old['$ref']} to {new.get('$ref')}")
         return
-    ot, nt = _type_of(old), _type_of(new)
-    if ot is not None and nt is not None and ot != nt:
-        breaks.append(f"{path}: type changed from {ot} to {nt}")
+    old_type, new_type = _type_of(old), _type_of(new)
+    if old_type is not None and new_type is not None and old_type != new_type:
+        breaks.append(f"{path}: type changed from {old_type} to {new_type}")
     if isinstance(old.get("enum"), list) and isinstance(new.get("enum"), list):
         for value in old["enum"]:
             if value not in new["enum"]:
@@ -102,12 +102,12 @@ def compare(old: Any, new: Any, path: str, breaks: list[str]) -> None:
             else:
                 compare(arm, nv[key], f"{path}<{key}>", breaks)
     for defs_key in ("definitions", "$defs"):
-        od, nd = old.get(defs_key) or {}, new.get(defs_key) or {}
-        for name, sub in od.items():
-            if name not in nd:
+        old_definitions, new_definitions = old.get(defs_key) or {}, new.get(defs_key) or {}
+        for name, sub in old_definitions.items():
+            if name not in new_definitions:
                 breaks.append(f"{path}.{defs_key}.{name}: type removed")
             else:
-                compare(sub, nd[name], f"{path}.{defs_key}.{name}", breaks)
+                compare(sub, new_definitions[name], f"{path}.{defs_key}.{name}", breaks)
 
 
 def breaking_changes(old: dict[str, Any], new: dict[str, Any]) -> list[str]:
