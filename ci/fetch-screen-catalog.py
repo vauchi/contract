@@ -11,7 +11,10 @@ import os
 from pathlib import Path
 import re
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 from urllib.error import URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -19,6 +22,72 @@ from urllib.request import Request, urlopen
 MAX_BYTES = 8 * 1024 * 1024
 TAG = r"v\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?"
 SHA = r"[0-9a-f]{40}"
+
+# This released revision predates inventory files; its required IDs stay frozen.
+LEGACY_REVISION = "1f6c1b971bef1edb6fffab21c0bbdaa6664729fa"
+LEGACY_SCREEN_IDS = frozenset("""
+onboarding
+my_info-empty
+contacts-empty
+exchange-no_groups
+lock
+my_info
+contacts
+contact_detail
+contact_edit
+contact_visibility
+verify_fingerprint
+exchange
+settings
+settings_advanced
+settings_appearance
+settings_accessibility
+help
+backup
+device_linking
+device_management
+duress_pin
+change_password
+decoy_contacts
+emergency_broadcast
+emergency_shred
+delivery_status
+recovery
+recovery_help
+groups
+group_detail
+tags
+places
+privacy
+support
+entry_detail
+contact_duplicates
+contact_merge
+activity_log
+archived_contacts
+device_replacement
+avatar_editor
+recovery_claim_review
+link_exchange
+nfc_exchange
+direct_transport
+multi_stage_exchange-glance
+multi_stage_exchange-hover
+multi_stage_exchange-hover-placed
+ble_exchange-magic
+ble_exchange-bump
+ble_exchange-shake
+form_dialog-add_field
+form_dialog-edit_field
+form_dialog-edit_name
+form_dialog-edit_relay_url
+form_dialog-create_group
+form_dialog-rename_group
+onboarding-de
+my_info-de
+contacts-de
+settings-de
+""".split())
 
 
 class CatalogError(Exception):
@@ -81,6 +150,24 @@ def fetch_file(project, filename, ref):
         raise CatalogError(f"cannot fetch {project}/{filename} at {ref}") from error
 
 
+def validate_inventory(raw, actual_ids):
+    require(len(raw) <= MAX_BYTES, "inventory exceeds size limit")
+    try:
+        inventory = json.loads(raw)
+    except (ValueError, TypeError) as error:
+        raise CatalogError("malformed inventory") from error
+    require(type(inventory) is dict and set(inventory) == {"schema_version", "screen_ids"}
+            and type(inventory["schema_version"]) is int and inventory["schema_version"] == 1,
+            "invalid inventory schema")
+    ids = inventory["screen_ids"]
+    require(type(ids) is list and ids and all(type(item) is str and item for item in ids),
+            "invalid inventory IDs")
+    require(len(set(ids)) == len(ids), "duplicate inventory IDs")
+    missing, unexpected = set(ids) - actual_ids, actual_ids - set(ids)
+    require(not missing and not unexpected,
+            f"catalog inventory mismatch: missing {sorted(missing)}, unexpected {sorted(unexpected)}")
+
+
 def collect(repo, fetch=fetch_file):
     project, ref = pinned_ref(repo)
     evidence = {"schema_version": 1}
@@ -112,6 +199,17 @@ def collect(repo, fetch=fetch_file):
             ids.add(screen["code_id"])
     except (ValueError, TypeError) as error:
         raise CatalogError("malformed catalog") from error
+    if revision == LEGACY_REVISION:
+        inventory_raw = json.dumps({"schema_version": 1, "screen_ids": sorted(LEGACY_SCREEN_IDS)}).encode()
+        inventory_source = "frozen:" + revision
+    else:
+        inventory_raw, inventory_revision = fetch(
+            "contract", "fixtures/screen_catalog_inventory_v1.json", revision)
+        require(inventory_revision == revision, "inventory revision mismatch")
+        inventory_source = "contract:" + revision
+    validate_inventory(inventory_raw, ids)
+    evidence.update(inventory_source=inventory_source,
+                    inventory_sha256=hashlib.sha256(inventory_raw).hexdigest())
     evidence.update(contract_ref=ref, contract_revision=revision,
                     sha256=hashlib.sha256(raw).hexdigest(), screens=len(screens))
     return raw, evidence

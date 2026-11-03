@@ -53,7 +53,7 @@ check:schema-breaking:
   tags: [docker]
   needs: []
   before_script:
-    - apk add --no-cache python3
+    - apk add --no-cache python3 py3-tomli
   script:
     - sh ci/tests/check-schema-breaking.test.sh
     - python3 ci/tests/schema-restrictions.test.py
@@ -66,6 +66,8 @@ check:schema-breaking:
         - ci/tests/schema-restrictions.test.py
         - ci/fetch-screen-catalog.py
         - ci/tests/catalog-evidence.test.py
+        - fixtures/screen_catalog_v1.json
+        - fixtures/screen_catalog_inventory_v1.json
         - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
