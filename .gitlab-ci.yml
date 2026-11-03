@@ -57,12 +57,15 @@ check:schema-breaking:
   script:
     - sh ci/tests/check-schema-breaking.test.sh
     - python3 ci/tests/schema-restrictions.test.py
+    - python3 ci/tests/catalog-evidence.test.py
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - ci/check-schema-breaking.py
         - ci/tests/check-schema-breaking.test.sh
         - ci/tests/schema-restrictions.test.py
+        - ci/fetch-screen-catalog.py
+        - ci/tests/catalog-evidence.test.py
         - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
