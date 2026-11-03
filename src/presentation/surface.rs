@@ -91,6 +91,15 @@ pub struct PresentationColors {
 pub struct SurfaceSpec {
     pub surface_id: SurfaceId,
     /// Monotonic Core-owned replacement generation for this surface.
+    ///
+    /// A replacement with the same `surface_id` and `revision` as the one a
+    /// shell shows keeps that surface's structure: the same nodes in the same
+    /// order, with the same ids and bindings, each binding meaning what it
+    /// meant. Only values, labels, enabled state and validation text change,
+    /// so a shell may update the widgets it shows in place instead of
+    /// rebuilding them. A new revision may change anything. Core holds itself
+    /// to this in `vauchi-app`'s `same_revision_replacement_tests`
+    /// (vauchi/private#1062).
     pub revision: u64,
     pub title: String,
     pub subtitle: Option<String>,
