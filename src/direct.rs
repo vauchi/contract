@@ -52,7 +52,7 @@ pub fn write_frame(link: &mut impl Write, payload: &[u8]) -> Result<(), DirectFr
     Ok(())
 }
 
-/// Reads one frame and returns its payload.
+/// Reads one frame and returns its payload, never an empty one.
 pub fn read_frame(link: &mut impl Read) -> Result<Vec<u8>, DirectFrameError> {
     let mut magic = [0u8; 4];
     link.read_exact(&mut magic)?;
@@ -67,6 +67,9 @@ pub fn read_frame(link: &mut impl Read) -> Result<Vec<u8>, DirectFrameError> {
     let mut len = [0u8; 4];
     link.read_exact(&mut len)?;
     let len = u32::from_be_bytes(len);
+    if len == 0 {
+        return Err(DirectFrameError::EmptyPayload);
+    }
     if len > MAX_DIRECT_PAYLOAD {
         return Err(DirectFrameError::PayloadTooLarge(len));
     }
