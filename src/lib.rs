@@ -31,6 +31,7 @@ use serde::{Deserialize, Serialize};
 mod ble_observation;
 mod camera;
 mod command_target;
+pub mod direct;
 mod event_json;
 pub mod exchange_types;
 pub mod executor;
