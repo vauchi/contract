@@ -186,9 +186,9 @@ pub struct OverlaySpec {
     /// The visible and spoken label of the overlay's way out. A shell that
     /// draws a Close uses it; dismissing still reports `OverlayDismissed`.
     /// Core fills it for every overlay; a shell that gets none draws an
-    /// icon-only close named by the overlay's accessibility label and
-    /// chooses no word of its own (ADR-066). Optional on the wire because
-    /// minors are additive (ADR-078 item 8).
+    /// icon-only close named by the overlay's `title`, when there is one,
+    /// and chooses no word of its own (ADR-066). Optional on the wire
+    /// because minors are additive (ADR-078 item 8).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub close_label: Option<String>,
 }
