@@ -202,6 +202,16 @@ class ContractReportTest(unittest.TestCase):
         self.assertIn("&lt;script&gt;", output)
         self.assertIn("&#124;", output)
 
+    def test_large_nested_declarations_remain_readable_without_long_inline_rows(self):
+        large = copy.deepcopy(SCHEMA)
+        large["command"]["definitions"]["Long"] = {"oneOf": [
+            {"type": "string", "const": f"value-{i}"} for i in range(80)
+        ]}
+        self.write("schema.json", large)
+        output = self.run_cli("catalog").stdout
+        self.assertLess(max(map(len, output.splitlines())), 999)
+        self.assertIn("value-79", output)
+
 
 if __name__ == "__main__":
     unittest.main()

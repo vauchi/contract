@@ -163,6 +163,23 @@ def compact(value):
     return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
 
 
+def declaration_lines(body):
+    if not isinstance(body, dict) or not body.get("properties"):
+        raw = json.dumps(body, sort_keys=True, ensure_ascii=False, indent=2)
+        return ["```json", raw.replace("<", "\\u003c").replace(">", "\\u003e"), "```", ""]
+    lines = ["| Field | Required | Schema |", "| --- | --- | --- |"]
+    expanded = []
+    for field, value in sorted(body["properties"].items()):
+        required = "yes" if field in body.get("required", []) else "no"
+        fragment = {key: item for key, item in value.items() if key not in ANNOTATIONS}
+        rendered = code(compact(fragment))
+        if len(rendered) > 700:
+            expanded += [f"Field {code(field)}:", "", *declaration_lines(fragment)]
+            rendered = "expanded below"
+        lines.append(f"| {code(field)} | {required} | {rendered} |")
+    return lines + ["", *expanded]
+
+
 def catalog_markdown(schema):
     inventory(schema)
     lines = [
@@ -177,19 +194,17 @@ def catalog_markdown(schema):
     for root in ("command", "event"):
         lines += [f"## {root.title()} variants", "", "| Variant | Payload schema |", "| --- | --- |"]
         for name, body in sorted(variants(schema[root]).items()):
-            lines.append(f"| {code(name)} | {code(compact(body))} |")
+            fields = body.get("properties", {})
+            payload = ", ".join(code(field) for field in sorted(fields)) or "wire string"
+            lines.append(f"| {code(name)} | {payload} |")
+        lines.append("")
+        for name, body in sorted(variants(schema[root]).items()):
+            if body.get("properties"):
+                lines += [f"### {code(root + '.' + name)}", "", *declaration_lines(body)]
         lines += ["", f"## {root.title()} supporting types", ""]
         for name, body in sorted(schema[root].get("definitions", {}).items()):
-            lines += [f"### {code(root + '.' + name)}", ""]
-            if isinstance(body, dict) and body.get("properties"):
-                lines += ["| Field | Required | Schema |", "| --- | --- | --- |"]
-                for field, value in sorted(body["properties"].items()):
-                    required = "yes" if field in body.get("required", []) else "no"
-                    lines.append(f"| {code(field)} | {required} | {code(compact(value))} |")
-            else:
-                lines.append(code(compact(body)))
-            lines.append("")
-    return "\n".join(lines)
+            lines += [f"### {code(root + '.' + name)}", "", *declaration_lines(body)]
+    return "\n".join(lines).replace("\n\n\n", "\n\n")
 
 
 def report_markdown(result):
