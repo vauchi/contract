@@ -244,6 +244,58 @@ class ContractReportTest(unittest.TestCase):
         self.assertLess(max(map(len, output.splitlines())), 999)
         self.assertIn("value-79", output)
 
+    def test_coverage_and_unknown_bounds_prevent_an_optimistic_zero_percent(self):
+        changes = [{"id": str(i), "evidence": f"https://example.org/mr/{i}",
+                    "shell_behavior": "unchanged" if i == 0 else "unknown",
+                    "shells": [], "reason": "Review observation"} for i in range(10)]
+        self.write("impacts.json", {"version": 1, "changes": changes})
+        impact = self.report()["feature_impact"]
+        self.assertEqual(0.0, impact["required_share_of_known"])
+        self.assertEqual(0.1, impact["known_share_of_recorded"])
+        self.assertEqual({"lower": 0.0, "upper": 0.9}, impact["required_share_of_recorded_bounds"])
+        output = self.run_cli("report", "--impacts", self.impacts).stdout
+        self.assertIn("Known: 1/10", output)
+        self.assertIn("0.0% to 90.0%", output)
+        empty = self.write("empty.json", {"version": 1, "changes": []})
+        result = json.loads(self.run_cli("report", "--impacts", empty, "--format", "json").stdout)
+        self.assertEqual(None, result["feature_impact"]["known_share_of_recorded"])
+        self.assertEqual(None, result["feature_impact"]["required_share_of_recorded_bounds"])
+
+    def test_date_window_accounts_for_old_and_undated_observations(self):
+        common = {"evidence": "https://example.org/mr/1", "shell_behavior": "unknown",
+                  "shells": [], "reason": "Awaiting evidence"}
+        changes = [common | {"id": "old", "observed_on": "2026-10-31"},
+                   common | {"id": "current", "observed_on": "2026-11-05"},
+                   common | {"id": "undated"}]
+        self.write("impacts.json", {"version": 1, "changes": changes})
+        result = self.report("--since", "2026-11-01")["feature_impact"]
+        self.assertEqual(1, result["recorded"])
+        self.assertEqual([changes[1]], result["changes"])
+        self.assertEqual({"since": "2026-11-01", "total_recorded": 3,
+                          "undated": 1, "outside_window": 1}, result["window"])
+        self.assertEqual(3, self.report()["feature_impact"]["recorded"])
+        output = self.run_cli("report", "--impacts", self.impacts, "--since", "2026-11-01").stdout
+        self.assertIn("2026-11-01", output)
+        self.assertIn("undated: 1", output)
+
+    def test_per_shell_counts_distinguish_required_from_suspected_work(self):
+        common = {"evidence": "https://example.org/mr/1", "reason": "Native review"}
+        changes = [
+            common | {"id": "one", "shell_behavior": "required", "shells": ["qt-display", "apple-display"]},
+            common | {"id": "two", "shell_behavior": "required", "shells": ["qt-display"]},
+            common | {"id": "three", "shell_behavior": "unknown", "shells": ["qt-display"]},
+        ]
+        self.write("impacts.json", {"version": 1, "changes": changes})
+        self.assertEqual({"apple-display": {"required": 1, "unknown": 0},
+                          "qt-display": {"required": 2, "unknown": 1}},
+                         self.report()["feature_impact"]["by_shell"])
+        for update in ({"observed_on": "2026-02-30"}, {"observed_on": "20261105"},
+                       {"observed_on": 42}, {"shells": ["qt-display", "qt-display"]}):
+            with self.subTest(update=update):
+                self.write("impacts.json", {"version": 1, "changes": [changes[0] | update]})
+                result = self.run_cli("report", "--impacts", self.impacts, expected=2)
+                self.assertIn("invalid feature impact", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

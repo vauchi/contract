@@ -6,6 +6,7 @@
 
 import argparse
 from collections import Counter
+from datetime import date
 import hashlib
 import html
 import json
@@ -93,13 +94,26 @@ def semantic(value):
     return value
 
 
-def feature_impact(path):
+def parse_day(value):
+    try:
+        parsed = date.fromisoformat(value)
+        if parsed.isoformat() == value:
+            return parsed
+    except (TypeError, ValueError):
+        pass
+    raise ValueError("invalid feature impact: dates must use a valid YYYY-MM-DD")
+
+
+def feature_impact(path, since=None):
     document, _ = read_json(path)
     if not isinstance(document, dict) or document.get("version") != 1 or not isinstance(document.get("changes"), list):
         raise ValueError("invalid feature impact: expected version 1 and changes array")
-    changes, seen = document["changes"], set()
+    all_changes, seen, changes = document["changes"], set(), []
     counts, releases = Counter(), Counter()
-    for change in changes:
+    by_shell = {}
+    undated, outside_window = 0, 0
+    start = parse_day(since) if since is not None else None
+    for change in all_changes:
         if not isinstance(change, dict):
             raise ValueError("invalid feature impact: observation must be an object")
         for key in ("id", "evidence", "reason"):
@@ -118,17 +132,38 @@ def feature_impact(path):
             raise ValueError("invalid feature impact: unsupported classification")
         if not isinstance(shells, list) or any(not isinstance(s, str) or not s.strip() for s in shells):
             raise ValueError("invalid feature impact: shells must be an array of names")
+        if len(shells) != len(set(shells)):
+            raise ValueError("invalid feature impact: duplicate affected shell")
         if state == "required" and not shells:
             raise ValueError("invalid feature impact: required behavior must name affected shells")
         if state == "unchanged" and shells:
             raise ValueError("invalid feature impact: unchanged behavior must have no affected shells")
+        observed = parse_day(change["observed_on"]) if "observed_on" in change else None
+        undated += observed is None
+        if start is not None and observed is not None and observed < start:
+            outside_window += 1
+            continue
+        if start is not None and observed is None:
+            continue
+        changes.append(change)
         counts[state] += 1
         releases[release] += 1
+        for shell in shells:
+            by_shell.setdefault(shell, {"required": 0, "unknown": 0})[state] += 1
     known = counts["unchanged"] + counts["required"]
+    recorded = len(changes)
     return {
-        "recorded": len(changes), "known": known,
+        "recorded": recorded, "known": known,
         **{state: counts[state] for state in STATES},
         "required_share_of_known": counts["required"] / known if known else None,
+        "known_share_of_recorded": known / recorded if recorded else None,
+        "required_share_of_recorded_bounds": {
+            "lower": counts["required"] / recorded,
+            "upper": (counts["required"] + counts["unknown"]) / recorded,
+        } if recorded else None,
+        "window": {"since": since, "total_recorded": len(all_changes),
+                   "undated": undated, "outside_window": outside_window},
+        "by_shell": dict(sorted(by_shell.items())),
         "contract_release": {state: releases[state] for state in STATES},
         "changes": changes,
     }
@@ -159,7 +194,7 @@ def fixture_report(directory, baseline):
             if previous is not None else None}
 
 
-def report(schema, raw, impacts, baseline, fixtures, baseline_fixtures):
+def report(schema, raw, impacts, baseline, fixtures, baseline_fixtures, since):
     entries, counts = inventory(schema)
     growth = None
     if baseline:
@@ -179,7 +214,7 @@ def report(schema, raw, impacts, baseline, fixtures, baseline_fixtures):
             })],
         }
     return {"schema_sha256": hashlib.sha256(raw).hexdigest(), "schema_bytes": len(raw),
-            "counts": counts, "growth": growth, "feature_impact": feature_impact(impacts),
+            "counts": counts, "growth": growth, "feature_impact": feature_impact(impacts, since),
             "fixtures": fixture_report(fixtures, baseline_fixtures)}
 
 
@@ -277,19 +312,34 @@ def report_markdown(result):
     impact = result["feature_impact"]
     share = impact["required_share_of_known"]
     ratio = "not measured" if share is None else f"{impact['required']}/{impact['known']} ({share:.1%})"
+    window = impact["window"]
+    bounds = impact["required_share_of_recorded_bounds"]
+    bounds_text = "not measured" if bounds is None else f"{bounds['lower']:.1%} to {bounds['upper']:.1%}"
     lines += ["## Reviewed feature impact", "",
               "Scope: recorded changes only; unrecorded features are not counted.", "",
-              f"Recorded: {impact['recorded']}; unknown shell impact: {impact['unknown']}.", "",
+              f"Review window: {code(window['since'] or 'all dates')} onward.", "",
+              f"All observations: {window['total_recorded']}; undated: {window['undated']}; "
+              f"outside window: {window['outside_window']}.", "",
+              "Undated entries are excluded from dated windows; otherwise they are included.", "",
+              f"Known: {impact['known']}/{impact['recorded']}; unknown shell impact: {impact['unknown']}.", "",
               f"New shell behavior among known observations: {ratio}.", "",
+              f"Possible required share among selected observations: {bounds_text}.", "",
+              "Bounds reflect unresolved classifications, not statistical confidence.", "",
               "Contract-package release declarations: " + ", ".join(
                   f"{state}: {count}" for state, count in impact["contract_release"].items()) + ".", "",
               "Reviewer declarations link to evidence; schema size does not establish impact.", "",
-              "| Change | Shell behavior | Contract release | Affected shells | Reason | Evidence |",
-              "| --- | --- | --- | --- | --- | --- |"]
+              "| Change | Observed on | Shell behavior | Contract release | Affected shells | Reason | Evidence |",
+              "| --- | --- | --- | --- | --- | --- | --- |"]
     for change in impact["changes"]:
-        values = (change["id"], change["shell_behavior"], change.get("contract_release", "unknown"),
+        values = (change["id"], change.get("observed_on", "undated"),
+                  change["shell_behavior"], change.get("contract_release", "unknown"),
                   ", ".join(change["shells"]) or "none declared", change["reason"], change["evidence"])
         lines.append("| " + " | ".join(code(value) for value in values) + " |")
+    lines += ["", "## Affected shells", "",
+              "Counts describe required or suspected work, not completion or effort.", "",
+              "| Shell | Required observations | Unknown observations |", "| --- | ---: | ---: |"]
+    for shell, counts in impact["by_shell"].items():
+        lines.append(f"| {code(shell)} | {counts['required']} | {counts['unknown']} |")
     return "\n".join(lines) + "\n"
 
 
@@ -301,6 +351,7 @@ def main():
     parser.add_argument("--impacts", type=Path, default=ROOT / "review/feature-impact.json")
     parser.add_argument("--fixtures", type=Path, default=ROOT / "fixtures")
     parser.add_argument("--baseline-fixtures", type=Path)
+    parser.add_argument("--since", help="include feature reviews observed on or after YYYY-MM-DD")
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
     destination = parser.add_mutually_exclusive_group()
     destination.add_argument("--output", type=Path)
@@ -311,7 +362,7 @@ def main():
         if args.mode == "catalog":
             output = catalog_markdown(schema)
         else:
-            result = report(schema, raw, args.impacts, args.baseline, args.fixtures, args.baseline_fixtures)
+            result = report(schema, raw, args.impacts, args.baseline, args.fixtures, args.baseline_fixtures, args.since)
             output = json.dumps(result, indent=2, ensure_ascii=False) + "\n" if args.format == "json" else report_markdown(result)
         if args.check:
             if not args.check.is_file() or args.check.read_text(encoding="utf-8") != output:
