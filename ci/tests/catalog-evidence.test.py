@@ -22,6 +22,108 @@ RAW = json.dumps({"schema_version": 1, "screens": [
 
 
 class CatalogEvidenceTest(unittest.TestCase):
+    def journey_artifacts(self):
+        blobs = {
+            "screen_catalog_v1.json": RAW,
+            "screen_catalog_inventory_v1.json": b'{"schema_version":1,"screen_ids":["home"]}',
+            "presentation_contract_v1.json": b'{"schema_version":1,"initial_commands":[],"steps":[],"effect_commands":[],"expected_state":{},"file_picker_contract":{}}',
+        }
+        manifest = {"artifact_schema_version": 1, "core_revision": CORE_REVISION,
+                    "core_version": "0.97.0", "contract": {
+                        "version": "0.96.2", "tag": "v0.96.2", "revision": REVISION},
+                    "files": {name: {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+                              for name, raw in blobs.items()}}
+        blobs["manifest.json"] = json.dumps(manifest).encode()
+        return blobs
+
+    def test_product_journeys_bind_exact_core_and_contract(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.journey_artifacts()
+        calls = []
+        def artifact(revision, filename):
+            calls.append((revision, filename))
+            return blobs[filename]
+        raw, evidence = catalog.collect_assembly(self.root, self.fetch, artifact)
+        self.assertEqual(RAW, raw)
+        self.assertEqual("core-product-journey", evidence["fixture_category"])
+        self.assertEqual(CORE_REVISION, evidence["core_revision"])
+        self.assertEqual(REVISION, evidence["contract_revision"])
+        self.assertEqual(["home"], evidence["inventory"]["screen_ids"])
+        self.assertEqual({(CORE_REVISION, name) for name in blobs}, set(calls))
+        self.assertFalse(any(project == "contract" for project, _, _ in self.calls))
+
+    def test_product_manifest_mutations_are_rejected(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        mutations = [
+            lambda m: m.update(core_revision="c" * 40),
+            lambda m: m.update(core_version="0.97.1"),
+            lambda m: m.update(artifact_schema_version=True),
+            lambda m: m["contract"].update(revision="c" * 40),
+            lambda m: m["contract"].update(version="0.96.3"),
+            lambda m: m["files"].pop("presentation_contract_v1.json"),
+            lambda m: m["files"]["screen_catalog_v1.json"].update(sha256="0" * 64),
+        ]
+        for index, mutation in enumerate(mutations):
+            with self.subTest(index=index):
+                blobs = self.journey_artifacts()
+                manifest = json.loads(blobs["manifest.json"])
+                mutation(manifest)
+                blobs["manifest.json"] = json.dumps(manifest).encode()
+                with self.assertRaises(catalog.CatalogError):
+                    catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
+
+    def test_matching_hashes_do_not_allow_incomplete_product_catalog(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.journey_artifacts()
+        name = "screen_catalog_inventory_v1.json"
+        blobs[name] = b'{"schema_version":1,"screen_ids":["home","missing"]}'
+        manifest = json.loads(blobs["manifest.json"])
+        manifest["files"][name] = {"bytes": len(blobs[name]),
+                                   "sha256": hashlib.sha256(blobs[name]).hexdigest()}
+        blobs["manifest.json"] = json.dumps(manifest).encode()
+        with self.assertRaisesRegex(catalog.CatalogError, "inventory mismatch"):
+            catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
+
+    def test_product_catalog_cannot_escape_screenshot_directory(self):
+        for code_id in ("../outside", "/absolute", "a/b", "..", "a\\b"):
+            with self.subTest(code_id=code_id):
+                value = json.loads(RAW)
+                value["screens"][0]["code_id"] = code_id
+                with self.assertRaisesRegex(catalog.CatalogError, "invalid or duplicate"):
+                    catalog.validate_catalog(json.dumps(value).encode())
+
+    def test_deeply_nested_or_oversized_artifact_documents_are_rejected(self):
+        for raw in (b"[" * 2000 + b"]" * 2000, b" " * (catalog.MAX_BYTES + 1)):
+            with self.subTest(size=len(raw)):
+                with self.assertRaises(catalog.CatalogError):
+                    catalog.parse_document(raw)
+
+    def test_known_legacy_core_is_explicitly_classified(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        known = next(iter(catalog.LEGACY_CORES))
+        def fetch(project, filename, ref):
+            if project == "core":
+                raw, _ = self.fetch(project, filename, "v0.97.0" if filename == "Cargo.toml" else CORE_REVISION)
+                return raw, known
+            return self.fetch(project, filename, ref)
+        raw, evidence = catalog.collect_assembly(self.root, fetch)
+        self.assertEqual(RAW, raw)
+        self.assertEqual("core-assembly-legacy", evidence["fixture_category"])
+        self.assertEqual(known, evidence["core_revision"])
+
+    def test_windows_uses_immutable_cabi_source_pin(self):
+        (self.root / "cabi-version.json").write_text(json.dumps({
+            "version": "0.99.1", "source_commit": CORE_REVISION}))
+        self.assertEqual(("core", CORE_REVISION), catalog.pinned_ref(self.root))
+
+    def test_new_core_cannot_fall_back_to_contract_catalog(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        def unavailable(revision, filename):
+            raise catalog.CatalogError("artifact unavailable")
+        with self.assertRaisesRegex(catalog.CatalogError, "artifact unavailable"):
+            catalog.collect_assembly(self.root, self.fetch, unavailable)
+        self.assertFalse(any(project == "contract" for project, _, _ in self.calls))
+
     def test_native_collection_without_stdlib_tomllib(self):
         with patch.dict(sys.modules, {"tomllib": None}):
             legacy = importlib.util.module_from_spec(spec)
@@ -41,8 +143,12 @@ class CatalogEvidenceTest(unittest.TestCase):
     def fetch(self, project, filename, ref):
         self.calls.append((project, filename, ref))
         if project == "core":
+            if filename == "Cargo.lock":
+                self.assertEqual(CORE_REVISION, ref)
+                return (('[[package]]\nname="vauchi-contract"\nversion="0.96.2"\n'
+                         f'source="git+https://gitlab.com/vauchi/contract.git?tag=v0.96.2#{REVISION}"\n').encode(), CORE_REVISION)
             self.assertEqual("v0.97.0", ref)
-            return (b'[workspace.dependencies]\nvauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.96.2" }', CORE_REVISION)
+            return (b'[workspace.package]\nversion="0.97.0"\n[workspace.dependencies]\nvauchi-contract = { git = "https://gitlab.com/vauchi/contract.git", tag = "v0.96.2" }', CORE_REVISION)
         self.assertEqual("contract", project)
         self.assertIn(ref, ("v0.96.2", REVISION))
         if filename == "fixtures/screen_catalog_inventory_v1.json":
