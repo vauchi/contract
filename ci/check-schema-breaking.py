@@ -12,7 +12,10 @@ minimum, a shorter maxLength or maxItems, a longer minLength or minItems).
 
     check-schema-breaking.py OLD.json NEW.json
 
-Exit 0 when NEW is backward compatible with OLD, 1 with one line per break.
+Exit 0 when no checked old-data structural break is found; 1 per break.
+This structural check does not certify old receivers for new messages or
+generated source APIs. Supported producer/consumer pairs need codec and
+execution conformance evidence independently of this check.
 """
 from __future__ import annotations
 
@@ -131,6 +134,7 @@ def main(argv: list[str]) -> int:
     breaks = breaking_changes(old, new)
     for line in breaks:
         print(f"BREAKING: {line}")
+    print("Scope: checked old-data structure; old receivers for new messages are not certified.")
     print(f"{len(breaks)} breaking change(s) against {argv[0]}")
     return 1 if breaks else 0
 

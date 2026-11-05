@@ -14,6 +14,26 @@ CHECK = Path(__file__).resolve().parents[1] / "check-schema-breaking.py"
 
 
 class RestrictionsTest(unittest.TestCase):
+    def test_added_variants_report_direction_without_claiming_receiver_compatibility(self):
+        with tempfile.TemporaryDirectory() as folder:
+            old, new = [Path(folder) / name for name in ("old.json", "new.json")]
+            old.write_text(json.dumps({"schema_version": 1, "command": {
+                "oneOf": [{"enum": ["Stop"]}],
+            }}))
+            new.write_text(json.dumps({"schema_version": 1, "command": {
+                "oneOf": [{"enum": ["Stop", "Future"]}],
+            }}))
+            result = subprocess.run([sys.executable, str(CHECK), str(old), str(new)],
+                                    capture_output=True, text=True, timeout=10)
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertIn("0 breaking change(s)", result.stdout)
+            self.assertIn("old-data structure", result.stdout)
+            self.assertIn("old receivers", result.stdout)
+            reverse = subprocess.run([sys.executable, str(CHECK), str(new), str(old)],
+                                     capture_output=True, text=True, timeout=10)
+            self.assertEqual(1, reverse.returncode, reverse.stdout + reverse.stderr)
+            self.assertIn("Future", reverse.stdout)
+
     def compare(self, old, new, expected):
         with tempfile.TemporaryDirectory() as folder:
             paths = [Path(folder) / name for name in ("old.json", "new.json")]
