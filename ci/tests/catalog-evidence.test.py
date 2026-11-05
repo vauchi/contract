@@ -76,6 +76,7 @@ class CatalogEvidenceTest(unittest.TestCase):
             f'source = "git+https://gitlab.com/vauchi/contract.git?tag=v0.96.2#{REVISION}"\n')
         _, evidence = catalog.collect(self.root, self.fetch)
         self.assertEqual(REVISION, evidence["contract_ref"])
+        self.assertEqual("protocol-conformance-legacy", evidence["fixture_category"])
         self.assertEqual([("contract", "fixtures/screen_catalog_v1.json", REVISION),
                           ("contract", "fixtures/screen_catalog_inventory_v1.json", REVISION)], self.calls)
 

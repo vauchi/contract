@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-"""Fetch the full catalog at the consumer's contract pin, with provenance."""
+"""Fetch the legacy conformance catalog at an explicit consumer contract pin.
+
+Current product-journey evidence is published separately by Core revision.
+"""
 
 import argparse
 import base64
@@ -170,7 +173,7 @@ def validate_inventory(raw, actual_ids):
 
 def collect(repo, fetch=fetch_file):
     project, ref = pinned_ref(repo)
-    evidence = {"schema_version": 1}
+    evidence = {"schema_version": 1, "fixture_category": "protocol-conformance-legacy"}
     if project == "core":
         manifest, revision = fetch("core", "Cargo.toml", ref)
         evidence.update(core_ref=ref, core_revision=revision)
@@ -229,7 +232,7 @@ def main():
         print("catalog evidence: " + (str(error) if isinstance(error, CatalogError)
                                     else "invalid input or output"), file=sys.stderr)
         return 1
-    print(f"Full catalog: {evidence['screens']} screens at {evidence['contract_revision']}")
+    print(f"Legacy conformance catalog: {evidence['screens']} batches at {evidence['contract_revision']}")
     return 0
 
 

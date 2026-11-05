@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "nodes": [
+    {"List": {"id": "opaque.list", "label": "Items", "rows": [], "searchable": false, "paging": null, "accessibility": {"label": "Items", "description": null}}}
+  ],
+  "commands": [
+    {"BleWriteCharacteristic": {"device_id": "opaque.peer", "direction": "Outbound", "uuid": "00000000-0000-0000-0000-000000000001", "data": [1, 2, 3]}},
+    {"BleDisconnect": {"device_id": "opaque.peer", "direction": "Outbound"}}
+  ],
+  "events": [
+    {"ActionActivated": {"surface_id": "opaque.surface", "interaction_id": "opaque.action"}},
+    {"BleCharacteristicRead": {"device_id": "opaque.peer", "direction": "Outbound", "uuid": "00000000-0000-0000-0000-000000000001", "data": [1, 2, 3]}},
+    {"HardwareError": {"transport": "BLE", "error": "Operation failed"}}
+  ],
+  "invalid_events": [
+    {"UnknownRequiredEvent": {}},
+    {"ActionActivated": {"surface_id": "", "interaction_id": "opaque.action"}}
+  ]
+}
