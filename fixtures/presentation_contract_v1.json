@@ -257,6 +257,30 @@
                             "label": "Restore from backup",
                             "description": null
                           }
+                        },
+                        {
+                          "title": "Start recovery",
+                          "subtitle": "Enter your OLD public key (from backup or previous device). The key is a 64-character hex string.",
+                          "detail": null,
+                          "icon_token": "key",
+                          "image_data": null,
+                          "fallback_text": null,
+                          "selected": false,
+                          "enabled": true,
+                          "activation": {
+                            "interaction_id": "surface.1.interaction.2",
+                            "label": "Start recovery",
+                            "accessibility_label": "Start recovery",
+                            "icon_token": null,
+                            "enabled": true,
+                            "shortcut": null
+                          },
+                          "secondary_actions": [],
+                          "controls": [],
+                          "accessibility": {
+                            "label": "Start recovery",
+                            "description": null
+                          }
                         }
                       ],
                       "searchable": false,
