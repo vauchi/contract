@@ -317,7 +317,8 @@ def report_markdown(result):
     bounds_text = "not measured" if bounds is None else f"{bounds['lower']:.1%} to {bounds['upper']:.1%}"
     lines += ["## Reviewed feature impact", "",
               "Scope: recorded changes only; unrecorded features are not counted.", "",
-              f"Review window: {code(window['since'] or 'all dates')} onward.", "",
+              "Review window: " + (f"since {code(window['since'])}, inclusive."
+                                    if window["since"] else "all dates."), "",
               f"All observations: {window['total_recorded']}; undated: {window['undated']}; "
               f"outside window: {window['outside_window']}.", "",
               "Undated entries are excluded from dated windows; otherwise they are included.", "",

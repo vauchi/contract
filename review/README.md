@@ -26,10 +26,12 @@ new messages even when a new product screen does not.
    assertions distinguishable from primitive/codec conformance. Current
    fixture ownership stays as defined by the existing architecture.
 
-Use the MR template for a short review. Core-only feature work can record
-its observation in a small follow-up contract MR even when the schema
-does not change. Record representative reuse as well as extensions;
-recording only contract-changing features biases the result.
+Capture the short review in the feature's existing MR, then collect
+observations into this ledger in batches. A Core-only feature does not
+need its own contract MR or package release just to record a review.
+Record representative reuse as well as extensions; recording only
+contract-changing features biases the result. Tooling metadata alone
+does not establish a need for a contract-package release.
 
 ## Vocabulary catalog
 
@@ -61,6 +63,8 @@ Supply `--baseline path/to/old-schema.json` for vocabulary deltas and
 `--baseline-fixtures path/to/old-fixtures` for fixture deltas. Without a
 baseline, the corresponding growth is explicitly not measured.
 Use `--fixtures` and `--impacts` to select other input directories/files.
+Use `--since YYYY-MM-DD` for reviews observed on or after that date. This
+filters feature observations only; it does not change the schema baseline.
 
 CI publishes both formats and the baseline schema as artifacts of
 `contract:report`. MR comparisons use `CI_MERGE_REQUEST_DIFF_BASE_SHA`;
@@ -80,6 +84,15 @@ Interpret the dimensions separately:
 - File bytes are neither runtime message sizes nor final binary sizes.
   Measure latency, tree depth and resource use in consumer tests.
 
+Schema checks are directional structural guards. Passing the old-data
+check does not prove an older receiver accepts newly emitted tags or that
+generated source APIs remain compatible. Contract releases must examine
+source impact separately, including exhaustive enum matches. Test the
+producer/consumer combinations an app actually supports; a schema or
+version range alone is not execution evidence. The receiver tests pin
+current Rust rejection of hypothetical future tags, not historical native
+version compatibility.
+
 There is no arbitrary type-count or size cap. Investigate sustained
 growth alongside renderer work, release coordination and reuse.
 
@@ -88,6 +101,10 @@ growth alongside renderer work, release coordination and reuse.
 Append an observation to [feature-impact.json](feature-impact.json).
 Each entry needs a stable unique `id`, an HTTPS `evidence` link, a short
 `reason`, a `shell_behavior` classification and a `shells` array.
+Add `observed_on` as a valid `YYYY-MM-DD` when the review happened. This is
+the observation date, not the date the feature shipped. Existing undated
+records remain valid. Dated windows exclude them and report the count
+explicitly; they are included in the cumulative view.
 
 Use these classifications:
 
@@ -105,6 +122,7 @@ shells, but they remain excluded from the known denominator.
 ```json
 {
   "id": "example-existing-primitives",
+  "observed_on": "2026-11-05",
   "evidence": "https://example.org/merge-requests/42",
   "shell_behavior": "unchanged",
   "shells": [],
@@ -118,6 +136,18 @@ This example is illustrative; do not add it as an observation.
 The primary ratio is changes requiring new shell behavior divided by
 known reviewed changes. Reports also show unknown and total recorded
 counts. No observations means **not measured**, not zero impact.
+
+Read coverage before the ratio. One known unchanged observation and nine
+unknowns means 10% review coverage, not evidence that native work is rare.
+The report shows lower/upper required-share bounds among the selected
+records, treating unresolved observations as either unchanged or required.
+These are classification bounds, not statistical confidence intervals or
+bounds on unrecorded product work.
+
+Per-shell counts distinguish required observations from suspected work.
+List each affected shell once, using stable names consistently across
+reviews. Multiple entries can name the same shell. These counts describe
+implementation spread, not completed work, person-days or code quality.
 
 This is a review sample, not an automatic census of all product work.
 The tool cannot establish missing coverage, verify linked claims or infer

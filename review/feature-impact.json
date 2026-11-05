@@ -3,6 +3,7 @@
   "changes": [
     {
       "id": "onboarding-recovery-entry",
+      "observed_on": "2026-11-05",
       "evidence": "https://gitlab.com/vauchi/contract/-/merge_requests/19",
       "shell_behavior": "unknown",
       "shells": [],
