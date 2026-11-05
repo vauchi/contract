@@ -1,4 +1,13 @@
 {
   "version": 1,
-  "changes": []
+  "changes": [
+    {
+      "id": "onboarding-recovery-entry",
+      "evidence": "https://gitlab.com/vauchi/contract/-/merge_requests/19",
+      "shell_behavior": "unknown",
+      "shells": [],
+      "contract_release": "required",
+      "reason": "Contract 0.97.3 changes a journey fixture without changing the schema. Native shell handler impact has not been independently reviewed."
+    }
+  ]
 }

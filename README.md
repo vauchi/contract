@@ -3,6 +3,10 @@
 
 # vauchi-contract
 
+Browse the [generated vocabulary catalog](catalog/vocabulary.md) and
+[contract review and growth-report guide](review/README.md) when changing
+the protocol or reviewing feature impact.
+
 The shell contract: the `Command` and `Event` protocol every Vauchi shell
 renders or executes (ADR-066), as one package with its own version
 (ADR-078). A display shell or a hardware shell depends on this crate, or
