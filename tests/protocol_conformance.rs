@@ -34,10 +34,11 @@ fn focused_examples_decode_without_a_core_engine() {
 // @internal — required unknown events and invalid opaque identifiers fail closed.
 #[test]
 fn invalid_event_examples_are_refused() {
-    for event in corpus()["invalid_events"].as_array().unwrap() {
-        assert!(
-            serde_json::from_value::<Event>(event.clone()).is_err(),
-            "{event}"
-        );
+    let corpus = corpus();
+    let invalid = corpus["invalid_events"].as_array().unwrap();
+    assert_eq!(invalid.len(), 2);
+    for event in invalid {
+        let error = serde_json::from_value::<Event>(event.clone()).unwrap_err();
+        assert_eq!(error.classify(), serde_json::error::Category::Data);
     }
 }
