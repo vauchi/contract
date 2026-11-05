@@ -26,7 +26,7 @@ def read_json(path):
         raise ValueError(f"invalid JSON in {path}: {error}") from error
 
 
-def variants(node):
+def variants(node, *, envelopes=False):
     result = {}
     for arm in node["oneOf"]:
         if isinstance(arm, dict) and isinstance(arm.get("enum"), list):
@@ -38,7 +38,10 @@ def variants(node):
         for tag, body in entries:
             if not isinstance(tag, str) or not tag or tag in result:
                 raise ValueError("invalid contract schema: empty or duplicate variant")
-            result[tag] = body
+            if envelopes:
+                result[tag] = arm | {"enum": [tag]} if "enum" in arm else arm
+            else:
+                result[tag] = body
     if not result:
         raise ValueError("invalid contract schema: empty union")
     return result
@@ -54,7 +57,7 @@ def inventory(schema):
             raise ValueError(f"invalid contract schema: missing {root} union")
         arms = variants(node)
         counts[f"{root}_variants"] = len(arms)
-        entries.update({f"{root}.{name}": value for name, value in arms.items()})
+        entries.update({f"{root}.{name}": value for name, value in variants(node, envelopes=True).items()})
         definitions = node.get("definitions", {})
         if not isinstance(definitions, dict):
             raise ValueError("invalid contract schema: definitions must be an object")
@@ -67,9 +70,24 @@ def inventory(schema):
 
 def semantic(value):
     if isinstance(value, dict):
-        return {key: semantic(item) for key, item in value.items() if key not in ANNOTATIONS}
+        result = {}
+        for key, item in value.items():
+            if key in ANNOTATIONS:
+                continue
+            if key in ("properties", "definitions", "$defs", "patternProperties", "dependentSchemas"):
+                result[key] = {name: semantic(body) for name, body in item.items()}
+            elif key in ("default", "const"):
+                result[key] = item
+            elif key in ("enum", "required"):
+                result[key] = sorted(item, key=lambda entry: json.dumps(entry, sort_keys=True))
+            elif key in ("oneOf", "anyOf", "allOf"):
+                result[key] = sorted((semantic(entry) for entry in item),
+                                     key=lambda entry: json.dumps(entry, sort_keys=True))
+            else:
+                result[key] = semantic(item)
+        return result
     if isinstance(value, list):
-        return sorted((semantic(item) for item in value), key=lambda item: json.dumps(item, sort_keys=True))
+        return [semantic(item) for item in value]
     return value
 
 
@@ -126,6 +144,11 @@ def report(schema, raw, impacts, baseline):
             "removed": sorted(previous.keys() - entries.keys()),
             "changed": sorted(name for name in entries.keys() & previous.keys()
                               if semantic(entries[name]) != semantic(previous[name])),
+            "envelopes_changed": [root for root in ("command", "event") if semantic({
+                key: value for key, value in old[root].items() if key not in ("oneOf", "definitions")
+            }) != semantic({
+                key: value for key, value in schema[root].items() if key not in ("oneOf", "definitions")
+            })],
         }
     return {"schema_sha256": hashlib.sha256(raw).hexdigest(), "schema_bytes": len(raw),
             "counts": counts, "growth": growth, "feature_impact": feature_impact(impacts)}
@@ -183,7 +206,7 @@ def report_markdown(result):
     if growth is None:
         lines += ["No baseline supplied; growth is not measured.", ""]
     else:
-        for kind in ("added", "removed", "changed"):
+        for kind in ("added", "removed", "changed", "envelopes_changed"):
             lines.append(f"- {kind.title()}: " + (", ".join(code(x) for x in growth[kind]) or "none"))
         lines += ["", "Changes are structural observations, not compatibility verdicts.", ""]
     impact = result["feature_impact"]

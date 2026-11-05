@@ -128,6 +128,30 @@ class ContractReportTest(unittest.TestCase):
         self.assertIn("recorded changes only", markdown)
         self.assertIn("unknown", markdown)
 
+    def test_growth_preserves_tuple_order_and_data_named_like_schema_annotations(self):
+        for old_body, new_body in (
+            ({"type": "array", "items": [{"type": "string"}, {"type": "integer"}]},
+             {"type": "array", "items": [{"type": "integer"}, {"type": "string"}]}),
+            ({"type": "object", "properties": {"title": {"type": "string"}}},
+             {"type": "object", "properties": {"title": {"type": "integer"}}}),
+            ({"default": {"description": "before"}}, {"default": {"description": "after"}}),
+        ):
+            with self.subTest(old=old_body, new=new_body):
+                old, new = copy.deepcopy(SCHEMA), copy.deepcopy(SCHEMA)
+                old["command"]["definitions"]["Node"] = old_body
+                new["command"]["definitions"]["Node"] = new_body
+                self.write("schema.json", new)
+                growth = self.report("--baseline", self.write("old.json", old))["growth"]
+                self.assertEqual(["command.definitions.Node"], growth["changed"])
+
+    def test_root_constraints_and_variant_envelopes_are_reported(self):
+        old = copy.deepcopy(SCHEMA)
+        old["command"]["additionalProperties"] = False
+        old["command"]["oneOf"][1]["additionalProperties"] = False
+        growth = self.report("--baseline", self.write("old.json", old))["growth"]
+        self.assertEqual(["command.Show"], growth["changed"])
+        self.assertEqual(["command"], growth["envelopes_changed"])
+
     def test_empty_feature_history_is_not_reported_as_zero_impact(self):
         impact = self.report()["feature_impact"]
         self.assertEqual(0, impact["recorded"])
