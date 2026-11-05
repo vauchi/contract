@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""Catalog the emitted contract schema; report growth and reviewed feature impact."""
+
+import argparse
+from collections import Counter
+import hashlib
+import html
+import json
+from pathlib import Path
+import sys
+from urllib.parse import urlsplit
+
+ROOT = Path(__file__).resolve().parents[1]
+STATES = ("unchanged", "required", "unknown")
+ANNOTATIONS = {"description", "title", "examples", "$comment"}
+
+
+def read_json(path):
+    raw = Path(path).read_bytes()
+    try:
+        return json.loads(raw), raw
+    except (ValueError, UnicodeError) as error:
+        raise ValueError(f"invalid JSON in {path}: {error}") from error
+
+
+def variants(node):
+    result = {}
+    for arm in node["oneOf"]:
+        if isinstance(arm, dict) and isinstance(arm.get("enum"), list):
+            entries = [(tag, {"enum": [tag]}) for tag in arm["enum"]]
+        elif isinstance(arm, dict) and len(arm.get("properties", {})) == 1:
+            entries = list(arm["properties"].items())
+        else:
+            raise ValueError("invalid contract schema: unrecognized union arm")
+        for tag, body in entries:
+            if not isinstance(tag, str) or not tag or tag in result:
+                raise ValueError("invalid contract schema: empty or duplicate variant")
+            result[tag] = body
+    if not result:
+        raise ValueError("invalid contract schema: empty union")
+    return result
+
+
+def inventory(schema):
+    if not isinstance(schema, dict) or schema.get("schema_version") != 1:
+        raise ValueError("invalid contract schema: expected schema_version 1")
+    entries, counts, names = {}, {}, set()
+    for root in ("command", "event"):
+        node = schema.get(root)
+        if not isinstance(node, dict) or not isinstance(node.get("oneOf"), list):
+            raise ValueError(f"invalid contract schema: missing {root} union")
+        arms = variants(node)
+        counts[f"{root}_variants"] = len(arms)
+        entries.update({f"{root}.{name}": value for name, value in arms.items()})
+        definitions = node.get("definitions", {})
+        if not isinstance(definitions, dict):
+            raise ValueError("invalid contract schema: definitions must be an object")
+        names.update(definitions)
+        entries.update({f"{root}.definitions.{name}": value for name, value in definitions.items()})
+    counts["definition_names"] = len(names)
+    counts["definition_declarations"] = sum(".definitions." in name for name in entries)
+    return entries, counts
+
+
+def semantic(value):
+    if isinstance(value, dict):
+        return {key: semantic(item) for key, item in value.items() if key not in ANNOTATIONS}
+    if isinstance(value, list):
+        return sorted((semantic(item) for item in value), key=lambda item: json.dumps(item, sort_keys=True))
+    return value
+
+
+def feature_impact(path):
+    document, _ = read_json(path)
+    if not isinstance(document, dict) or document.get("version") != 1 or not isinstance(document.get("changes"), list):
+        raise ValueError("invalid feature impact: expected version 1 and changes array")
+    changes, seen = document["changes"], set()
+    counts, releases = Counter(), Counter()
+    for change in changes:
+        if not isinstance(change, dict):
+            raise ValueError("invalid feature impact: observation must be an object")
+        for key in ("id", "evidence", "reason"):
+            if not isinstance(change.get(key), str) or not change[key].strip():
+                raise ValueError(f"invalid feature impact: {key} is required")
+        if change["id"] in seen:
+            raise ValueError("invalid feature impact: duplicate id")
+        seen.add(change["id"])
+        evidence = urlsplit(change["evidence"])
+        state = change.get("shell_behavior")
+        release = change.get("contract_release", "unknown")
+        shells = change.get("shells")
+        if evidence.scheme != "https" or not evidence.netloc:
+            raise ValueError("invalid feature impact: evidence must be an HTTPS link")
+        if state not in STATES or release not in STATES:
+            raise ValueError("invalid feature impact: unsupported classification")
+        if not isinstance(shells, list) or any(not isinstance(s, str) or not s.strip() for s in shells):
+            raise ValueError("invalid feature impact: shells must be an array of names")
+        if state == "required" and not shells:
+            raise ValueError("invalid feature impact: required behavior must name affected shells")
+        if state == "unchanged" and shells:
+            raise ValueError("invalid feature impact: unchanged behavior must have no affected shells")
+        counts[state] += 1
+        releases[release] += 1
+    known = counts["unchanged"] + counts["required"]
+    return {
+        "recorded": len(changes), "known": known,
+        **{state: counts[state] for state in STATES},
+        "required_share_of_known": counts["required"] / known if known else None,
+        "contract_release": {state: releases[state] for state in STATES},
+        "changes": changes,
+    }
+
+
+def report(schema, raw, impacts, baseline):
+    entries, counts = inventory(schema)
+    growth = None
+    if baseline:
+        old, _ = read_json(baseline)
+        previous, old_counts = inventory(old)
+        growth = {
+            "counts": {name: count - old_counts[name] for name, count in counts.items()},
+            "added": sorted(entries.keys() - previous.keys()),
+            "removed": sorted(previous.keys() - entries.keys()),
+            "changed": sorted(name for name in entries.keys() & previous.keys()
+                              if semantic(entries[name]) != semantic(previous[name])),
+        }
+    return {"schema_sha256": hashlib.sha256(raw).hexdigest(), "schema_bytes": len(raw),
+            "counts": counts, "growth": growth, "feature_impact": feature_impact(impacts)}
+
+
+def code(value):
+    text = html.escape(str(value), quote=False).replace("|", "&#124;")
+    return "`" + text.replace("`", "&#96;").replace("\n", " ").replace("\r", " ") + "`"
+
+
+def compact(value):
+    return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+
+def catalog_markdown(schema):
+    inventory(schema)
+    lines = [
+        "<!-- SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me> -->",
+        "<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->", "",
+        "# Contract vocabulary", "",
+        "Generated by `ci/contract-report.py`; edit the canonical types, then regenerate.", "",
+        "Fields below reproduce schema declarations; references are not expanded.",
+        "Schema defaults are annotations, not a guarantee of native decoder behavior.",
+        "Custom Rust validation and renderer behavior require separate conformance tests.", "",
+    ]
+    for root in ("command", "event"):
+        lines += [f"## {root.title()} variants", "", "| Variant | Payload schema |", "| --- | --- |"]
+        for name, body in sorted(variants(schema[root]).items()):
+            lines.append(f"| {code(name)} | {code(compact(body))} |")
+        lines += ["", f"## {root.title()} supporting types", ""]
+        for name, body in sorted(schema[root].get("definitions", {}).items()):
+            lines += [f"### {code(root + '.' + name)}", ""]
+            if isinstance(body, dict) and body.get("properties"):
+                lines += ["| Field | Required | Schema |", "| --- | --- | --- |"]
+                for field, value in sorted(body["properties"].items()):
+                    required = "yes" if field in body.get("required", []) else "no"
+                    lines.append(f"| {code(field)} | {required} | {code(compact(value))} |")
+            else:
+                lines.append(code(compact(body)))
+            lines.append("")
+    return "\n".join(lines)
+
+
+def report_markdown(result):
+    lines = ["# Contract evolution report", "", "## Schema measurements", "",
+             f"Schema SHA-256: {code(result['schema_sha256'])}", "",
+             f"Schema file bytes: {result['schema_bytes']} (not a wire payload or binary size).", "",
+             "| Measure | Current | Delta |", "| --- | ---: | ---: |"]
+    growth = result["growth"]
+    for name, count in result["counts"].items():
+        delta = f"{growth['counts'][name]:+d}" if growth is not None else "not measured"
+        lines.append(f"| {name} | {count} | {delta} |")
+    lines += ["", "Definition names are deduplicated by name; declarations retain each root.", "",
+              "## Vocabulary changes", ""]
+    if growth is None:
+        lines += ["No baseline supplied; growth is not measured.", ""]
+    else:
+        for kind in ("added", "removed", "changed"):
+            lines.append(f"- {kind.title()}: " + (", ".join(code(x) for x in growth[kind]) or "none"))
+        lines += ["", "Changes are structural observations, not compatibility verdicts.", ""]
+    impact = result["feature_impact"]
+    share = impact["required_share_of_known"]
+    ratio = "not measured" if share is None else f"{impact['required']}/{impact['known']} ({share:.1%})"
+    lines += ["## Reviewed feature impact", "",
+              "Scope: recorded changes only; unrecorded features are not counted.", "",
+              f"Recorded: {impact['recorded']}; unknown shell impact: {impact['unknown']}.", "",
+              f"New shell behavior among known observations: {ratio}.", "",
+              "Contract-package release declarations: " + ", ".join(
+                  f"{state}: {count}" for state, count in impact["contract_release"].items()) + ".", "",
+              "These are reviewer declarations linked to evidence, not inferred from schema size.", "",
+              "| Change | Shell behavior | Contract release | Affected shells | Reason | Evidence |",
+              "| --- | --- | --- | --- | --- | --- |"]
+    for change in impact["changes"]:
+        values = (change["id"], change["shell_behavior"], change.get("contract_release", "unknown"),
+                  ", ".join(change["shells"]) or "none declared", change["reason"], change["evidence"])
+        lines.append("| " + " | ".join(code(value) for value in values) + " |")
+    return "\n".join(lines) + "\n"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", choices=("catalog", "report"))
+    parser.add_argument("schema", type=Path)
+    parser.add_argument("--baseline", type=Path)
+    parser.add_argument("--impacts", type=Path, default=ROOT / "review/feature-impact.json")
+    parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
+    destination = parser.add_mutually_exclusive_group()
+    destination.add_argument("--output", type=Path)
+    destination.add_argument("--check", type=Path)
+    args = parser.parse_args()
+    try:
+        schema, raw = read_json(args.schema)
+        if args.mode == "catalog":
+            output = catalog_markdown(schema)
+        else:
+            result = report(schema, raw, args.impacts, args.baseline)
+            output = json.dumps(result, indent=2, ensure_ascii=False) + "\n" if args.format == "json" else report_markdown(result)
+        if args.check:
+            if not args.check.is_file() or args.check.read_text(encoding="utf-8") != output:
+                print("catalog is stale; regenerate with --output", file=sys.stderr)
+                return 1
+            print("catalog is current")
+        elif args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(output, encoding="utf-8")
+        else:
+            print(output, end="")
+        return 0
+    except (ValueError, OSError, TypeError, KeyError, RecursionError) as error:
+        print(f"contract report: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
