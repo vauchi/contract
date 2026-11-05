@@ -1783,7 +1783,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `BackRequested` | `surface_id` |
 | `BackgroundBudgetObserved` | `runs`, `window_secs` |
 | `BiometricUnlockSucceeded` | wire string |
-| `BleAdvertisementObserved` | wire string |
+| `BleAdvertisementObserved` | `{"$ref":"#/definitions/BleAdvertisementObservation"}` |
 | `BleCharacteristicNotified` | `data`, `device_id`, `direction`, `uuid` |
 | `BleCharacteristicRead` | `data`, `device_id`, `direction`, `uuid` |
 | `BleConnected` | `device_id`, `direction` |
@@ -1875,6 +1875,14 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | --- | --- | --- |
 | `runs` | yes | `{"format":"uint32","minimum":0.0,"type":"integer"}` |
 | `window_secs` | yes | `{"format":"uint32","minimum":0.0,"type":"integer"}` |
+
+### `event.BleAdvertisementObserved`
+
+```json
+{
+  "$ref": "#/definitions/BleAdvertisementObservation"
+}
+```
 
 ### `event.BleCharacteristicNotified`
 

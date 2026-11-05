@@ -169,6 +169,38 @@ class ContractReportTest(unittest.TestCase):
         self.assertEqual({"required": 1, "unchanged": 0, "unknown": 0}, impact["contract_release"])
         self.assertIn("release", self.run_cli("report", "--impacts", self.impacts).stdout)
 
+    def test_fixture_churn_is_reported_without_inventing_vocabulary_growth(self):
+        current, previous = self.root / "fixtures", self.root / "previous-fixtures"
+        current.mkdir()
+        previous.mkdir()
+        (current / "journey.json").write_text('{"rows":3}\n', encoding="utf-8")
+        (previous / "journey.json").write_text('{"rows":2}\n', encoding="utf-8")
+        (current / "new.json").write_text("{}\n", encoding="utf-8")
+        (previous / "retired.json").write_text("{}\n", encoding="utf-8")
+        result = self.report("--baseline", self.schema, "--fixtures", current,
+                             "--baseline-fixtures", previous)
+        self.assertEqual([], result["growth"]["added"])
+        self.assertEqual([], result["growth"]["changed"])
+        self.assertEqual({"added": ["new.json"], "removed": ["retired.json"],
+                          "changed": ["journey.json"]}, result["fixtures"]["changes"])
+        self.assertEqual(14, result["fixtures"]["bytes"])
+        self.assertEqual(11, result["fixtures"]["files"]["journey.json"]["bytes"])
+
+    def test_newtype_payload_is_not_mislabeled_as_a_unit_variant(self):
+        schema = copy.deepcopy(SCHEMA)
+        schema["event"]["oneOf"].append({"properties": {
+            "NodeObserved": {"$ref": "#/definitions/Node"},
+        }})
+        self.write("schema.json", schema)
+        output = self.run_cli("catalog").stdout
+        self.assertIn('`NodeObserved` | `{"$ref":"#/definitions/Node"}`', output)
+
+    def test_non_object_variant_payload_fails_with_an_explicit_schema_error(self):
+        invalid = copy.deepcopy(SCHEMA)
+        invalid["command"]["oneOf"] = [{"properties": {"Invalid": False}}]
+        self.write("schema.json", invalid)
+        self.assertIn("invalid contract schema", self.run_cli("catalog", expected=2).stderr)
+
     def test_invalid_evidence_and_ambiguous_observations_fail(self):
         good = {"id": "change", "evidence": "https://example.org/mr/1", "shell_behavior": "required",
                 "shells": ["qt-display"], "reason": "New primitive"}

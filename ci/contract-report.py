@@ -38,6 +38,8 @@ def variants(node, *, envelopes=False):
         for tag, body in entries:
             if not isinstance(tag, str) or not tag or tag in result:
                 raise ValueError("invalid contract schema: empty or duplicate variant")
+            if not isinstance(body, dict):
+                raise ValueError("invalid contract schema: variant payload must be an object schema")
             if envelopes:
                 result[tag] = arm | {"enum": [tag]} if "enum" in arm else arm
             else:
@@ -132,13 +134,39 @@ def feature_impact(path):
     }
 
 
-def report(schema, raw, impacts, baseline):
+def fixture_inventory(directory):
+    if not directory.is_dir():
+        raise ValueError(f"fixture directory is missing: {directory}")
+    files = {}
+    for path in sorted(directory.glob("*.json")):
+        raw = path.read_bytes()
+        files[path.name] = {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+    return files
+
+
+def fixture_report(directory, baseline):
+    files = fixture_inventory(directory)
+    changes = None
+    previous = fixture_inventory(baseline) if baseline else None
+    if previous is not None:
+        changes = {"added": sorted(files.keys() - previous.keys()),
+                   "removed": sorted(previous.keys() - files.keys()),
+                   "changed": sorted(name for name in files.keys() & previous.keys()
+                                     if files[name] != previous[name])}
+    size = sum(item["bytes"] for item in files.values())
+    return {"files": files, "bytes": size, "changes": changes,
+            "bytes_delta": size - sum(item["bytes"] for item in previous.values())
+            if previous is not None else None}
+
+
+def report(schema, raw, impacts, baseline, fixtures, baseline_fixtures):
     entries, counts = inventory(schema)
     growth = None
     if baseline:
-        old, _ = read_json(baseline)
+        old, old_raw = read_json(baseline)
         previous, old_counts = inventory(old)
         growth = {
+            "baseline_sha256": hashlib.sha256(old_raw).hexdigest(),
             "counts": {name: count - old_counts[name] for name, count in counts.items()},
             "added": sorted(entries.keys() - previous.keys()),
             "removed": sorted(previous.keys() - entries.keys()),
@@ -151,7 +179,8 @@ def report(schema, raw, impacts, baseline):
             })],
         }
     return {"schema_sha256": hashlib.sha256(raw).hexdigest(), "schema_bytes": len(raw),
-            "counts": counts, "growth": growth, "feature_impact": feature_impact(impacts)}
+            "counts": counts, "growth": growth, "feature_impact": feature_impact(impacts),
+            "fixtures": fixture_report(fixtures, baseline_fixtures)}
 
 
 def code(value):
@@ -195,11 +224,16 @@ def catalog_markdown(schema):
         lines += [f"## {root.title()} variants", "", "| Variant | Payload schema |", "| --- | --- |"]
         for name, body in sorted(variants(schema[root]).items()):
             fields = body.get("properties", {})
-            payload = ", ".join(code(field) for field in sorted(fields)) or "wire string"
+            if fields:
+                payload = ", ".join(code(field) for field in sorted(fields))
+            elif "enum" in body:
+                payload = "wire string"
+            else:
+                payload = code(compact(body)) if len(compact(body)) < 700 else "expanded below"
             lines.append(f"| {code(name)} | {payload} |")
         lines.append("")
         for name, body in sorted(variants(schema[root]).items()):
-            if body.get("properties"):
+            if "enum" not in body:
                 lines += [f"### {code(root + '.' + name)}", "", *declaration_lines(body)]
         lines += ["", f"## {root.title()} supporting types", ""]
         for name, body in sorted(schema[root].get("definitions", {}).items()):
@@ -224,6 +258,22 @@ def report_markdown(result):
         for kind in ("added", "removed", "changed", "envelopes_changed"):
             lines.append(f"- {kind.title()}: " + (", ".join(code(x) for x in growth[kind]) or "none"))
         lines += ["", "Changes are structural observations, not compatibility verdicts.", ""]
+    fixtures = result["fixtures"]
+    fixture_delta = "not measured" if fixtures["bytes_delta"] is None else f"{fixtures['bytes_delta']:+d}"
+    lines += ["## Fixture files", "",
+              f"Top-level JSON file bytes: {fixtures['bytes']}; delta: {fixture_delta}.", "",
+              "File sizes are not wire payloads, render cost or final binary sizes.", "",
+              "Fixture churn does not establish a protocol or shell-behavior change.", "",
+              "| File | Bytes | SHA-256 |", "| --- | ---: | --- |"]
+    for name, item in fixtures["files"].items():
+        lines.append(f"| {code(name)} | {item['bytes']} | {code(item['sha256'])} |")
+    lines.append("")
+    if fixtures["changes"] is None:
+        lines += ["No fixture baseline supplied; fixture churn is not measured.", ""]
+    else:
+        for kind, names in fixtures["changes"].items():
+            lines.append(f"- {kind.title()}: " + (", ".join(code(name) for name in names) or "none"))
+        lines.append("")
     impact = result["feature_impact"]
     share = impact["required_share_of_known"]
     ratio = "not measured" if share is None else f"{impact['required']}/{impact['known']} ({share:.1%})"
@@ -249,6 +299,8 @@ def main():
     parser.add_argument("schema", type=Path)
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--impacts", type=Path, default=ROOT / "review/feature-impact.json")
+    parser.add_argument("--fixtures", type=Path, default=ROOT / "fixtures")
+    parser.add_argument("--baseline-fixtures", type=Path)
     parser.add_argument("--format", choices=("json", "markdown"), default="markdown")
     destination = parser.add_mutually_exclusive_group()
     destination.add_argument("--output", type=Path)
@@ -259,7 +311,7 @@ def main():
         if args.mode == "catalog":
             output = catalog_markdown(schema)
         else:
-            result = report(schema, raw, args.impacts, args.baseline)
+            result = report(schema, raw, args.impacts, args.baseline, args.fixtures, args.baseline_fixtures)
             output = json.dumps(result, indent=2, ensure_ascii=False) + "\n" if args.format == "json" else report_markdown(result)
         if args.check:
             if not args.check.is_file() or args.check.read_text(encoding="utf-8") != output:
