@@ -23,8 +23,11 @@ MAX_BYTES = 8 * 1024 * 1024
 TAG = r"v\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?"
 SHA = r"[0-9a-f]{40}"
 LEGACY_CORES = frozenset({"7191dfbbf5cea63e61817d6ac5172e5bd989774c"})
-JOURNEY_FILES = frozenset({"presentation_contract_v1.json", "screen_catalog_v1.json",
-                           "screen_catalog_inventory_v1.json"})
+REQUIRED_JOURNEY_FILES = frozenset({"presentation_contract_v1.json", "screen_catalog_v1.json",
+                                    "screen_catalog_inventory_v1.json"})
+# Optional because a shell can still pin a Core from before e1884a2d4, which
+# does not publish it. The set stays closed so an unknown file fails (#1097).
+JOURNEY_FILES = REQUIRED_JOURNEY_FILES | {"recovery_ceremony_v1.json"}
 
 # This released revision predates inventory files; its required IDs stay frozen.
 LEGACY_REVISION = "1f6c1b971bef1edb6fffab21c0bbdaa6664729fa"
@@ -287,9 +290,10 @@ def collect_assembly(repo, fetch=fetch_file, artifact=fetch_artifact):
     require(metadata.get("contract") == {"version": contract[0], "tag": "v" + contract[0],
                                         "revision": contract[1]}, "artifact contract mismatch")
     files = metadata.get("files")
-    require(type(files) is dict and set(files) == JOURNEY_FILES, "artifact file inventory mismatch")
+    require(type(files) is dict and REQUIRED_JOURNEY_FILES <= set(files) <= JOURNEY_FILES,
+            "artifact file inventory mismatch")
     blobs = {}
-    for filename in JOURNEY_FILES:
+    for filename in files:
         expected = files[filename]
         require(type(expected) is dict and set(expected) == {"bytes", "sha256"}
                 and type(expected["bytes"]) is int and 0 < expected["bytes"] <= MAX_BYTES
