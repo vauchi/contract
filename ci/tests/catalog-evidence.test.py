@@ -84,6 +84,49 @@ class CatalogEvidenceTest(unittest.TestCase):
         with self.assertRaisesRegex(catalog.CatalogError, "inventory mismatch"):
             catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
 
+    def with_extra_artifact(self, name, raw=b'{"schema_version":1}', recorded=None):
+        blobs = self.journey_artifacts()
+        blobs[name] = raw
+        manifest = json.loads(blobs["manifest.json"])
+        recorded = raw if recorded is None else recorded
+        manifest["files"][name] = {"bytes": len(recorded),
+                                   "sha256": hashlib.sha256(recorded).hexdigest()}
+        blobs["manifest.json"] = json.dumps(manifest).encode()
+        return blobs
+
+    def test_core_may_publish_the_recovery_ceremony_fixture(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.with_extra_artifact("recovery_ceremony_v1.json")
+        raw, evidence = catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
+        self.assertEqual(raw, RAW)
+        self.assertIn("recovery_ceremony_v1.json", evidence["manifest"]["files"])
+
+    def test_a_published_recovery_fixture_must_match_its_digest(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.with_extra_artifact("recovery_ceremony_v1.json", recorded=b"something else")
+        with self.assertRaisesRegex(catalog.CatalogError, "artifact integrity mismatch"):
+            catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
+
+    def test_a_file_the_contract_does_not_know_is_rejected(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.with_extra_artifact("unknown_v1.json")
+        with self.assertRaisesRegex(catalog.CatalogError, "artifact file inventory mismatch"):
+            catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
+
+    def test_the_recovery_fixture_cannot_replace_a_required_file(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.with_extra_artifact("recovery_ceremony_v1.json")
+        manifest = json.loads(blobs["manifest.json"])
+        manifest["files"].pop("presentation_contract_v1.json")
+        blobs["manifest.json"] = json.dumps(manifest).encode()
+        with self.assertRaisesRegex(catalog.CatalogError, "artifact file inventory mismatch"):
+            catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name])
+
+    def test_recovery_fixture_can_be_selected_for_download(self):
+        with patch.object(catalog, "build_opener") as opener:
+            opener.return_value.open.return_value.__enter__.return_value.read.return_value = b"{}"
+            self.assertEqual(catalog.fetch_artifact(CORE_REVISION, "recovery_ceremony_v1.json"), b"{}")
+
     def test_product_catalog_cannot_escape_screenshot_directory(self):
         for code_id in ("../outside", "/absolute", "a/b", "..", "a\\b"):
             with self.subTest(code_id=code_id):
