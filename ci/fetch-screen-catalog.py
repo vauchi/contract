@@ -23,7 +23,8 @@ MAX_BYTES = 8 * 1024 * 1024
 TAG = r"v\d+\.\d+\.\d+(?:-[A-Za-z0-9.]+)?"
 SHA = r"[0-9a-f]{40}"
 LEGACY_CORES = frozenset({"7191dfbbf5cea63e61817d6ac5172e5bd989774c"})
-REQUIRED_JOURNEY_FILES = frozenset({"presentation_contract_v1.json", "screen_catalog_v1.json",
+PRESENTATION_CONTRACT = "presentation_contract_v1.json"
+REQUIRED_JOURNEY_FILES = frozenset({PRESENTATION_CONTRACT, "screen_catalog_v1.json",
                                     "screen_catalog_inventory_v1.json"})
 # Optional because a shell can still pin a Core from before e1884a2d4, which
 # does not publish it. The set stays closed so an unknown file fails (#1097).
@@ -248,7 +249,7 @@ def locked_package(packages, name, project):
     return package["version"], match[1]
 
 
-def collect_assembly(repo, fetch=fetch_file, artifact=fetch_artifact):
+def collect_assembly(repo, fetch=fetch_file, artifact=fetch_artifact, journeys=None):
     lock = repo / "Cargo.lock"
     if lock.exists():
         packages = tomllib.loads(lock.read_text())["package"]
@@ -308,6 +309,8 @@ def collect_assembly(repo, fetch=fetch_file, artifact=fetch_artifact):
     ids = validate_catalog(raw)
     inventory = blobs["screen_catalog_inventory_v1.json"]
     validate_inventory(inventory, ids)
+    if journeys is not None:
+        journeys.update(blobs)
     return raw, {"schema_version": 1, "fixture_category": "core-product-journey",
                  "core_revision": revision, "core_version": core_version,
                  "contract_revision": contract[1], "contract_ref": "v" + contract[0],
@@ -315,6 +318,13 @@ def collect_assembly(repo, fetch=fetch_file, artifact=fetch_artifact):
                  "inventory_source": "core:" + revision,
                  "inventory_sha256": hashlib.sha256(inventory).hexdigest(),
                  "inventory": json.loads(inventory), "manifest": metadata}
+
+
+def write_presentation_contract(journeys, target):
+    require(PRESENTATION_CONTRACT in journeys,
+            "the presentation contract needs a Core product-journey assembly")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(journeys[PRESENTATION_CONTRACT])
 
 
 def collect(repo, fetch=fetch_file):
@@ -371,9 +381,15 @@ def main():
     parser.add_argument("--repo", type=Path, default=Path.cwd())
     parser.add_argument("--assembly", action="store_true",
                         help="require Core-owned evidence, or an explicitly known legacy assembly")
+    parser.add_argument("--presentation-contract", type=Path, metavar="PATH",
+                        help="with --assembly: also write Core's verified presentation contract here")
     args = parser.parse_args()
     try:
-        raw, evidence = collect_assembly(args.repo) if args.assembly else collect(args.repo)
+        journeys = {}
+        raw, evidence = (collect_assembly(args.repo, journeys=journeys) if args.assembly
+                         else collect(args.repo))
+        if args.presentation_contract:
+            write_presentation_contract(journeys, args.presentation_contract)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_bytes(raw)
         args.output.with_suffix(".provenance.json").write_text(json.dumps(evidence, indent=2) + "\n")
