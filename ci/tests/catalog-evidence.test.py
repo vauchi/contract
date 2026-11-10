@@ -127,6 +127,39 @@ class CatalogEvidenceTest(unittest.TestCase):
             opener.return_value.open.return_value.__enter__.return_value.read.return_value = b"{}"
             self.assertEqual(catalog.fetch_artifact(CORE_REVISION, "recovery_ceremony_v1.json"), b"{}")
 
+    def test_verified_presentation_contract_can_be_written_beside_the_catalog(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.journey_artifacts()
+        journeys = {}
+        catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name], journeys)
+        target = self.root / "replay" / "presentation-contract.json"
+        catalog.write_presentation_contract(journeys, target)
+        self.assertEqual(blobs["presentation_contract_v1.json"], target.read_bytes())
+
+    def test_a_tampered_presentation_contract_is_never_handed_out(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        blobs = self.journey_artifacts()
+        blobs["presentation_contract_v1.json"] += b" "
+        journeys = {}
+        with self.assertRaisesRegex(catalog.CatalogError, "artifact integrity mismatch"):
+            catalog.collect_assembly(self.root, self.fetch, lambda rev, name: blobs[name], journeys)
+        self.assertEqual({}, journeys)
+
+    def test_a_legacy_assembly_has_no_presentation_contract_to_write(self):
+        (self.root / "core-ref").write_text("v0.97.0\n")
+        known = next(iter(catalog.LEGACY_CORES))
+        def fetch(project, filename, ref):
+            if project == "core":
+                raw, _ = self.fetch(project, filename, "v0.97.0" if filename == "Cargo.toml" else CORE_REVISION)
+                return raw, known
+            return self.fetch(project, filename, ref)
+        journeys = {}
+        catalog.collect_assembly(self.root, fetch, journeys=journeys)
+        target = self.root / "presentation-contract.json"
+        with self.assertRaisesRegex(catalog.CatalogError, "needs a Core product-journey assembly"):
+            catalog.write_presentation_contract(journeys, target)
+        self.assertFalse(target.exists())
+
     def test_product_catalog_cannot_escape_screenshot_directory(self):
         for code_id in ("../outside", "/absolute", "a/b", "..", "a\\b"):
             with self.subTest(code_id=code_id):
