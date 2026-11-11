@@ -73,6 +73,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `SetOrientationLock` | `orientation` |
 | `SetPresentationProfile` | `profile` |
 | `SetScreenBrightness` | `level` |
+| `SetStatusItem` | `item`, `revision`, `surface_id` |
 | `ShowShareSheet` | `url` |
 | `ShowToast` | `toast` |
 | `SwitchCamera` | `use_front` |
@@ -396,6 +397,14 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | Field | Required | Schema |
 | --- | --- | --- |
 | `level` | no | `{"format":"float","type":["number","null"]}` |
+
+### `command.SetStatusItem`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `item` | no | `{"anyOf":[{"$ref":"#/definitions/StatusItemSpec"},{"type":"null"}]}` |
+| `revision` | yes | `{"format":"uint64","minimum":0.0,"type":"integer"}` |
+| `surface_id` | yes | `{"type":"string"}` |
 
 ### `command.ShowShareSheet`
 
@@ -1702,6 +1711,14 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 }
 ```
 
+### `command.StatusItemSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `items` | yes | `{"items":{"$ref":"#/definitions/ActionSpec"},"type":"array"}` |
+| `show_window_label` | yes | `{"type":"string"}` |
+| `tooltip` | yes | `{"type":"string"}` |
+
 ### `command.SurfaceLayout`
 
 ```json
@@ -1826,6 +1843,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `RelayEscrowBlobReceived` | `blob`, `gate_hash` |
 | `RelayEscrowFailed` | `gate_hash`, `reason` |
 | `RelayEscrowReady` | `gate_hash` |
+| `StatusItemAvailabilityChanged` | `available` |
 | `SurfaceActivated` | `surface_id` |
 | `UserPresenceCheckCancelled` | wire string |
 | `UserPresenceSecretCreated` | `secret` |
@@ -2140,6 +2158,12 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | Field | Required | Schema |
 | --- | --- | --- |
 | `gate_hash` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"type":"array"}` |
+
+### `event.StatusItemAvailabilityChanged`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `available` | yes | `{"type":"boolean"}` |
 
 ### `event.SurfaceActivated`
 
