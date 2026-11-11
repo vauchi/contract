@@ -1683,6 +1683,31 @@
         ],
         "type": "string"
       },
+      "StatusItemSpec": {
+        "description": "A native status item (system tray icon) and its menu. Core prepares the copy; raising the window and native Quit stay with the shell, as for the application menu.",
+        "properties": {
+          "items": {
+            "description": "Core's own items, between the window item and native Quit.",
+            "items": {
+              "$ref": "#/definitions/ActionSpec"
+            },
+            "type": "array"
+          },
+          "show_window_label": {
+            "description": "The label of the shell-owned item that raises the window.",
+            "type": "string"
+          },
+          "tooltip": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "show_window_label",
+          "tooltip"
+        ],
+        "type": "object"
+      },
       "SurfaceLayout": {
         "enum": [
           "scroll",
@@ -3075,6 +3100,43 @@
         },
         "required": [
           "SetApplicationMenu"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Show, replace or (`item: None`) remove the native status item. Sent only after the shell reports status-item availability.",
+        "properties": {
+          "SetStatusItem": {
+            "properties": {
+              "item": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/StatusItemSpec"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "revision": {
+                "format": "uint64",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "surface_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "revision",
+              "surface_id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "SetStatusItem"
         ],
         "type": "object"
       },
@@ -4953,6 +5015,27 @@
         },
         "required": [
           "ApplicationMenuAvailabilityChanged"
+        ],
+        "type": "object"
+      },
+      {
+        "additionalProperties": false,
+        "description": "Whether this window can show a native status item (system tray).",
+        "properties": {
+          "StatusItemAvailabilityChanged": {
+            "properties": {
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "available"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "StatusItemAvailabilityChanged"
         ],
         "type": "object"
       },

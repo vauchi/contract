@@ -88,6 +88,7 @@ impl Command {
             | Self::ResetApplication
             | Self::ReloadTheme
             | Self::SetApplicationMenu { .. }
+            | Self::SetStatusItem { .. }
             | Self::PickFile { .. }
             | Self::CancelFilePick { .. }
             | Self::RequestPermission { .. }

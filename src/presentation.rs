@@ -117,6 +117,19 @@ pub struct ApplicationMenuSpec {
     pub items: Vec<ActionSpec>,
 }
 
+/// A native status item (system tray icon) and its menu. Core prepares the
+/// copy; raising the window and native Quit stay with the shell, as for
+/// the application menu.
+#[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StatusItemSpec {
+    pub tooltip: String,
+    /// The label of the shell-owned item that raises the window.
+    pub show_window_label: String,
+    /// Core's own items, between the window item and native Quit.
+    pub items: Vec<ActionSpec>,
+}
+
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ActionSpec {

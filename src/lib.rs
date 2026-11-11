@@ -57,7 +57,8 @@ pub use presentation::{
     PresentationInputKind, PresentationListStyle, PresentationNode, PresentationPaging,
     PresentationProfile, PresentationQrErrorCorrection, PresentationQrPurpose, PresentationQrSize,
     PresentationRow, PresentationTextStyle, PresentationTokens, PresentationTone, QrPlacement,
-    StandardShortcut, SurfaceId, SurfaceLayout, SurfaceSpec, ToastSpec, WindowClass,
+    StandardShortcut, StatusItemSpec, SurfaceId, SurfaceLayout, SurfaceSpec, ToastSpec,
+    WindowClass,
 };
 
 /// A command from core to the frontend requesting a hardware action.
@@ -510,6 +511,13 @@ pub enum Command {
         revision: u64,
         menus: Vec<ApplicationMenuSpec>,
     },
+    /// Show, replace or (`item: None`) remove the native status item. Sent
+    /// only after the shell reports status-item availability.
+    SetStatusItem {
+        surface_id: SurfaceId,
+        revision: u64,
+        item: Option<StatusItemSpec>,
+    },
     /// A bounded operation for executors advertising correlated file results.
     /// Echo `request_id` unchanged in one `FilePickCompleted` event.
     PickFile {
@@ -793,6 +801,7 @@ impl Command {
             Self::Celebrate { .. } => "Celebrate",
             Self::SetContextBar { .. } => "SetContextBar",
             Self::SetApplicationMenu { .. } => "SetApplicationMenu",
+            Self::SetStatusItem { .. } => "SetStatusItem",
             Self::PickFile { .. } => "PickFile",
             Self::CancelFilePick { .. } => "CancelFilePick",
             Self::RequestPermission { .. } => "RequestPermission",
@@ -1173,6 +1182,8 @@ pub enum Event {
     WakeupFired,
     /// Whether this window can render prepared native application menus.
     ApplicationMenuAvailabilityChanged { available: bool },
+    /// Whether this window can show a native status item (system tray).
+    StatusItemAvailabilityChanged { available: bool },
     /// Support for PickFile, CancelFilePick and correlated typed outcomes.
     FilePickerCapabilitiesChanged { correlated_results: bool },
     FilePickCompleted {
