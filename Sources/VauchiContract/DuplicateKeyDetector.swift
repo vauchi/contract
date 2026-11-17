@@ -77,12 +77,21 @@ enum DuplicateKeyDetector {
     }
 
     private static func consumeColon(_ state: inout State) throws {
-        if state.containers.last == true, let key = state.currentKey {
+        if state.containers.last == true, let rawKey = state.currentKey {
+            let key = try decodeKey(rawKey)
             if state.keys[state.keys.count - 1].contains(key) {
                 throw ContractJSONError.invalid("duplicate object key \(key)")
             }
             state.keys[state.keys.count - 1].insert(key)
         }
         state.currentKey = nil
+    }
+
+    private static func decodeKey(_ rawKey: String) throws -> String {
+        let data = Data("\"\(rawKey)\"".utf8)
+        guard let key = try JSONSerialization.jsonObject(with: data, options: [.allowFragments]) as? String else {
+            throw ContractJSONError.invalid("object key is not a string")
+        }
+        return key
     }
 }

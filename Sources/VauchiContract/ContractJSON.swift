@@ -33,7 +33,8 @@ public enum ContractJSON {
     private static func decode<T: Decodable>(_ root: String, as type: T.Type, data: Data) throws -> T {
         try DuplicateKeyDetector.validate(data)
         let json = try JSONSerialization.jsonObject(with: data, options: [.allowFragments])
-        let normalized = try Schema.shared.normalize(root: root, value: json)
+        var schema = Schema.shared
+        let normalized = try schema.normalize(root: root, value: json)
         let encoded = try JSONSerialization.data(withJSONObject: normalized, options: [.fragmentsAllowed])
         return try JSONDecoder().decode(type, from: encoded)
     }

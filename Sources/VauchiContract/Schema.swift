@@ -4,7 +4,7 @@
 import Foundation
 
 struct Schema {
-    static var shared = Schema()
+    static let shared = Schema()
 
     private let roots: [String: Any]
     private var definitions: [String: Any] = [:]
