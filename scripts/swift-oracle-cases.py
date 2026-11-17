@@ -42,6 +42,7 @@ for name, value in [
         "delay_millis": 1,
     }})
 add("duplicate_field", "command", '{"QrDisplay":{"data":"first","data":"last"}}', True)
+add("escaped_duplicate_field", "command", '{"QrDisplay":{"data":"first","\\u0064ata":"last"}}', True)
 add("duplicate_tag", "command", '{"QrDisplay":{"data":"first"},"QrDisplay":{"data":"last"}}', True)
 for name, value in [
     ("ascii", "name"),

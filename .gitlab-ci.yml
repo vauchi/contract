@@ -180,6 +180,7 @@ contract:swift:
     - swiftformat Sources Tests --lint
     - swiftlint lint --strict --quiet
     - swift test
+    - swift test --sanitize=thread --filter ContractJSONTests.testConcurrentDecodingDoesNotShareBoundaryState
     - xcrun swift build --sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.4.sdk --triple arm64-apple-ios15.0-simulator
     - xcrun swift build --sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk --triple arm64-apple-macosx14.0
     - python3 ci/tests/swift-generation.test.py

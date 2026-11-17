@@ -57,6 +57,48 @@ final class ContractJSONTests: XCTestCase {
         }
     }
 
+    func testConcurrentDecodingDoesNotShareBoundaryState() {
+        let oversized = String(repeating: "x", count: 4097)
+        let prefix = #"{"ValueChanged":{"surface_id":"s","binding_id":"b","value":{"text":""#
+        let boundary = (prefix + oversized + #""}}"#).utf8Data
+        let command = #"{"QrDisplay":{"data":"hello"}}"#.utf8Data
+        let lock = NSLock()
+        var acceptedOversized = 0
+        var rejectedCommands = 0
+
+        DispatchQueue.concurrentPerform(iterations: 200) { index in
+            if index.isMultiple(of: 2) {
+                if (try? ContractJSON.decodeBoundary(boundary)) != nil {
+                    lock.lock()
+                    acceptedOversized += 1
+                    lock.unlock()
+                }
+            } else if (try? ContractJSON.decodeCommand(command)) == nil {
+                lock.lock()
+                rejectedCommands += 1
+                lock.unlock()
+            }
+        }
+
+        XCTAssertEqual(acceptedOversized, 0)
+        XCTAssertEqual(rejectedCommands, 0)
+    }
+
+    func testEscapedDuplicateObjectKeysAreRejected() {
+        let input = #"{"QrDisplay":{"data":"first","\u0064ata":"last"}}"#
+        XCTAssertThrowsError(try ContractJSON.decodeCommand(input.utf8Data))
+    }
+
+    func testEveryTruncatedCommandPrefixIsRejected() {
+        let input = #"{"QrDisplay":{"data":"hello"}}"#.utf8Data
+        for length in 0 ..< input.count {
+            XCTAssertThrowsError(
+                try ContractJSON.decodeCommand(Data(input.prefix(length))),
+                "prefix length \(length) must be rejected"
+            )
+        }
+    }
+
     func testFixtureCommandsAndEventsRoundTrip() throws {
         let url = try XCTUnwrap(Bundle.module.url(
             forResource: "schema/presentation_contract_v1",
