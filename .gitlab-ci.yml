@@ -172,6 +172,28 @@ contract:breaking:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+contract:swift:
+  stage: test
+  tags: [macos-host, self-hosted]
+  script:
+    - python3 scripts/build-swift-oracle.py
+    - swiftformat Sources Tests --lint
+    - swiftlint lint --strict --quiet
+    - swift test
+    - xcrun swift build --sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.4.sdk --triple arm64-apple-ios15.0-simulator
+    - xcrun swift build --sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk --triple arm64-apple-macosx14.0
+    - python3 ci/tests/swift-generation.test.py
+    - bash scripts/check-swift-generation.sh
+    - python3 ci/tests/swift-contract-evidence.test.py
+    - python3 ci/swift-contract-evidence.py target/native-products.md --write --validate
+  artifacts:
+    when: always
+    paths:
+      - target/native-products.md
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # The pipeline badge the group README shows
 # (https://vauchi.gitlab.io/contract/badges/pipeline.json) comes from the
 # shared template: a Pages deploy on main, no script of this repository's

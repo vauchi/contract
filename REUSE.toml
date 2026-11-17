@@ -12,6 +12,6 @@ SPDX-FileCopyrightText = "Free Software Foundation"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
 
 [[annotations]]
-path = ["**/Cargo.lock", "fixtures/*.json", "schema/*.json", "review/*.json", ".gitignore"]
+path = ["**/Cargo.lock", "fixtures/*.json", "schema/*.json", "review/*.json", ".gitignore", "Package.swift", "Sources/**", "Tests/**", "scripts/**", "ci/**"]
 SPDX-FileCopyrightText = "2026 Mattia Egloff <mattia.egloff@pm.me>"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
