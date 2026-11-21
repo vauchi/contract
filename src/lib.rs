@@ -1075,6 +1075,11 @@ pub enum Event {
         /// the dark default (vauchi/private#814).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         color_scheme: Option<ColorScheme>,
+        /// The shell keeps `ContextBar::pinned` in view. False from a
+        /// shell that does not report it; Core then leaves those actions
+        /// in the surface's content (vauchi/private#1304).
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        pinned_actions: bool,
     },
     /// A visible surface became the target of user interaction.
     SurfaceActivated { surface_id: SurfaceId },

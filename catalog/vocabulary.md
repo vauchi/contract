@@ -582,6 +582,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `back` | no | `{"anyOf":[{"$ref":"#/definitions/ActionSpec"},{"type":"null"}]}` |
 | `info` | no | `{"anyOf":[{"$ref":"#/definitions/ActionSpec"},{"type":"null"}]}` |
 | `navigation` | no | `{"anyOf":[{"$ref":"#/definitions/ActionSpec"},{"type":"null"}]}` |
+| `pinned` | no | `{"items":{"$ref":"#/definitions/ActionSpec"},"type":"array"}` |
 | `primary` | no | `{"anyOf":[{"$ref":"#/definitions/ActionSpec"},{"type":"null"}]}` |
 | `secondary` | no | `{"anyOf":[{"$ref":"#/definitions/ActionSpec"},{"type":"null"}]}` |
 
@@ -1835,7 +1836,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `PermissionDenied` | `transport` |
 | `PermissionGranted` | `transport` |
 | `PermissionRequired` | `transport` |
-| `PresentationEnvironmentChanged` | `available_height`, `available_width`, `color_scheme`, `input_modes`, `motion` |
+| `PresentationEnvironmentChanged` | `available_height`, `available_width`, `color_scheme`, `input_modes`, `motion`, `pinned_actions` |
 | `PresentationInvalidated` | wire string |
 | `QrScanProgress` | `confidence`, `detected`, `frame_skipped` |
 | `QrScanned` | `data` |
@@ -2118,6 +2119,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `color_scheme` | no | `{"anyOf":[{"$ref":"#/definitions/ColorScheme"},{"type":"null"}]}` |
 | `input_modes` | yes | `{"items":{"$ref":"#/definitions/InputMode"},"type":"array"}` |
 | `motion` | yes | `{"$ref":"#/definitions/MotionPreference"}` |
+| `pinned_actions` | no | `{"type":"boolean"}` |
 
 ### `event.QrScanProgress`
 

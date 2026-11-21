@@ -175,6 +175,13 @@ pub struct ContextBar {
     /// help off; omitted on the wire so older shells see the four slots.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub info: Option<ActionSpec>,
+    /// Actions the shell keeps in view under the surface's content, one
+    /// under the other in this order, for a decision that must not scroll
+    /// away. At most three. Core sends them only to a shell that reported
+    /// `pinned_actions`; omitted on the wire when empty so older shells
+    /// see the slots they know.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pinned: Vec<ActionSpec>,
 }
 
 #[cfg_attr(feature = "schema-gen", derive(schemars::JsonSchema))]
