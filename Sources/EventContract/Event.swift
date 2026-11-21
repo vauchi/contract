@@ -2969,6 +2969,9 @@ public struct PresentationEnvironmentChanged: Codable {
     public let colorScheme: ColorScheme?
     public let inputModes: [InputMode]
     public let motion: MotionPreference
+    /// The shell keeps `ContextBar::pinned` in view. False from a shell that does not report it;
+    /// Core then leaves those actions in the surface's content (vauchi/private#1304).
+    public let pinnedActions: Bool?
 
     public enum CodingKeys: String, CodingKey {
         case availableHeight = "available_height"
@@ -2976,14 +2979,16 @@ public struct PresentationEnvironmentChanged: Codable {
         case colorScheme = "color_scheme"
         case inputModes = "input_modes"
         case motion = "motion"
+        case pinnedActions = "pinned_actions"
     }
 
-    public init(availableHeight: Int, availableWidth: Int, colorScheme: ColorScheme?, inputModes: [InputMode], motion: MotionPreference) {
+    public init(availableHeight: Int, availableWidth: Int, colorScheme: ColorScheme?, inputModes: [InputMode], motion: MotionPreference, pinnedActions: Bool?) {
         self.availableHeight = availableHeight
         self.availableWidth = availableWidth
         self.colorScheme = colorScheme
         self.inputModes = inputModes
         self.motion = motion
+        self.pinnedActions = pinnedActions
     }
 }
 
@@ -3010,14 +3015,16 @@ public extension PresentationEnvironmentChanged {
         availableWidth: Int? = nil,
         colorScheme: ColorScheme?? = nil,
         inputModes: [InputMode]? = nil,
-        motion: MotionPreference? = nil
+        motion: MotionPreference? = nil,
+        pinnedActions: Bool?? = nil
     ) -> PresentationEnvironmentChanged {
         return PresentationEnvironmentChanged(
             availableHeight: availableHeight ?? self.availableHeight,
             availableWidth: availableWidth ?? self.availableWidth,
             colorScheme: colorScheme ?? self.colorScheme,
             inputModes: inputModes ?? self.inputModes,
-            motion: motion ?? self.motion
+            motion: motion ?? self.motion,
+            pinnedActions: pinnedActions ?? self.pinnedActions
         )
     }
 

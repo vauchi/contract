@@ -5411,6 +5411,11 @@ public struct ContextBar: Codable {
     /// shells see the four slots.
     public let info: ActionSpec?
     public let navigation: ActionSpec?
+    /// Actions the shell keeps in view under the surface's content, one under the other in this
+    /// order, for a decision that must not scroll away. At most three. Core sends them only to a
+    /// shell that reported `pinned_actions`; omitted on the wire when empty so older shells see
+    /// the slots they know.
+    public let pinned: [ActionSpec]?
     public let primary: ActionSpec?
     public let secondary: ActionSpec?
 
@@ -5418,14 +5423,16 @@ public struct ContextBar: Codable {
         case back = "back"
         case info = "info"
         case navigation = "navigation"
+        case pinned = "pinned"
         case primary = "primary"
         case secondary = "secondary"
     }
 
-    public init(back: ActionSpec?, info: ActionSpec?, navigation: ActionSpec?, primary: ActionSpec?, secondary: ActionSpec?) {
+    public init(back: ActionSpec?, info: ActionSpec?, navigation: ActionSpec?, pinned: [ActionSpec]?, primary: ActionSpec?, secondary: ActionSpec?) {
         self.back = back
         self.info = info
         self.navigation = navigation
+        self.pinned = pinned
         self.primary = primary
         self.secondary = secondary
     }
@@ -5453,6 +5460,7 @@ public extension ContextBar {
         back: ActionSpec?? = nil,
         info: ActionSpec?? = nil,
         navigation: ActionSpec?? = nil,
+        pinned: [ActionSpec]?? = nil,
         primary: ActionSpec?? = nil,
         secondary: ActionSpec?? = nil
     ) -> ContextBar {
@@ -5460,6 +5468,7 @@ public extension ContextBar {
             back: back ?? self.back,
             info: info ?? self.info,
             navigation: navigation ?? self.navigation,
+            pinned: pinned ?? self.pinned,
             primary: primary ?? self.primary,
             secondary: secondary ?? self.secondary
         )
