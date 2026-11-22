@@ -186,8 +186,8 @@ contract:swift:
     - xcrun swift build --sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk --triple arm64-apple-macosx14.0
     - python3 ci/tests/swift-generation.test.py
     - bash scripts/check-swift-generation.sh
-    - python3 ci/tests/swift-contract-evidence.test.py
-    - python3 ci/swift-contract-evidence.py target/native-products.md --write --validate
+    - python3 ci/tests/native-contract-evidence.test.py
+    - python3 ci/native-contract-evidence.py target/native-products.md --write --validate
   artifacts:
     when: always
     paths:

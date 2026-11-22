@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "swift-contract-evidence.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "native-contract-evidence.py"
 spec = importlib.util.spec_from_file_location("swift_evidence", SCRIPT)
 evidence = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(evidence)
