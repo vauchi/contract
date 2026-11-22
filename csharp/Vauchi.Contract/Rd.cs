@@ -154,18 +154,34 @@ namespace Vauchi.Contract
 
         internal static ulong U64(ref Utf8JsonReader r) => Number(ref r) && r.TryGetUInt64(out ulong v) ? v : throw Range();
 
-        internal static short I16(ref Utf8JsonReader r) => Number(ref r) && r.TryGetInt16(out short v) ? v : throw Range();
+        internal static short I16(ref Utf8JsonReader r) => Signed(ref r) && r.TryGetInt16(out short v) ? v : throw Range();
 
-        internal static int I32(ref Utf8JsonReader r) => Number(ref r) && r.TryGetInt32(out int v) ? v : throw Range();
+        internal static int I32(ref Utf8JsonReader r) => Signed(ref r) && r.TryGetInt32(out int v) ? v : throw Range();
 
-        internal static float F32(ref Utf8JsonReader r) =>
-            Number(ref r) && r.TryGetSingle(out float v) && float.IsFinite(v) ? v : throw Range();
+        /// <summary>
+        /// Read as serde_json does, a double narrowed to f32, so a value
+        /// between two floats rounds the same way. A number beyond f32
+        /// becomes infinity there, which serde then writes as null; here it
+        /// is refused.
+        /// </summary>
+        internal static float F32(ref Utf8JsonReader r)
+        {
+            float narrowed = (float)F64(ref r);
+            return float.IsFinite(narrowed) ? narrowed : throw Range();
+        }
 
         internal static double F64(ref Utf8JsonReader r) =>
             Number(ref r) && r.TryGetDouble(out double v) && double.IsFinite(v) ? v : throw Range();
 
         private static bool Number(ref Utf8JsonReader r) =>
             r.TokenType == JsonTokenType.Number ? true : throw new ContractJsonException("expected a number");
+
+        /// <summary>
+        /// serde_json reads <c>-0</c> as the float -0.0 and refuses it for
+        /// an integer; .NET reads it as the integer 0.
+        /// </summary>
+        private static bool Signed(ref Utf8JsonReader r) =>
+            Number(ref r) && !r.ValueSpan.SequenceEqual("-0"u8);
 
         private static ContractJsonException Range() => new("number out of range");
 

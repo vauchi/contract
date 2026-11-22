@@ -270,7 +270,8 @@ publish:csharp:
         exit 1
       fi
       dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name gitlab --username gitlab-ci-token --password "${CI_JOB_TOKEN}" --store-password-in-clear-text
-      dotnet nuget push "$package" --source gitlab
+      # A retried job finds its package already there and must not fail on it.
+      dotnet nuget push "$package" --source gitlab --skip-duplicate
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
