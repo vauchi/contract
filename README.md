@@ -20,6 +20,13 @@ on the files below, and on nothing from Core; only an app links Core.
   primitives, encoding, defaults, opaque interactions and hardware
   requests/results. Contract tests also exercise bounds and local callback
   lifetimes. These examples evolve with observable protocol semantics.
+- `csharp/` — the same types for C# (`Vauchi.Contract`), written by
+  `scripts/generate-csharp.py` from the schema and published as a NuGet
+  package with each release. `python3 scripts/generate-csharp.py` fails
+  when the committed files are stale; `--write` regenerates them. Its
+  tests ask the Rust decoder about every oracle message
+  (`python3 scripts/build-swift-oracle.py` first) and replay
+  `fixtures/protocol_conformance_v1.json`.
 - The older presentation and screen-catalog files, exposed through
   `vauchi_contract::fixtures`, remain compatibility examples for released
   consumers. They are not the authoritative current Core product catalog.
