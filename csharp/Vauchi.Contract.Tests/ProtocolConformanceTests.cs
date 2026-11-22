@@ -30,6 +30,14 @@ public class ProtocolConformanceTests
         Assert.Null(WireJson.Difference(entry, JsonNode.Parse(written)!, "$"));
 
     [Fact]
+    public void TheLibraryCarriesTheRepositorysFixture()
+    {
+        JsonNode carried = JsonNode.Parse(ContractFixtures.ProtocolConformance())!;
+
+        Assert.True(JsonNode.DeepEquals(Fixture, carried));
+    }
+
+    [Fact]
     public void TheFixtureHoldsTheSectionsThisReplayReads()
     {
         Assert.Equal(1, Fixture["schema_version"]!.GetValue<int>());
@@ -62,16 +70,7 @@ public class ProtocolConformanceTests
     {
         foreach (JsonNode entry in Entries("nodes"))
         {
-            var reader = new Utf8JsonReader(Utf8(entry));
-            reader.Read();
-            PresentationNode node = PresentationNode.Read(ref reader);
-
-            using var buffer = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(buffer))
-            {
-                node.Write(writer);
-            }
-            AssertWrittenBackUnchanged(entry, buffer.ToArray());
+            AssertWrittenBackUnchanged(entry, ContractJson.EncodeNode(ContractJson.DecodeNode(Utf8(entry))));
         }
     }
 
@@ -97,14 +96,24 @@ public class ProtocolConformanceTests
         Assert.Equal(new byte[] { 1, 2, 3 }, write.Data);
     }
 
-    [Fact]
-    public void ARefusalNamesNoPartOfTheMessage()
+    [Theory]
+    [InlineData("{\"s3cret\":{}}")]
+    [InlineData("{\"HardwareError\":{\"transport\":\"s3cret\",\"error\":7}}")]
+    [InlineData("{\"HardwareError\":{\"transport\":\"s3cret\"}}")]
+    [InlineData("{\"HardwareError\":{\"transport\":\"x\",\"transport\":\"s3cret\",\"error\":\"e\"}}")]
+    [InlineData("{\"ActionActivated\":{\"surface_id\":\"s3cret\\u0001\",\"interaction_id\":\"a\"}}")]
+    [InlineData("{\"BleConnected\":{\"device_id\":\"p\",\"direction\":\"s3cret\"}}")]
+    [InlineData("{\"QrScanned\":{\"data\":\"s3cret\"},\"QrScanned\":{\"data\":\"x\"}}")]
+    [InlineData("{\"QrScanned\":{\"data\":\"s3cret\"}} trailing")]
+    [InlineData("{\"QrScanned\":{\"data\":\"s3cret")]
+    [InlineData("\"s3cret\"")]
+    public void ARefusalNamesNoPartOfTheMessage(string message)
     {
-        byte[] utf8 = Encoding.UTF8.GetBytes("{\"HardwareError\":{\"transport\":\"secret-transport\",\"oops\":1}}");
+        byte[] utf8 = Encoding.UTF8.GetBytes(message);
 
         var refusal = Assert.Throws<ContractJsonException>(() => ContractJson.DecodeEvent(utf8));
 
-        Assert.DoesNotContain("secret-transport", refusal.Message, StringComparison.Ordinal);
-        Assert.DoesNotContain("oops", refusal.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("s3cret", refusal.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("s3cret", refusal.ToString(), StringComparison.Ordinal);
     }
 }

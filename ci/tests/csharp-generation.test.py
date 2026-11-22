@@ -128,7 +128,7 @@ class CSharpGenerationTests(unittest.TestCase):
         """The schema shows a `SurfaceId` as a plain string, so the generator
         lists the fields. A field added in Rust and not listed would be read
         without the identifier rule."""
-        declared = re.compile(r"\b\w+: (?:Option<)?(?:SurfaceId|InteractionId|BindingId)>?\s*[,}]")
+        declared = re.compile(r"\b\w+: [\w<, ]*\b(?:SurfaceId|InteractionId|BindingId)\b[\w>, ]*\s*[,}]")
         in_rust = sum(
             len(declared.findall(source.read_text(encoding="utf-8")))
             for source in sorted((ROOT / "src").rglob("*.rs"))
