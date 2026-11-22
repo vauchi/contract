@@ -1,0 +1,20 @@
+<!-- SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me> -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>12</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Turns on the trim and NativeAOT analyzers: windows-hw's terminal
+         bridge is compiled ahead of time, so reflection here is an error. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <PackageId>Vauchi.Contract</PackageId>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <RepositoryUrl>https://gitlab.com/vauchi/contract</RepositoryUrl>
+    <Description>The Vauchi shell contract: the Command and Event protocol as C# types (ADR-066, ADR-078)</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Vauchi.Contract.Tests" />
+  </ItemGroup>
+</Project>
