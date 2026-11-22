@@ -9,10 +9,10 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 oracle = root / "cache/oracle"
 oracle.mkdir(parents=True, exist_ok=True)
-for name in ["cases", "corpus"]:
+for name in ["cases", "corpus", "mutants"]:
     subprocess.run([sys.executable, f"scripts/swift-oracle-{name}.py"], cwd=root, check=True)
 subprocess.run(["cargo", "build", "--bin", "swift-oracle", "--quiet"], cwd=root, check=True)
-for name in ["cases", "corpus"]:
+for name in ["cases", "corpus", "mutants"]:
     with open(oracle / f"{name}.jsonl", "rb") as source, open(
         oracle / f"expected-{name}.jsonl", "wb"
     ) as expected:
