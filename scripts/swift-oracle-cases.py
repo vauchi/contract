@@ -88,7 +88,7 @@ for kind in ["event", "boundary"]:
         "binding_id": "b",
         "value": {},
     }})
-fixture = json.loads((root / "fixtures/presentation_contract_v1.json").read_text())
+fixture = json.loads((root / "fixtures/presentation_contract_v1.json").read_text(encoding="utf-8"))
 surface = next(
     command["ReplaceSurface"]["surface"]
     for command in fixture["initial_commands"]
@@ -109,5 +109,9 @@ for index, step in enumerate(fixture["steps"]):
         add(f"fixture_step_{index}_{command_index}", "command", command)
 output = root / "cache/oracle/cases.jsonl"
 output.parent.mkdir(parents=True, exist_ok=True)
-output.write_text("".join(json.dumps(case, ensure_ascii=False) + "\n" for case in cases))
+output.write_text(
+    "".join(json.dumps(case, ensure_ascii=False) + "\n" for case in cases),
+    encoding="utf-8",
+    newline="\n",
+)
 print(f"{len(cases)} cases written")

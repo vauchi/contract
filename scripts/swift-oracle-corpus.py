@@ -14,7 +14,7 @@ def add(name, kind, value):
     cases.append({"id": name, "kind": kind, "json": json.dumps(value)})
 
 
-presentation = json.loads((fixtures / "presentation_contract_v1.json").read_text())
+presentation = json.loads((fixtures / "presentation_contract_v1.json").read_text(encoding="utf-8"))
 for group in ["initial_commands", "effect_commands"]:
     for index, command in enumerate(presentation[group]):
         add(f"{group}_{index}", "command", command)
@@ -25,11 +25,15 @@ for index, step in enumerate(presentation["steps"]):
     add(f"step_event_{index}", "event", step["event"])
     for command_index, command in enumerate(step["commands"]):
         add(f"step_command_{index}_{command_index}", "command", command)
-catalog = json.loads((fixtures / "screen_catalog_v1.json").read_text())
+catalog = json.loads((fixtures / "screen_catalog_v1.json").read_text(encoding="utf-8"))
 for index, screen in enumerate(catalog["screens"]):
     for command_index, command in enumerate(screen["commands"]):
         add(f"catalog_{index}_{command_index}", "command", command)
 output = root / "cache/oracle/corpus.jsonl"
 output.parent.mkdir(parents=True, exist_ok=True)
-output.write_text("".join(json.dumps(case) + "\n" for case in cases))
+output.write_text(
+    "".join(json.dumps(case) + "\n" for case in cases),
+    encoding="utf-8",
+    newline="\n",
+)
 print(f"{len(cases)} corpus messages")
