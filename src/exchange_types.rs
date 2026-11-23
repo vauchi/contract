@@ -220,4 +220,49 @@ mod capability_tests {
         assert!(decoded.has_accelerometer);
         assert!(decoded.has_internet);
     }
+
+    // @internal
+    #[test]
+    fn a_shell_that_does_not_count_its_cameras_reports_no_count() {
+        // Every released shell: Core keeps offering what it offered before.
+        let caps: DeviceCapabilities =
+            serde_json::from_str(r#"{"has_camera":true}"#).expect("deserialize");
+        assert_eq!(caps.camera_count, None);
+        let json = serde_json::to_value(&DeviceCapabilities::default()).expect("serialize");
+        assert!(
+            json.get("camera_count").is_none(),
+            "an unreported count is left out, as older receivers expect: {json}"
+        );
+    }
+
+    // @internal
+    #[test]
+    fn a_counted_camera_count_survives_the_wire() {
+        for count in [0_u8, 1, 2, u8::MAX] {
+            let caps = DeviceCapabilities {
+                has_camera: count > 0,
+                camera_count: Some(count),
+                ..Default::default()
+            };
+            let json = serde_json::to_string(&caps).expect("serialize");
+            let decoded: DeviceCapabilities = serde_json::from_str(&json).expect("deserialize");
+            assert_eq!(decoded.camera_count, Some(count), "{json}");
+        }
+    }
+
+    // @internal
+    #[test]
+    fn a_count_no_device_has_is_refused() {
+        // DC-01: bounded at the parse boundary.
+        for json in [
+            r#"{"camera_count":256}"#,
+            r#"{"camera_count":-1}"#,
+            r#"{"camera_count":"2"}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<DeviceCapabilities>(json).is_err(),
+                "{json} must not decode"
+            );
+        }
+    }
 }
