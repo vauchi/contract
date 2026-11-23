@@ -1937,6 +1937,10 @@ public struct DeviceCapabilities: Codable {
     public let audio: AudioCapability?
     /// Type of biometric hardware, if available.
     public let biometricType: BiometricType?
+    /// How many cameras the device can capture from, when the shell counts them. Core offers a
+    /// switch between cameras only when this says there is more than one; a shell that does not
+    /// count leaves it out, and Core keeps offering the switch (private#772).
+    public let cameraCount: Int?
     /// The shell can seal a secret behind the operating system's own user-presence check
     /// (biometric or device credential) and answers `Command::CreateUserPresenceSecret` /
     /// `RevealUserPresenceSecret` (#712). Off until a shell implements them.
@@ -1966,6 +1970,7 @@ public struct DeviceCapabilities: Codable {
     public enum CodingKeys: String, CodingKey {
         case audio = "audio"
         case biometricType = "biometric_type"
+        case cameraCount = "camera_count"
         case canSealUserPresence = "can_seal_user_presence"
         case deviceName = "device_name"
         case hasAccelerometer = "has_accelerometer"
@@ -1979,9 +1984,10 @@ public struct DeviceCapabilities: Codable {
         case platform = "platform"
     }
 
-    public init(audio: AudioCapability?, biometricType: BiometricType?, canSealUserPresence: Bool?, deviceName: String?, hasAccelerometer: Bool?, hasBiometrics: Bool?, hasBle: Bool?, hasCamera: Bool?, hasInternet: Bool?, hasNFC: Bool?, hasSecureEnclave: Bool?, hasUSBPort: Bool?, platform: Platform?) {
+    public init(audio: AudioCapability?, biometricType: BiometricType?, cameraCount: Int?, canSealUserPresence: Bool?, deviceName: String?, hasAccelerometer: Bool?, hasBiometrics: Bool?, hasBle: Bool?, hasCamera: Bool?, hasInternet: Bool?, hasNFC: Bool?, hasSecureEnclave: Bool?, hasUSBPort: Bool?, platform: Platform?) {
         self.audio = audio
         self.biometricType = biometricType
+        self.cameraCount = cameraCount
         self.canSealUserPresence = canSealUserPresence
         self.deviceName = deviceName
         self.hasAccelerometer = hasAccelerometer
@@ -2017,6 +2023,7 @@ public extension DeviceCapabilities {
     func with(
         audio: AudioCapability?? = nil,
         biometricType: BiometricType?? = nil,
+        cameraCount: Int?? = nil,
         canSealUserPresence: Bool?? = nil,
         deviceName: String?? = nil,
         hasAccelerometer: Bool?? = nil,
@@ -2032,6 +2039,7 @@ public extension DeviceCapabilities {
         return DeviceCapabilities(
             audio: audio ?? self.audio,
             biometricType: biometricType ?? self.biometricType,
+            cameraCount: cameraCount ?? self.cameraCount,
             canSealUserPresence: canSealUserPresence ?? self.canSealUserPresence,
             deviceName: deviceName ?? self.deviceName,
             hasAccelerometer: hasAccelerometer ?? self.hasAccelerometer,

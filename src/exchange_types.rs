@@ -106,6 +106,13 @@ pub struct DeviceCapabilities {
     #[serde(default)]
     pub has_camera: bool,
 
+    /// How many cameras the device can capture from, when the shell
+    /// counts them. Core offers a switch between cameras only when this
+    /// says there is more than one; a shell that does not count leaves it
+    /// out, and Core keeps offering the switch (private#772).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub camera_count: Option<u8>,
+
     /// Device audio capabilities (for ultrasonic proximity verification).
     #[serde(default)]
     pub audio: AudioCapability,
@@ -228,7 +235,7 @@ mod capability_tests {
         let caps: DeviceCapabilities =
             serde_json::from_str(r#"{"has_camera":true}"#).expect("deserialize");
         assert_eq!(caps.camera_count, None);
-        let json = serde_json::to_value(&DeviceCapabilities::default()).expect("serialize");
+        let json = serde_json::to_value(DeviceCapabilities::default()).expect("serialize");
         assert!(
             json.get("camera_count").is_none(),
             "an unreported count is left out, as older receivers expect: {json}"

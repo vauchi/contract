@@ -3532,6 +3532,15 @@
             "default": null,
             "description": "Type of biometric hardware, if available."
           },
+          "camera_count": {
+            "description": "How many cameras the device can capture from, when the shell counts them. Core offers a switch between cameras only when this says there is more than one; a shell that does not count leaves it out, and Core keeps offering the switch (private#772).",
+            "format": "uint8",
+            "minimum": 0.0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "can_seal_user_presence": {
             "default": false,
             "description": "The shell can seal a secret behind the operating system's own user-presence check (biometric or device credential) and answers `Command::CreateUserPresenceSecret` / `RevealUserPresenceSecret` (#712). Off until a shell implements them.",

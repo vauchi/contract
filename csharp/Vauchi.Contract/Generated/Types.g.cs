@@ -948,6 +948,11 @@ namespace Vauchi.Contract
         public global::Vauchi.Contract.BiometricType? BiometricType { get; init; }
 
         /// <summary>
+        /// How many cameras the device can capture from, when the shell counts them. Core offers a switch between cameras only when this says there is more than one; a shell that does not count leaves it out, and Core keeps offering the switch (private#772).
+        /// </summary>
+        public byte? CameraCount { get; init; }
+
+        /// <summary>
         /// The shell can seal a secret behind the operating system's own user-presence check (biometric or device credential) and answers `Command::CreateUserPresenceSecret` / `RevealUserPresenceSecret` (#712). Off until a shell implements them.
         /// </summary>
         public bool CanSealUserPresence { get; init; } = false;
@@ -1011,11 +1016,11 @@ namespace Vauchi.Contract
             bool h0 = false;
             global::Vauchi.Contract.BiometricType? f1 = default;
             bool h1 = false;
-            bool f2 = default;
+            byte? f2 = default;
             bool h2 = false;
-            string? f3 = default;
+            bool f3 = default;
             bool h3 = false;
-            bool f4 = default;
+            string? f4 = default;
             bool h4 = false;
             bool f5 = default;
             bool h5 = false;
@@ -1031,8 +1036,10 @@ namespace Vauchi.Contract
             bool h10 = false;
             bool f11 = default;
             bool h11 = false;
-            global::Vauchi.Contract.Platform f12 = default;
+            bool f12 = default;
             bool h12 = false;
+            global::Vauchi.Contract.Platform f13 = default;
+            bool h13 = false;
             while (Rd.NextProperty(ref r, out string name))
             {
                 switch (name)
@@ -1045,49 +1052,53 @@ namespace Vauchi.Contract
                         Rd.Once(ref h1, name);
                         f1 = (r.TokenType == JsonTokenType.Null ? default(global::Vauchi.Contract.BiometricType?) : global::Vauchi.Contract.BiometricTypeJson.Read(ref r));
                         break;
-                    case "can_seal_user_presence":
+                    case "camera_count":
                         Rd.Once(ref h2, name);
-                        f2 = Rd.Bool(ref r);
+                        f2 = (r.TokenType == JsonTokenType.Null ? default(byte?) : Rd.U8(ref r));
+                        break;
+                    case "can_seal_user_presence":
+                        Rd.Once(ref h3, name);
+                        f3 = Rd.Bool(ref r);
                         break;
                     case "device_name":
-                        Rd.Once(ref h3, name);
-                        f3 = (r.TokenType == JsonTokenType.Null ? default(string?) : Rd.String(ref r));
+                        Rd.Once(ref h4, name);
+                        f4 = (r.TokenType == JsonTokenType.Null ? default(string?) : Rd.String(ref r));
                         break;
                     case "has_accelerometer":
-                        Rd.Once(ref h4, name);
-                        f4 = Rd.Bool(ref r);
-                        break;
-                    case "has_biometrics":
                         Rd.Once(ref h5, name);
                         f5 = Rd.Bool(ref r);
                         break;
-                    case "has_ble":
+                    case "has_biometrics":
                         Rd.Once(ref h6, name);
                         f6 = Rd.Bool(ref r);
                         break;
-                    case "has_camera":
+                    case "has_ble":
                         Rd.Once(ref h7, name);
                         f7 = Rd.Bool(ref r);
                         break;
-                    case "has_internet":
+                    case "has_camera":
                         Rd.Once(ref h8, name);
                         f8 = Rd.Bool(ref r);
                         break;
-                    case "has_nfc":
+                    case "has_internet":
                         Rd.Once(ref h9, name);
                         f9 = Rd.Bool(ref r);
                         break;
-                    case "has_secure_enclave":
+                    case "has_nfc":
                         Rd.Once(ref h10, name);
                         f10 = Rd.Bool(ref r);
                         break;
-                    case "has_usb_port":
+                    case "has_secure_enclave":
                         Rd.Once(ref h11, name);
                         f11 = Rd.Bool(ref r);
                         break;
-                    case "platform":
+                    case "has_usb_port":
                         Rd.Once(ref h12, name);
-                        f12 = global::Vauchi.Contract.PlatformJson.Read(ref r);
+                        f12 = Rd.Bool(ref r);
+                        break;
+                    case "platform":
+                        Rd.Once(ref h13, name);
+                        f13 = global::Vauchi.Contract.PlatformJson.Read(ref r);
                         break;
                     default:
                         r.Skip();
@@ -1095,8 +1106,7 @@ namespace Vauchi.Contract
                 }
             }
             if (!h0) f0 = global::Vauchi.Contract.AudioCapability.None;
-            if (!h2) f2 = false;
-            if (!h4) f4 = false;
+            if (!h3) f3 = false;
             if (!h5) f5 = false;
             if (!h6) f6 = false;
             if (!h7) f7 = false;
@@ -1104,8 +1114,9 @@ namespace Vauchi.Contract
             if (!h9) f9 = false;
             if (!h10) f10 = false;
             if (!h11) f11 = false;
-            if (!h12) f12 = global::Vauchi.Contract.Platform.Unknown;
-            return new DeviceCapabilities { Audio = f0, BiometricType = f1, CanSealUserPresence = f2, DeviceName = f3, HasAccelerometer = f4, HasBiometrics = f5, HasBle = f6, HasCamera = f7, HasInternet = f8, HasNfc = f9, HasSecureEnclave = f10, HasUsbPort = f11, Platform = f12 };
+            if (!h12) f12 = false;
+            if (!h13) f13 = global::Vauchi.Contract.Platform.Unknown;
+            return new DeviceCapabilities { Audio = f0, BiometricType = f1, CameraCount = f2, CanSealUserPresence = f3, DeviceName = f4, HasAccelerometer = f5, HasBiometrics = f6, HasBle = f7, HasCamera = f8, HasInternet = f9, HasNfc = f10, HasSecureEnclave = f11, HasUsbPort = f12, Platform = f13 };
         }
 
         internal void Write(Utf8JsonWriter w)
@@ -1119,6 +1130,18 @@ namespace Vauchi.Contract
                 if (BiometricType is { } x0)
                 {
                     global::Vauchi.Contract.BiometricTypeJson.Write(w, x0);
+                }
+                else
+                {
+                    w.WriteNullValue();
+                }
+            }
+            if (CameraCount is not null)
+            {
+                w.WritePropertyName("camera_count");
+                if (CameraCount is { } x0)
+                {
+                    w.WriteNumberValue(x0);
                 }
                 else
                 {
