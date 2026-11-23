@@ -2401,6 +2401,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | --- | --- | --- |
 | `audio` | no | `{"allOf":[{"$ref":"#/definitions/AudioCapability"}],"default":"None"}` |
 | `biometric_type` | no | `{"anyOf":[{"$ref":"#/definitions/BiometricType"},{"type":"null"}],"default":null}` |
+| `camera_count` | no | `{"format":"uint8","minimum":0.0,"type":["integer","null"]}` |
 | `can_seal_user_presence` | no | `{"default":false,"type":"boolean"}` |
 | `device_name` | no | `{"default":null,"type":["string","null"]}` |
 | `has_accelerometer` | no | `{"default":false,"type":"boolean"}` |
