@@ -229,6 +229,13 @@
               }
             ]
           },
+          "pinned": {
+            "description": "Actions the shell keeps in view under the surface's content, one under the other in this order, for a decision that must not scroll away. At most three. Core sends them only to a shell that reported `pinned_actions`; omitted on the wire when empty so older shells see the slots they know.",
+            "items": {
+              "$ref": "#/definitions/ActionSpec"
+            },
+            "type": "array"
+          },
           "primary": {
             "anyOf": [
               {
@@ -4656,6 +4663,10 @@
               },
               "motion": {
                 "$ref": "#/definitions/MotionPreference"
+              },
+              "pinned_actions": {
+                "description": "The shell keeps `ContextBar::pinned` in view. False from a shell that does not report it; Core then leaves those actions in the surface's content (vauchi/private#1304).",
+                "type": "boolean"
               }
             },
             "required": [
