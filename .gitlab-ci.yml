@@ -299,7 +299,7 @@ contract:kotlin:
   script:
     - python3 ci/tests/kotlin-generation.test.py
     - python3 scripts/generate-kotlin.py
-    - ./kotlin/gradlew -p kotlin --no-daemon lintKotlin test jar sourcesJar generatePomFileForContractPublication generateMetadataFileForContractPublication
+    - ./kotlin/gradlew -p kotlin --no-daemon lintKotlin test boundedMemoryTest jar sourcesJar generatePomFileForContractPublication generateMetadataFileForContractPublication
     - python3 ci/tests/native-contract-evidence.test.py
     - python3 ci/native-contract-evidence.py target/native-products-kotlin.md --product kotlin --write --validate
   artifacts:

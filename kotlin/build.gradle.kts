@@ -50,7 +50,17 @@ tasks.register<JavaExec>("lintKotlin") {
 
 tasks.test {
     systemProperty("vauchi.contractCheckout", projectDir.parentFile.absolutePath)
+    exclude("**/LargePayloadTest.class")
 }
+
+val boundedMemoryTest by tasks.registering(Test::class) {
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    maxHeapSize = "96m"
+    filter { includeTestsMatching("app.vauchi.contract.LargePayloadTest") }
+}
+
+tasks.check { dependsOn(boundedMemoryTest) }
 
 tasks.processResources {
     from("../fixtures/protocol_conformance_v1.json") {
@@ -120,5 +130,5 @@ publishing {
 }
 
 tasks.withType<PublishToMavenRepository>().configureEach {
-    dependsOn(verifyReleaseVersion, tasks.test)
+    dependsOn(verifyReleaseVersion, tasks.test, boundedMemoryTest)
 }
