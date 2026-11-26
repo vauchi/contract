@@ -5,6 +5,12 @@ use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt;
 
+mod gatt;
+pub use gatt::{
+    BleGattCharacteristicSpec, BleGattDescriptorSpec, BleGattPermissions, BleGattProperties,
+    BleGattServiceSpec,
+};
+
 #[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum BlePreparationError {
     #[error("BLE list exceeds {limit} items")]
