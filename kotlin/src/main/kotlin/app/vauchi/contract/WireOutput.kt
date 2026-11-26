@@ -83,7 +83,7 @@ internal class WireOutput {
     }
 
     fun number(value: String) {
-        if (value in setOf("NaN", "Infinity", "-Infinity")) refused()
+        if (value == "NaN" || value == "Infinity" || value == "-Infinity") refused()
         beforeValue()
         text.append(value)
     }

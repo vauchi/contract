@@ -55,27 +55,6 @@ class Codec:
             return f"Rd.list({value}, {schema.get('minItems', 0)}, {schema.get('maxItems', -1)}) {{ {name} -> {read} }}"
         raise self.reference.Unsupported(f"Kotlin codec cannot read {where}")
 
-    def write(self, schema, value, depth=0):
-        if "$ref" in schema:
-            name = schema["$ref"].removeprefix("#/definitions/")
-            return f"write{name}({value})"
-        if "allOf" in schema:
-            return self.write(schema["allOf"][0], value, depth)
-        inner = self.nonnull(schema)
-        if inner is not None:
-            name = f"n{depth}"
-            write = self.write(inner, name, depth + 1)
-            return f"({value}?.let {{ {name} -> {write} }} ?: JsonNull)"
-        kind = schema["type"]
-        if kind in ("string", "boolean"):
-            return f"JsonPrimitive({value})"
-        if kind in ("integer", "number"):
-            return f"Wr.number({value}.toString())"
-        if kind == "array":
-            name = f"e{depth}"
-            return f"JsonArray({value}.map {{ {name} -> {self.write(schema['items'], name, depth + 1)} }})"
-        raise self.reference.Unsupported("Kotlin codec cannot write schema")
-
     def read_object(self, schema, where, construct, value="v", indent="    "):
         properties = schema.get("properties", {})
         required = set(schema.get("required", []))
@@ -98,20 +77,6 @@ class Codec:
             lines.append(f"{indent}    `{self.property_name(wire)}` = {read},")
         lines.append(f"{indent}){')' if checked else ''}")
         return lines
-
-    def write_object(self, schema, value="value"):
-        fields = []
-        required = set(schema.get("required", []))
-        for wire, prop in schema.get("properties", {}).items():
-            field = f"{value}.`{self.property_name(wire)}`"
-            kind = self.generator.type_of(prop)
-            optional = wire not in required and ("default" not in prop or kind.endswith("?"))
-            if optional:
-                write = f"{field}?.let {{ f -> {self.write(prop, 'f')} }}"
-            else:
-                write = self.write(prop, field)
-            fields.append(f"{self.literal(wire)} to {write}")
-        return "Wr.obj(" + ", ".join(fields) + ")"
 
     def emit(self, name, schema, kind):
         lines = [f"internal fun read{name}(v: WireValue): {name} {{"]
