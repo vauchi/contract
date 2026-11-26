@@ -70,7 +70,7 @@ val boundedMemoryTest by tasks.registering(Test::class) {
 tasks.check { dependsOn(boundedMemoryTest) }
 
 tasks.processResources {
-    from("../fixtures/protocol_conformance_v1.json") {
+    from(listOf("../fixtures/protocol_conformance_v1.json", "../fixtures/direct_frames_v1.json")) {
         into("app/vauchi/contract")
     }
 }

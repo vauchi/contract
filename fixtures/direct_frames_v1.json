@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "valid": [
+    {"payload": [170, 187, 204], "frame": [86, 88, 67, 72, 1, 0, 0, 0, 3, 170, 187, 204]},
+    {"payload": [0], "frame": [86, 88, 67, 72, 1, 0, 0, 0, 1, 0]},
+    {"payload": [255], "frame": [86, 88, 67, 72, 1, 0, 0, 0, 1, 255]}
+  ],
+  "invalid": [
+    {"frame": [0, 88, 67, 72, 1, 0, 0, 0, 1, 7], "error": "InvalidMagic", "consumed": 4},
+    {"frame": [86, 88, 67, 72, 2, 0, 0, 0, 1, 7], "error": "UnsupportedVersion", "consumed": 5},
+    {"frame": [86, 88, 67, 72, 1, 0, 0, 0, 0, 7], "error": "EmptyPayload", "consumed": 9},
+    {"frame": [86, 88, 67, 72, 1, 0, 1, 0, 1, 7], "error": "PayloadTooLarge", "consumed": 9},
+    {"frame": [86, 88, 67, 72, 1, 255, 255, 255, 255, 7], "error": "PayloadTooLarge", "consumed": 9},
+    {"frame": [86, 88, 67], "error": "Truncated", "consumed": 3},
+    {"frame": [86, 88, 67, 72, 1, 0, 0, 0, 2, 7], "error": "Truncated", "consumed": 10}
+  ]
+}
