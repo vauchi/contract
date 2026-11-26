@@ -156,10 +156,8 @@ struct Schema {
             }
         }
         guard accepted.count == 1, let result = accepted.first else {
-            let candidates = alternatives.map { String(describing: $0).prefix(160) }
-            let input = String(describing: value).prefix(200)
             throw ContractJSONError.invalid(
-                "value matches \(accepted.count) contract variants in \(title) \(candidates): \(input)"
+                "value matches \(accepted.count) contract variants in \(title)"
             )
         }
         return result

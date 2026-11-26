@@ -23,11 +23,19 @@ public enum ContractJSON {
     }
 
     public static func encodeCommand(_ value: Command) throws -> Data {
-        try JSONEncoder().encode(value)
+        try encode("command", value: value)
     }
 
     public static func encodeEvent(_ value: Event) throws -> Data {
-        try JSONEncoder().encode(value)
+        try encode("event", value: value)
+    }
+
+    private static func encode<T: Encodable>(_ root: String, value: T) throws -> Data {
+        let encoded = try JSONEncoder().encode(value)
+        let json = try JSONSerialization.jsonObject(with: encoded, options: [.allowFragments])
+        var schema = Schema.shared
+        _ = try schema.normalize(root: root, value: json)
+        return encoded
     }
 
     private static func decode<T: Decodable>(_ root: String, as type: T.Type, data: Data) throws -> T {
