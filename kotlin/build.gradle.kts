@@ -24,5 +24,10 @@ dependencyLocking {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     testImplementation("junit:junit:4.13.2")
+}
+
+tasks.test {
+    systemProperty("vauchi.contractCheckout", projectDir.parentFile.absolutePath)
 }
