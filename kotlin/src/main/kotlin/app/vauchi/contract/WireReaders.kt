@@ -65,6 +65,8 @@ internal object Rd {
     ): String {
         val text = primitive(v, false).content
         val digits = if (!unsigned && text.startsWith('-')) text.substring(1) else text
+        // serde_json treats negative zero as a float, including the -0 spelling.
+        if (text == "-0") refused()
         if (digits.isEmpty() || digits.any { it !in '0'..'9' } || (digits.length > 1 && digits[0] == '0')) refused()
         return text
     }
