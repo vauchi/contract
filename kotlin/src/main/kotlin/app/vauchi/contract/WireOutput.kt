@@ -3,16 +3,15 @@
 
 package app.vauchi.contract
 
-import kotlinx.serialization.json.JsonPrimitive
-
-internal class WireOutput {
+internal class WireOutput(
+    private val text: Appendable = StringBuilder(),
+) {
     private class Frame(
         val objectValue: Boolean,
         var first: Boolean = true,
         var expectsValue: Boolean = false,
     )
 
-    private val text = StringBuilder()
     private val frames = mutableListOf<Frame>()
     private var root = false
 
@@ -65,7 +64,8 @@ internal class WireOutput {
         if (!frame.first) text.append(',')
         frame.first = false
         frame.expectsValue = true
-        text.append(JsonPrimitive(name).toString()).append(':')
+        quoted(Rd.validString(name))
+        text.append(':')
     }
 
     fun string(
@@ -75,11 +75,57 @@ internal class WireOutput {
     ) {
         Rd.validString(value)
         if (minimum > 0 || maximum >= 0) {
-            val size = value.toByteArray(Charsets.UTF_8).size
+            val size = value.sumOf { utf8Width(it).toLong() }
             if (size < minimum || (maximum >= 0 && size > maximum)) refused()
         }
         beforeValue()
-        text.append(JsonPrimitive(value).toString())
+        quoted(value)
+    }
+
+    private fun quoted(value: String) {
+        text.append('"')
+        for (character in value) {
+            when (character) {
+                '"' -> {
+                    text.append("\\\"")
+                }
+
+                '\\' -> {
+                    text.append("\\\\")
+                }
+
+                '\b' -> {
+                    text.append("\\b")
+                }
+
+                '\u000C' -> {
+                    text.append("\\f")
+                }
+
+                '\n' -> {
+                    text.append("\\n")
+                }
+
+                '\r' -> {
+                    text.append("\\r")
+                }
+
+                '\t' -> {
+                    text.append("\\t")
+                }
+
+                in '\u0000'..'\u001F' -> {
+                    text.append("\\u00")
+                    text.append("0123456789abcdef"[character.code shr 4])
+                    text.append("0123456789abcdef"[character.code and 15])
+                }
+
+                else -> {
+                    text.append(character)
+                }
+            }
+        }
+        text.append('"')
     }
 
     fun number(value: String) {
@@ -90,7 +136,7 @@ internal class WireOutput {
 
     fun bool(value: Boolean) {
         beforeValue()
-        text.append(value)
+        text.append(if (value) "true" else "false")
     }
 
     fun nullValue() {
@@ -98,8 +144,21 @@ internal class WireOutput {
         text.append("null")
     }
 
-    fun finish(): String {
+    fun complete() {
         if (!root || frames.isNotEmpty()) refused()
+    }
+
+    fun finish(): String {
+        complete()
         return text.toString()
     }
 }
+
+internal fun utf8Width(character: Char): Int =
+    when {
+        character.code < 0x80 -> 1
+        character.code < 0x800 -> 2
+        character.isHighSurrogate() -> 4
+        character.isLowSurrogate() -> 0
+        else -> 3
+    }
