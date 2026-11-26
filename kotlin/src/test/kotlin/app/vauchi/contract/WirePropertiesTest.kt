@@ -5,6 +5,7 @@ package app.vauchi.contract
 
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.byte
+import io.kotest.property.arbitrary.element
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.string
@@ -33,7 +34,9 @@ class WirePropertiesTest {
     @Test
     fun arbitraryTextRoundTripsWithoutChangingEscapes() =
         runBlocking<Unit> {
-            checkAll(1000, Arb.string(0..512)) { text ->
+            val edges = Arb.element("", "\"\\\u0000\n\r\t", "é", "😀", "\u2028\u2029")
+            checkAll(1000, Arb.string(0..512), edges) { generated, edge ->
+                val text = edge + generated + edge
                 val event = Event.QrScanned(data = text)
 
                 assertEquals(event, ContractJson.decodeEvent(ContractJson.encodeEvent(event)))

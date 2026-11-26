@@ -75,7 +75,9 @@ class FixtureReplayTest {
 
     @Test
     fun fullUnsignedRevisionsNeverPassThroughDouble() {
-        val message = """{"SetStatusItem":{"surface_id":"s","revision":18446744073709551615,"item":{"items":[],"show_window_label":"Show","tooltip":""}}}"""
+        val message =
+            """{"SetStatusItem":{"surface_id":"s","revision":18446744073709551615,"item":""" +
+                """{"items":[],"show_window_label":"Show","tooltip":""}}}"""
         val command = ContractJson.decodeCommand(message) as Command.SetStatusItem
 
         assertEquals(ULong.MAX_VALUE, command.revision)

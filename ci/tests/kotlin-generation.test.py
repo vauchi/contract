@@ -4,6 +4,7 @@
 """The Kotlin contract is typed, schema-driven and refuses silent drift."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -26,7 +27,7 @@ class KotlinGenerationTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def generate(self, *arguments):
+    def generate(self, *arguments, env=None):
         path = self.folder / "schema.json"
         path.write_text(json.dumps(self.schema), encoding="utf-8")
         return subprocess.run(
@@ -35,6 +36,7 @@ class KotlinGenerationTests(unittest.TestCase):
             text=True,
             check=False,
             timeout=120,
+            env=env,
         )
 
     def write(self):
@@ -98,6 +100,15 @@ class KotlinGenerationTests(unittest.TestCase):
         self.assertEqual(1, result.returncode, result.stdout)
         self.assertIn(path.name, result.stderr)
         self.assertEqual(edited, path.read_text(encoding="utf-8"))
+
+    def test_a_failing_formatter_backend_cannot_report_current_generation(self):
+        environment = dict(os.environ, JAVA_HOME=str(self.folder / "missing-jdk"))
+
+        result = self.generate("--write", env=environment)
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn("Kotlin formatting failed", result.stderr)
+        self.assertFalse(self.output.exists())
 
 
 if __name__ == "__main__":

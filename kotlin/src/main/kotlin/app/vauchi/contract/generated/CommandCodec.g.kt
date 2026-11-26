@@ -4,7 +4,11 @@
 
 package app.vauchi.contract
 
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
 
 internal fun readCommand(v: WireValue): Command {
     if (v.json is JsonPrimitive && v.json.isString) {
@@ -37,19 +41,32 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "ScheduleWakeup" -> {
             fun readPayload(): Command.ScheduleWakeup {
                 payload.objectFields(setOf("deadline_secs", "delay_millis", "earliest_millis", "earliest_secs", "min_interval_secs"), false)
                 return Command.ScheduleWakeup(
                     `deadlineSecs` = Rd.u32(payload.required("deadline_secs")),
                     `delayMillis` = Rd.u32(payload.required("delay_millis")),
-                    `earliestMillis` = payload.member("earliest_millis")?.let { f -> (if (f.json == JsonNull) null else Rd.u32(f)) } ?: null,
+                    `earliestMillis` =
+                        payload.member("earliest_millis")?.let { f ->
+                            (
+                                if (f.json ==
+                                    JsonNull
+                                ) {
+                                    null
+                                } else {
+                                    Rd.u32(f)
+                                }
+                            )
+                        } ?: null,
                     `earliestSecs` = Rd.u32(payload.required("earliest_secs")),
                     `minIntervalSecs` = Rd.u32(payload.required("min_interval_secs")),
                 )
             }
             readPayload()
         }
+
         "BleStartAdvertising" -> {
             fun readPayload(): Command.BleStartAdvertising {
                 payload.objectFields(setOf("payload", "service_uuid"), false)
@@ -60,6 +77,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "BleStartScanning" -> {
             fun readPayload(): Command.BleStartScanning {
                 payload.objectFields(setOf("service_uuid"), false)
@@ -69,6 +87,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "BleConnect" -> {
             fun readPayload(): Command.BleConnect {
                 payload.objectFields(setOf("device_id"), false)
@@ -78,6 +97,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "BleWriteCharacteristic" -> {
             fun readPayload(): Command.BleWriteCharacteristic {
                 payload.objectFields(setOf("data", "device_id", "direction", "uuid"), false)
@@ -90,6 +110,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "BleReadCharacteristic" -> {
             fun readPayload(): Command.BleReadCharacteristic {
                 payload.objectFields(setOf("device_id", "direction", "uuid"), false)
@@ -101,6 +122,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "BleDisconnect" -> {
             fun readPayload(): Command.BleDisconnect {
                 payload.objectFields(setOf("device_id", "direction"), false)
@@ -111,26 +133,33 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "NfcActivate" -> {
             fun readPayload(): Command.NfcActivate {
                 payload.objectFields(setOf("apdus", "payload"), false)
                 return Command.NfcActivate(
-                    `apdus` = payload.member("apdus")?.let { f -> Rd.list(f, 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } } } ?: Rd.list(WireValue(Json.parseToJsonElement("[]")), 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } },
+                    `apdus` =
+                        payload.member("apdus")?.let { f -> Rd.list(f, 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } } }
+                            ?: Rd.list(WireValue(Json.parseToJsonElement("[]")), 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } },
                     `payload` = Rd.list(payload.required("payload"), 0, -1) { e0 -> Rd.u8(e0) },
                 )
             }
             readPayload()
         }
+
         "NfcSendApdu" -> {
             fun readPayload(): Command.NfcSendApdu {
                 payload.objectFields(setOf("apdus", "data"), false)
                 return Command.NfcSendApdu(
-                    `apdus` = payload.member("apdus")?.let { f -> Rd.list(f, 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } } } ?: Rd.list(WireValue(Json.parseToJsonElement("[]")), 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } },
+                    `apdus` =
+                        payload.member("apdus")?.let { f -> Rd.list(f, 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } } }
+                            ?: Rd.list(WireValue(Json.parseToJsonElement("[]")), 0, -1) { e0 -> Rd.list(e0, 0, -1) { e1 -> Rd.u8(e1) } },
                     `data` = Rd.list(payload.required("data"), 0, -1) { e0 -> Rd.u8(e0) },
                 )
             }
             readPayload()
         }
+
         "AudioEmitChallenge" -> {
             fun readPayload(): Command.AudioEmitChallenge {
                 payload.objectFields(setOf("sample_rate", "samples"), false)
@@ -141,6 +170,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "AudioListenForResponse" -> {
             fun readPayload(): Command.AudioListenForResponse {
                 payload.objectFields(setOf("sample_rate", "timeout_ms"), false)
@@ -151,6 +181,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "RelayEscrowDeposit" -> {
             fun readPayload(): Command.RelayEscrowDeposit {
                 payload.objectFields(setOf("encrypted_card", "gate_hash", "slot_hash", "ttl_seconds"), false)
@@ -163,6 +194,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "RelayEscrowCheck" -> {
             fun readPayload(): Command.RelayEscrowCheck {
                 payload.objectFields(setOf("gate_hash", "suggested_interval_ms"), false)
@@ -173,6 +205,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "RelayEscrowRetrieve" -> {
             fun readPayload(): Command.RelayEscrowRetrieve {
                 payload.objectFields(setOf("gate_hash", "slot_hash"), false)
@@ -183,6 +216,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "ShowShareSheet" -> {
             fun readPayload(): Command.ShowShareSheet {
                 payload.objectFields(setOf("url"), false)
@@ -192,17 +226,37 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "DirectSend" -> {
             fun readPayload(): Command.DirectSend {
                 payload.objectFields(setOf("endpoint", "is_initiator", "payload"), false)
                 return Command.DirectSend(
-                    `endpoint` = payload.member("endpoint")?.let { f -> readDirectEndpoint(f) } ?: readDirectEndpoint(WireValue(Json.parseToJsonElement("{\"browse_timeout_ms\":5000,\"fallback_host\":\"127.0.0.1\",\"io_timeout_ms\":10000,\"port\":19283,\"service_type\":\"_vauchi-exchange._tcp.local.\"}"))),
+                    `endpoint` =
+                        payload.member("endpoint")?.let { f -> readDirectEndpoint(f) }
+                            ?: readDirectEndpoint(
+                                WireValue(
+                                    Json.parseToJsonElement(
+                                        (
+                                            "{\"browse_timeout" +
+                                                "_ms\":5000,\"fallb" +
+                                                "ack_host\":\"127.0" +
+                                                ".0.1\",\"io_timeou" +
+                                                "t_ms\":10000,\"por" +
+                                                "t\":19283,\"servic" +
+                                                "e_type\":\"_vauchi" +
+                                                "-exchange._tcp.l" +
+                                                "ocal.\"}"
+                                        ),
+                                    ),
+                                ),
+                            ),
                     `isInitiator` = Rd.bool(payload.required("is_initiator")),
                     `payload` = Rd.list(payload.required("payload"), 0, -1) { e0 -> Rd.u8(e0) },
                 )
             }
             readPayload()
         }
+
         "SwitchCamera" -> {
             fun readPayload(): Command.SwitchCamera {
                 payload.objectFields(setOf("use_front"), false)
@@ -212,11 +266,14 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "FilePickFromUser" -> {
             fun readPayload(): Command.FilePickFromUser {
                 payload.objectFields(setOf("accepted_extensions", "accepted_mime_types", "max_bytes", "purpose"), false)
                 return Command.FilePickFromUser(
-                    `acceptedExtensions` = payload.member("accepted_extensions")?.let { f -> Rd.list(f, 0, -1) { e0 -> Rd.string(e0, 0, -1) } } ?: Rd.list(WireValue(Json.parseToJsonElement("[]")), 0, -1) { e0 -> Rd.string(e0, 0, -1) },
+                    `acceptedExtensions` =
+                        payload.member("accepted_extensions")?.let { f -> Rd.list(f, 0, -1) { e0 -> Rd.string(e0, 0, -1) } }
+                            ?: Rd.list(WireValue(Json.parseToJsonElement("[]")), 0, -1) { e0 -> Rd.string(e0, 0, -1) },
                     `acceptedMimeTypes` = Rd.list(payload.required("accepted_mime_types"), 0, -1) { e0 -> Rd.string(e0, 0, -1) },
                     `maxBytes` = payload.member("max_bytes")?.let { f -> (if (f.json == JsonNull) null else Rd.u64(f)) } ?: null,
                     `purpose` = readFilePickPurpose(payload.required("purpose")),
@@ -224,6 +281,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetScreenBrightness" -> {
             fun readPayload(): Command.SetScreenBrightness {
                 payload.objectFields(setOf("level"), false)
@@ -233,6 +291,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetIdleTimerDisabled" -> {
             fun readPayload(): Command.SetIdleTimerDisabled {
                 payload.objectFields(setOf("disabled"), false)
@@ -242,15 +301,18 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetOrientationLock" -> {
             fun readPayload(): Command.SetOrientationLock {
                 payload.objectFields(setOf("orientation"), false)
                 return Command.SetOrientationLock(
-                    `orientation` = payload.member("orientation")?.let { f -> (if (f.json == JsonNull) null else readOrientation(f)) } ?: null,
+                    `orientation` =
+                        payload.member("orientation")?.let { f -> (if (f.json == JsonNull) null else readOrientation(f)) } ?: null,
                 )
             }
             readPayload()
         }
+
         "DirectSendCard" -> {
             fun readPayload(): Command.DirectSendCard {
                 payload.objectFields(setOf("ciphertext", "is_initiator"), false)
@@ -261,6 +323,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "LocationRequest" -> {
             fun readPayload(): Command.LocationRequest {
                 payload.objectFields(setOf("timeout_ms"), false)
@@ -270,6 +333,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "Celebrate" -> {
             fun readPayload(): Command.Celebrate {
                 payload.objectFields(setOf("animation", "haptic", "sound"), false)
@@ -281,6 +345,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetContextBar" -> {
             fun readPayload(): Command.SetContextBar {
                 payload.objectFields(setOf("bar", "revision", "surface_id"), false)
@@ -292,6 +357,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetNavigation" -> {
             fun readPayload(): Command.SetNavigation {
                 payload.objectFields(setOf("navigation", "revision", "surface_id"), false)
@@ -303,6 +369,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "PresentOverlay" -> {
             fun readPayload(): Command.PresentOverlay {
                 payload.objectFields(setOf("overlay", "revision", "surface_id"), false)
@@ -314,6 +381,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "DismissOverlay" -> {
             fun readPayload(): Command.DismissOverlay {
                 payload.objectFields(setOf("kind", "revision", "surface_id"), false)
@@ -325,6 +393,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetPresentationProfile" -> {
             fun readPayload(): Command.SetPresentationProfile {
                 payload.objectFields(setOf("profile"), false)
@@ -334,6 +403,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "ReplaceSurface" -> {
             fun readPayload(): Command.ReplaceSurface {
                 payload.objectFields(setOf("surface"), false)
@@ -343,6 +413,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "PresentAlert" -> {
             fun readPayload(): Command.PresentAlert {
                 payload.objectFields(setOf("alert"), false)
@@ -352,6 +423,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "ShowToast" -> {
             fun readPayload(): Command.ShowToast {
                 payload.objectFields(setOf("toast"), false)
@@ -361,6 +433,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "OpenExternalUrl" -> {
             fun readPayload(): Command.OpenExternalUrl {
                 payload.objectFields(setOf("url"), false)
@@ -370,6 +443,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "ExportFile" -> {
             fun readPayload(): Command.ExportFile {
                 payload.objectFields(setOf("file"), false)
@@ -379,6 +453,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "EmitDocument" -> {
             fun readPayload(): Command.EmitDocument {
                 payload.objectFields(setOf("document"), false)
@@ -388,6 +463,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "FinishInvocation" -> {
             fun readPayload(): Command.FinishInvocation {
                 payload.objectFields(setOf("outcome"), false)
@@ -397,6 +473,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "PostNotification" -> {
             fun readPayload(): Command.PostNotification {
                 payload.objectFields(setOf("notification"), false)
@@ -406,6 +483,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "ForgetStoredSecret" -> {
             fun readPayload(): Command.ForgetStoredSecret {
                 payload.objectFields(setOf("handle"), false)
@@ -415,6 +493,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "CreateUserPresenceSecret" -> {
             fun readPayload(): Command.CreateUserPresenceSecret {
                 payload.objectFields(setOf("binding", "prompt"), false)
@@ -425,6 +504,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "RevealUserPresenceSecret" -> {
             fun readPayload(): Command.RevealUserPresenceSecret {
                 payload.objectFields(setOf("prompt"), false)
@@ -434,6 +514,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SaveRestorableState" -> {
             fun readPayload(): Command.SaveRestorableState {
                 payload.objectFields(setOf("state"), false)
@@ -443,6 +524,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetApplicationMenu" -> {
             fun readPayload(): Command.SetApplicationMenu {
                 payload.objectFields(setOf("menus", "revision", "surface_id"), false)
@@ -454,6 +536,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "SetStatusItem" -> {
             fun readPayload(): Command.SetStatusItem {
                 payload.objectFields(setOf("item", "revision", "surface_id"), false)
@@ -465,6 +548,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "PickFile" -> {
             fun readPayload(): Command.PickFile {
                 payload.objectFields(setOf("accepted_extensions", "accepted_mime_types", "max_bytes", "request_id", "title"), false)
@@ -478,6 +562,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "CancelFilePick" -> {
             fun readPayload(): Command.CancelFilePick {
                 payload.objectFields(setOf("request_id"), false)
@@ -487,6 +572,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "RequestPermission" -> {
             fun readPayload(): Command.RequestPermission {
                 payload.objectFields(setOf("transport"), false)
@@ -496,6 +582,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "CameraViewport" -> {
             fun readPayload(): Command.CameraViewport {
                 payload.objectFields(setOf("preview_id"), false)
@@ -505,6 +592,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "CameraCapture" -> {
             fun readPayload(): Command.CameraCapture {
                 payload.objectFields(setOf("preview_id", "purpose"), false)
@@ -515,6 +603,7 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
+
         "CameraStop" -> {
             fun readPayload(): Command.CameraStop {
                 payload.objectFields(setOf("preview_id"), false)
@@ -524,74 +613,441 @@ internal fun readCommand(v: WireValue): Command {
             }
             readPayload()
         }
-        else -> refused()
+
+        else -> {
+            refused()
+        }
     }
 }
 
 internal fun writeCommand(value: Command): JsonElement =
     when (value) {
-        is Command.QrDisplay -> Wr.obj("QrDisplay" to Wr.obj("data" to JsonPrimitive(value.`data`)))
-        Command.QrRequestScan -> JsonPrimitive("QrRequestScan")
-        is Command.ScheduleWakeup -> Wr.obj("ScheduleWakeup" to Wr.obj("deadline_secs" to Wr.number(value.`deadlineSecs`.toString()), "delay_millis" to Wr.number(value.`delayMillis`.toString()), "earliest_millis" to value.`earliestMillis`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) }, "earliest_secs" to Wr.number(value.`earliestSecs`.toString()), "min_interval_secs" to Wr.number(value.`minIntervalSecs`.toString())))
-        is Command.BleStartAdvertising -> Wr.obj("BleStartAdvertising" to Wr.obj("payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }), "service_uuid" to JsonPrimitive(value.`serviceUuid`)))
-        is Command.BleStartScanning -> Wr.obj("BleStartScanning" to Wr.obj("service_uuid" to JsonPrimitive(value.`serviceUuid`)))
-        is Command.BleConnect -> Wr.obj("BleConnect" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`)))
-        is Command.BleWriteCharacteristic -> Wr.obj("BleWriteCharacteristic" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }), "device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`), "uuid" to JsonPrimitive(value.`uuid`)))
-        is Command.BleReadCharacteristic -> Wr.obj("BleReadCharacteristic" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`), "uuid" to JsonPrimitive(value.`uuid`)))
-        is Command.BleDisconnect -> Wr.obj("BleDisconnect" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`)))
-        is Command.NfcActivate -> Wr.obj("NfcActivate" to Wr.obj("apdus" to JsonArray(value.`apdus`.map { e0 -> JsonArray(e0.map { e1 -> Wr.number(e1.toString()) }) }), "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) })))
-        Command.NfcDeactivate -> JsonPrimitive("NfcDeactivate")
-        is Command.NfcSendApdu -> Wr.obj("NfcSendApdu" to Wr.obj("apdus" to JsonArray(value.`apdus`.map { e0 -> JsonArray(e0.map { e1 -> Wr.number(e1.toString()) }) }), "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
-        is Command.AudioEmitChallenge -> Wr.obj("AudioEmitChallenge" to Wr.obj("sample_rate" to Wr.number(value.`sampleRate`.toString()), "samples" to JsonArray(value.`samples`.map { e0 -> Wr.number(e0.toString()) })))
-        is Command.AudioListenForResponse -> Wr.obj("AudioListenForResponse" to Wr.obj("sample_rate" to Wr.number(value.`sampleRate`.toString()), "timeout_ms" to Wr.number(value.`timeoutMs`.toString())))
-        Command.AudioStop -> JsonPrimitive("AudioStop")
-        Command.AccelerometerStart -> JsonPrimitive("AccelerometerStart")
-        Command.AccelerometerStop -> JsonPrimitive("AccelerometerStop")
-        is Command.RelayEscrowDeposit -> Wr.obj("RelayEscrowDeposit" to Wr.obj("encrypted_card" to JsonArray(value.`encryptedCard`.map { e0 -> Wr.number(e0.toString()) }), "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }), "slot_hash" to JsonArray(value.`slotHash`.map { e0 -> Wr.number(e0.toString()) }), "ttl_seconds" to Wr.number(value.`ttlSeconds`.toString())))
-        is Command.RelayEscrowCheck -> Wr.obj("RelayEscrowCheck" to Wr.obj("gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }), "suggested_interval_ms" to Wr.number(value.`suggestedIntervalMs`.toString())))
-        is Command.RelayEscrowRetrieve -> Wr.obj("RelayEscrowRetrieve" to Wr.obj("gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }), "slot_hash" to JsonArray(value.`slotHash`.map { e0 -> Wr.number(e0.toString()) })))
-        is Command.ShowShareSheet -> Wr.obj("ShowShareSheet" to Wr.obj("url" to JsonPrimitive(value.`url`)))
-        Command.BleStopScanning -> JsonPrimitive("BleStopScanning")
-        is Command.DirectSend -> Wr.obj("DirectSend" to Wr.obj("endpoint" to writeDirectEndpoint(value.`endpoint`), "is_initiator" to JsonPrimitive(value.`isInitiator`), "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) })))
-        Command.ImagePickFromLibrary -> JsonPrimitive("ImagePickFromLibrary")
-        Command.ImageCaptureFromCamera -> JsonPrimitive("ImageCaptureFromCamera")
-        Command.ImagePickFromFile -> JsonPrimitive("ImagePickFromFile")
-        is Command.SwitchCamera -> Wr.obj("SwitchCamera" to Wr.obj("use_front" to JsonPrimitive(value.`useFront`)))
-        is Command.FilePickFromUser -> Wr.obj("FilePickFromUser" to Wr.obj("accepted_extensions" to JsonArray(value.`acceptedExtensions`.map { e0 -> JsonPrimitive(e0) }), "accepted_mime_types" to JsonArray(value.`acceptedMimeTypes`.map { e0 -> JsonPrimitive(e0) }), "max_bytes" to value.`maxBytes`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) }, "purpose" to writeFilePickPurpose(value.`purpose`)))
-        is Command.SetScreenBrightness -> Wr.obj("SetScreenBrightness" to Wr.obj("level" to value.`level`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) }))
-        is Command.SetIdleTimerDisabled -> Wr.obj("SetIdleTimerDisabled" to Wr.obj("disabled" to JsonPrimitive(value.`disabled`)))
-        is Command.SetOrientationLock -> Wr.obj("SetOrientationLock" to Wr.obj("orientation" to value.`orientation`?.let { f -> (f?.let { n0 -> writeOrientation(n0) } ?: JsonNull) }))
-        is Command.DirectSendCard -> Wr.obj("DirectSendCard" to Wr.obj("ciphertext" to JsonArray(value.`ciphertext`.map { e0 -> Wr.number(e0.toString()) }), "is_initiator" to JsonPrimitive(value.`isInitiator`)))
-        is Command.LocationRequest -> Wr.obj("LocationRequest" to Wr.obj("timeout_ms" to Wr.number(value.`timeoutMs`.toString())))
-        is Command.Celebrate -> Wr.obj("Celebrate" to Wr.obj("animation" to writeAnimationToken(value.`animation`), "haptic" to writeHapticPattern(value.`haptic`), "sound" to writeSoundToken(value.`sound`)))
-        is Command.SetContextBar -> Wr.obj("SetContextBar" to Wr.obj("bar" to writeContextBar(value.`bar`), "revision" to Wr.number(value.`revision`.toString()), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Command.SetNavigation -> Wr.obj("SetNavigation" to Wr.obj("navigation" to writeNavigationSpec(value.`navigation`), "revision" to Wr.number(value.`revision`.toString()), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Command.PresentOverlay -> Wr.obj("PresentOverlay" to Wr.obj("overlay" to writeOverlaySpec(value.`overlay`), "revision" to Wr.number(value.`revision`.toString()), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Command.DismissOverlay -> Wr.obj("DismissOverlay" to Wr.obj("kind" to writeOverlayKind(value.`kind`), "revision" to Wr.number(value.`revision`.toString()), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Command.SetPresentationProfile -> Wr.obj("SetPresentationProfile" to Wr.obj("profile" to writePresentationProfile(value.`profile`)))
-        is Command.ReplaceSurface -> Wr.obj("ReplaceSurface" to Wr.obj("surface" to writeSurfaceSpec(value.`surface`)))
-        is Command.PresentAlert -> Wr.obj("PresentAlert" to Wr.obj("alert" to writeAlertSpec(value.`alert`)))
-        is Command.ShowToast -> Wr.obj("ShowToast" to Wr.obj("toast" to writeToastSpec(value.`toast`)))
-        is Command.OpenExternalUrl -> Wr.obj("OpenExternalUrl" to Wr.obj("url" to JsonPrimitive(value.`url`)))
-        is Command.ExportFile -> Wr.obj("ExportFile" to Wr.obj("file" to writeExportFileSpec(value.`file`)))
-        is Command.EmitDocument -> Wr.obj("EmitDocument" to Wr.obj("document" to writeDocumentSpec(value.`document`)))
-        is Command.FinishInvocation -> Wr.obj("FinishInvocation" to Wr.obj("outcome" to writeInvocationOutcome(value.`outcome`)))
-        Command.PerformNativeBack -> JsonPrimitive("PerformNativeBack")
-        Command.ResetApplication -> JsonPrimitive("ResetApplication")
-        Command.ReloadTheme -> JsonPrimitive("ReloadTheme")
-        is Command.PostNotification -> Wr.obj("PostNotification" to Wr.obj("notification" to writeNotificationSpec(value.`notification`)))
-        Command.RequestBiometricUnlock -> JsonPrimitive("RequestBiometricUnlock")
-        is Command.ForgetStoredSecret -> Wr.obj("ForgetStoredSecret" to Wr.obj("handle" to JsonPrimitive(value.`handle`)))
-        is Command.CreateUserPresenceSecret -> Wr.obj("CreateUserPresenceSecret" to Wr.obj("binding" to writeUserPresenceBinding(value.`binding`), "prompt" to JsonPrimitive(value.`prompt`)))
-        is Command.RevealUserPresenceSecret -> Wr.obj("RevealUserPresenceSecret" to Wr.obj("prompt" to JsonPrimitive(value.`prompt`)))
-        is Command.SaveRestorableState -> Wr.obj("SaveRestorableState" to Wr.obj("state" to JsonPrimitive(value.`state`)))
-        is Command.SetApplicationMenu -> Wr.obj("SetApplicationMenu" to Wr.obj("menus" to JsonArray(value.`menus`.map { e0 -> writeApplicationMenuSpec(e0) }), "revision" to Wr.number(value.`revision`.toString()), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Command.SetStatusItem -> Wr.obj("SetStatusItem" to Wr.obj("item" to value.`item`?.let { f -> (f?.let { n0 -> writeStatusItemSpec(n0) } ?: JsonNull) }, "revision" to Wr.number(value.`revision`.toString()), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Command.PickFile -> Wr.obj("PickFile" to Wr.obj("accepted_extensions" to JsonArray(value.`acceptedExtensions`.map { e0 -> JsonPrimitive(e0) }), "accepted_mime_types" to JsonArray(value.`acceptedMimeTypes`.map { e0 -> JsonPrimitive(e0) }), "max_bytes" to Wr.number(value.`maxBytes`.toString()), "request_id" to JsonPrimitive(value.`requestId`), "title" to JsonPrimitive(value.`title`)))
-        is Command.CancelFilePick -> Wr.obj("CancelFilePick" to Wr.obj("request_id" to JsonPrimitive(value.`requestId`)))
-        is Command.RequestPermission -> Wr.obj("RequestPermission" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
-        is Command.CameraViewport -> Wr.obj("CameraViewport" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`)))
-        is Command.CameraCapture -> Wr.obj("CameraCapture" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`), "purpose" to writeCameraPurpose(value.`purpose`)))
-        is Command.CameraStop -> Wr.obj("CameraStop" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`)))
-        Command.BleStopAdvertising -> JsonPrimitive("BleStopAdvertising")
+        is Command.QrDisplay -> {
+            Wr.obj("QrDisplay" to Wr.obj("data" to JsonPrimitive(value.`data`)))
+        }
+
+        Command.QrRequestScan -> {
+            JsonPrimitive("QrRequestScan")
+        }
+
+        is Command.ScheduleWakeup -> {
+            Wr.obj(
+                "ScheduleWakeup" to
+                    Wr.obj(
+                        "deadline_secs" to Wr.number(value.`deadlineSecs`.toString()),
+                        "delay_millis" to Wr.number(value.`delayMillis`.toString()),
+                        "earliest_millis" to value.`earliestMillis`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
+                        "earliest_secs" to Wr.number(value.`earliestSecs`.toString()),
+                        "min_interval_secs" to Wr.number(value.`minIntervalSecs`.toString()),
+                    ),
+            )
+        }
+
+        is Command.BleStartAdvertising -> {
+            Wr.obj(
+                "BleStartAdvertising" to
+                    Wr.obj(
+                        "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }),
+                        "service_uuid" to JsonPrimitive(value.`serviceUuid`),
+                    ),
+            )
+        }
+
+        is Command.BleStartScanning -> {
+            Wr.obj("BleStartScanning" to Wr.obj("service_uuid" to JsonPrimitive(value.`serviceUuid`)))
+        }
+
+        is Command.BleConnect -> {
+            Wr.obj("BleConnect" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`)))
+        }
+
+        is Command.BleWriteCharacteristic -> {
+            Wr.obj(
+                "BleWriteCharacteristic" to
+                    Wr.obj(
+                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
+                        "device_id" to JsonPrimitive(value.`deviceId`),
+                        "direction" to writeBleLinkDirection(value.`direction`),
+                        "uuid" to JsonPrimitive(value.`uuid`),
+                    ),
+            )
+        }
+
+        is Command.BleReadCharacteristic -> {
+            Wr.obj(
+                "BleReadCharacteristic" to
+                    Wr.obj(
+                        "device_id" to JsonPrimitive(value.`deviceId`),
+                        "direction" to writeBleLinkDirection(value.`direction`),
+                        "uuid" to JsonPrimitive(value.`uuid`),
+                    ),
+            )
+        }
+
+        is Command.BleDisconnect -> {
+            Wr.obj(
+                "BleDisconnect" to
+                    Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`)),
+            )
+        }
+
+        is Command.NfcActivate -> {
+            Wr.obj(
+                "NfcActivate" to
+                    Wr.obj(
+                        "apdus" to JsonArray(value.`apdus`.map { e0 -> JsonArray(e0.map { e1 -> Wr.number(e1.toString()) }) }),
+                        "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        Command.NfcDeactivate -> {
+            JsonPrimitive("NfcDeactivate")
+        }
+
+        is Command.NfcSendApdu -> {
+            Wr.obj(
+                "NfcSendApdu" to
+                    Wr.obj(
+                        "apdus" to JsonArray(value.`apdus`.map { e0 -> JsonArray(e0.map { e1 -> Wr.number(e1.toString()) }) }),
+                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        is Command.AudioEmitChallenge -> {
+            Wr.obj(
+                "AudioEmitChallenge" to
+                    Wr.obj(
+                        "sample_rate" to Wr.number(value.`sampleRate`.toString()),
+                        "samples" to JsonArray(value.`samples`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        is Command.AudioListenForResponse -> {
+            Wr.obj(
+                "AudioListenForResponse" to
+                    Wr.obj(
+                        "sample_rate" to Wr.number(value.`sampleRate`.toString()),
+                        "timeout_ms" to Wr.number(value.`timeoutMs`.toString()),
+                    ),
+            )
+        }
+
+        Command.AudioStop -> {
+            JsonPrimitive("AudioStop")
+        }
+
+        Command.AccelerometerStart -> {
+            JsonPrimitive("AccelerometerStart")
+        }
+
+        Command.AccelerometerStop -> {
+            JsonPrimitive("AccelerometerStop")
+        }
+
+        is Command.RelayEscrowDeposit -> {
+            Wr.obj(
+                "RelayEscrowDeposit" to
+                    Wr.obj(
+                        "encrypted_card" to JsonArray(value.`encryptedCard`.map { e0 -> Wr.number(e0.toString()) }),
+                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
+                        "slot_hash" to JsonArray(value.`slotHash`.map { e0 -> Wr.number(e0.toString()) }),
+                        "ttl_seconds" to Wr.number(value.`ttlSeconds`.toString()),
+                    ),
+            )
+        }
+
+        is Command.RelayEscrowCheck -> {
+            Wr.obj(
+                "RelayEscrowCheck" to
+                    Wr.obj(
+                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
+                        "suggested_interval_ms" to Wr.number(value.`suggestedIntervalMs`.toString()),
+                    ),
+            )
+        }
+
+        is Command.RelayEscrowRetrieve -> {
+            Wr.obj(
+                "RelayEscrowRetrieve" to
+                    Wr.obj(
+                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
+                        "slot_hash" to JsonArray(value.`slotHash`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        is Command.ShowShareSheet -> {
+            Wr.obj("ShowShareSheet" to Wr.obj("url" to JsonPrimitive(value.`url`)))
+        }
+
+        Command.BleStopScanning -> {
+            JsonPrimitive("BleStopScanning")
+        }
+
+        is Command.DirectSend -> {
+            Wr.obj(
+                "DirectSend" to
+                    Wr.obj(
+                        "endpoint" to writeDirectEndpoint(value.`endpoint`),
+                        "is_initiator" to JsonPrimitive(value.`isInitiator`),
+                        "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        Command.ImagePickFromLibrary -> {
+            JsonPrimitive("ImagePickFromLibrary")
+        }
+
+        Command.ImageCaptureFromCamera -> {
+            JsonPrimitive("ImageCaptureFromCamera")
+        }
+
+        Command.ImagePickFromFile -> {
+            JsonPrimitive("ImagePickFromFile")
+        }
+
+        is Command.SwitchCamera -> {
+            Wr.obj("SwitchCamera" to Wr.obj("use_front" to JsonPrimitive(value.`useFront`)))
+        }
+
+        is Command.FilePickFromUser -> {
+            Wr.obj(
+                "FilePickFromUser" to
+                    Wr.obj(
+                        "accepted_extensions" to JsonArray(value.`acceptedExtensions`.map { e0 -> JsonPrimitive(e0) }),
+                        "accepted_mime_types" to JsonArray(value.`acceptedMimeTypes`.map { e0 -> JsonPrimitive(e0) }),
+                        "max_bytes" to value.`maxBytes`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
+                        "purpose" to writeFilePickPurpose(value.`purpose`),
+                    ),
+            )
+        }
+
+        is Command.SetScreenBrightness -> {
+            Wr.obj(
+                "SetScreenBrightness" to
+                    Wr.obj(
+                        "level" to value.`level`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
+                    ),
+            )
+        }
+
+        is Command.SetIdleTimerDisabled -> {
+            Wr.obj("SetIdleTimerDisabled" to Wr.obj("disabled" to JsonPrimitive(value.`disabled`)))
+        }
+
+        is Command.SetOrientationLock -> {
+            Wr.obj(
+                "SetOrientationLock" to
+                    Wr.obj("orientation" to value.`orientation`?.let { f -> (f?.let { n0 -> writeOrientation(n0) } ?: JsonNull) }),
+            )
+        }
+
+        is Command.DirectSendCard -> {
+            Wr.obj(
+                "DirectSendCard" to
+                    Wr.obj(
+                        "ciphertext" to JsonArray(value.`ciphertext`.map { e0 -> Wr.number(e0.toString()) }),
+                        "is_initiator" to JsonPrimitive(value.`isInitiator`),
+                    ),
+            )
+        }
+
+        is Command.LocationRequest -> {
+            Wr.obj("LocationRequest" to Wr.obj("timeout_ms" to Wr.number(value.`timeoutMs`.toString())))
+        }
+
+        is Command.Celebrate -> {
+            Wr.obj(
+                "Celebrate" to
+                    Wr.obj(
+                        "animation" to writeAnimationToken(value.`animation`),
+                        "haptic" to writeHapticPattern(value.`haptic`),
+                        "sound" to writeSoundToken(value.`sound`),
+                    ),
+            )
+        }
+
+        is Command.SetContextBar -> {
+            Wr.obj(
+                "SetContextBar" to
+                    Wr.obj(
+                        "bar" to writeContextBar(value.`bar`),
+                        "revision" to Wr.number(value.`revision`.toString()),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Command.SetNavigation -> {
+            Wr.obj(
+                "SetNavigation" to
+                    Wr.obj(
+                        "navigation" to writeNavigationSpec(value.`navigation`),
+                        "revision" to Wr.number(value.`revision`.toString()),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Command.PresentOverlay -> {
+            Wr.obj(
+                "PresentOverlay" to
+                    Wr.obj(
+                        "overlay" to writeOverlaySpec(value.`overlay`),
+                        "revision" to Wr.number(value.`revision`.toString()),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Command.DismissOverlay -> {
+            Wr.obj(
+                "DismissOverlay" to
+                    Wr.obj(
+                        "kind" to writeOverlayKind(value.`kind`),
+                        "revision" to Wr.number(value.`revision`.toString()),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Command.SetPresentationProfile -> {
+            Wr.obj("SetPresentationProfile" to Wr.obj("profile" to writePresentationProfile(value.`profile`)))
+        }
+
+        is Command.ReplaceSurface -> {
+            Wr.obj("ReplaceSurface" to Wr.obj("surface" to writeSurfaceSpec(value.`surface`)))
+        }
+
+        is Command.PresentAlert -> {
+            Wr.obj("PresentAlert" to Wr.obj("alert" to writeAlertSpec(value.`alert`)))
+        }
+
+        is Command.ShowToast -> {
+            Wr.obj("ShowToast" to Wr.obj("toast" to writeToastSpec(value.`toast`)))
+        }
+
+        is Command.OpenExternalUrl -> {
+            Wr.obj("OpenExternalUrl" to Wr.obj("url" to JsonPrimitive(value.`url`)))
+        }
+
+        is Command.ExportFile -> {
+            Wr.obj("ExportFile" to Wr.obj("file" to writeExportFileSpec(value.`file`)))
+        }
+
+        is Command.EmitDocument -> {
+            Wr.obj("EmitDocument" to Wr.obj("document" to writeDocumentSpec(value.`document`)))
+        }
+
+        is Command.FinishInvocation -> {
+            Wr.obj("FinishInvocation" to Wr.obj("outcome" to writeInvocationOutcome(value.`outcome`)))
+        }
+
+        Command.PerformNativeBack -> {
+            JsonPrimitive("PerformNativeBack")
+        }
+
+        Command.ResetApplication -> {
+            JsonPrimitive("ResetApplication")
+        }
+
+        Command.ReloadTheme -> {
+            JsonPrimitive("ReloadTheme")
+        }
+
+        is Command.PostNotification -> {
+            Wr.obj("PostNotification" to Wr.obj("notification" to writeNotificationSpec(value.`notification`)))
+        }
+
+        Command.RequestBiometricUnlock -> {
+            JsonPrimitive("RequestBiometricUnlock")
+        }
+
+        is Command.ForgetStoredSecret -> {
+            Wr.obj("ForgetStoredSecret" to Wr.obj("handle" to JsonPrimitive(value.`handle`)))
+        }
+
+        is Command.CreateUserPresenceSecret -> {
+            Wr.obj(
+                "CreateUserPresenceSecret" to
+                    Wr.obj("binding" to writeUserPresenceBinding(value.`binding`), "prompt" to JsonPrimitive(value.`prompt`)),
+            )
+        }
+
+        is Command.RevealUserPresenceSecret -> {
+            Wr.obj("RevealUserPresenceSecret" to Wr.obj("prompt" to JsonPrimitive(value.`prompt`)))
+        }
+
+        is Command.SaveRestorableState -> {
+            Wr.obj("SaveRestorableState" to Wr.obj("state" to JsonPrimitive(value.`state`)))
+        }
+
+        is Command.SetApplicationMenu -> {
+            Wr.obj(
+                "SetApplicationMenu" to
+                    Wr.obj(
+                        "menus" to JsonArray(value.`menus`.map { e0 -> writeApplicationMenuSpec(e0) }),
+                        "revision" to Wr.number(value.`revision`.toString()),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Command.SetStatusItem -> {
+            Wr.obj(
+                "SetStatusItem" to
+                    Wr.obj(
+                        "item" to value.`item`?.let { f -> (f?.let { n0 -> writeStatusItemSpec(n0) } ?: JsonNull) },
+                        "revision" to Wr.number(value.`revision`.toString()),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Command.PickFile -> {
+            Wr.obj(
+                "PickFile" to
+                    Wr.obj(
+                        "accepted_extensions" to JsonArray(value.`acceptedExtensions`.map { e0 -> JsonPrimitive(e0) }),
+                        "accepted_mime_types" to JsonArray(value.`acceptedMimeTypes`.map { e0 -> JsonPrimitive(e0) }),
+                        "max_bytes" to Wr.number(value.`maxBytes`.toString()),
+                        "request_id" to JsonPrimitive(value.`requestId`),
+                        "title" to JsonPrimitive(value.`title`),
+                    ),
+            )
+        }
+
+        is Command.CancelFilePick -> {
+            Wr.obj("CancelFilePick" to Wr.obj("request_id" to JsonPrimitive(value.`requestId`)))
+        }
+
+        is Command.RequestPermission -> {
+            Wr.obj("RequestPermission" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+        }
+
+        is Command.CameraViewport -> {
+            Wr.obj("CameraViewport" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`)))
+        }
+
+        is Command.CameraCapture -> {
+            Wr.obj(
+                "CameraCapture" to
+                    Wr.obj(
+                        "preview_id" to JsonPrimitive(value.`previewId`),
+                        "purpose" to writeCameraPurpose(value.`purpose`),
+                    ),
+            )
+        }
+
+        is Command.CameraStop -> {
+            Wr.obj("CameraStop" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`)))
+        }
+
+        Command.BleStopAdvertising -> {
+            JsonPrimitive("BleStopAdvertising")
+        }
     }

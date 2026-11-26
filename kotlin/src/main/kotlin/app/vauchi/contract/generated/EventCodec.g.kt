@@ -4,7 +4,11 @@
 
 package app.vauchi.contract
 
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
 
 internal fun readEvent(v: WireValue): Event {
     if (v.json is JsonPrimitive && v.json.isString) {
@@ -32,17 +36,20 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "QrScanProgress" -> {
             fun readPayload(): Event.QrScanProgress {
                 payload.objectFields(setOf("confidence", "detected", "frame_skipped"), false)
                 return Event.QrScanProgress(
                     `confidence` = payload.member("confidence")?.let { f -> (if (f.json == JsonNull) null else Rd.u8(f)) } ?: null,
                     `detected` = Rd.bool(payload.required("detected")),
-                    `frameSkipped` = payload.member("frame_skipped")?.let { f -> Rd.bool(f) } ?: Rd.bool(WireValue(Json.parseToJsonElement("false"))),
+                    `frameSkipped` =
+                        payload.member("frame_skipped")?.let { f -> Rd.bool(f) } ?: Rd.bool(WireValue(Json.parseToJsonElement("false"))),
                 )
             }
             readPayload()
         }
+
         "LocalNetworkAddressChanged" -> {
             fun readPayload(): Event.LocalNetworkAddressChanged {
                 payload.objectFields(setOf("address"), false)
@@ -52,6 +59,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "NetworkCostChanged" -> {
             fun readPayload(): Event.NetworkCostChanged {
                 payload.objectFields(setOf("cost"), false)
@@ -61,9 +69,11 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleAdvertisementObserved" -> {
             Event.BleAdvertisementObserved(readBleAdvertisementObservation(payload))
         }
+
         "BleDeviceDiscovered" -> {
             fun readPayload(): Event.BleDeviceDiscovered {
                 payload.objectFields(setOf("adv_data", "id", "rssi"), false)
@@ -75,6 +85,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleConnected" -> {
             fun readPayload(): Event.BleConnected {
                 payload.objectFields(setOf("device_id", "direction"), false)
@@ -85,6 +96,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleCharacteristicRead" -> {
             fun readPayload(): Event.BleCharacteristicRead {
                 payload.objectFields(setOf("data", "device_id", "direction", "uuid"), false)
@@ -97,6 +109,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleCharacteristicNotified" -> {
             fun readPayload(): Event.BleCharacteristicNotified {
                 payload.objectFields(setOf("data", "device_id", "direction", "uuid"), false)
@@ -109,6 +122,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleDisconnected" -> {
             fun readPayload(): Event.BleDisconnected {
                 payload.objectFields(setOf("device_id", "direction", "reason"), false)
@@ -120,6 +134,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "NfcDataReceived" -> {
             fun readPayload(): Event.NfcDataReceived {
                 payload.objectFields(setOf("data"), false)
@@ -129,6 +144,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "NfcApduReceived" -> {
             fun readPayload(): Event.NfcApduReceived {
                 payload.objectFields(setOf("bytes"), false)
@@ -138,6 +154,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "NfcFailed" -> {
             fun readPayload(): Event.NfcFailed {
                 payload.objectFields(setOf("reason"), false)
@@ -147,6 +164,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "AudioSamplesRecorded" -> {
             fun readPayload(): Event.AudioSamplesRecorded {
                 payload.objectFields(setOf("sample_rate", "samples"), false)
@@ -157,6 +175,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "HardwareError" -> {
             fun readPayload(): Event.HardwareError {
                 payload.objectFields(setOf("error", "transport"), false)
@@ -167,6 +186,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "HardwareUnavailable" -> {
             fun readPayload(): Event.HardwareUnavailable {
                 payload.objectFields(setOf("transport"), false)
@@ -176,6 +196,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "PermissionDenied" -> {
             fun readPayload(): Event.PermissionDenied {
                 payload.objectFields(setOf("transport"), false)
@@ -185,17 +206,30 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "LocationResult" -> {
             fun readPayload(): Event.LocationResult {
                 payload.objectFields(setOf("accuracy_meters", "latitude", "longitude"), false)
                 return Event.LocationResult(
-                    `accuracyMeters` = payload.member("accuracy_meters")?.let { f -> (if (f.json == JsonNull) null else Rd.f32(f)) } ?: null,
+                    `accuracyMeters` =
+                        payload.member("accuracy_meters")?.let { f ->
+                            (
+                                if (f.json ==
+                                    JsonNull
+                                ) {
+                                    null
+                                } else {
+                                    Rd.f32(f)
+                                }
+                            )
+                        } ?: null,
                     `latitude` = Rd.f64(payload.required("latitude")),
                     `longitude` = Rd.f64(payload.required("longitude")),
                 )
             }
             readPayload()
         }
+
         "AccelerometerData" -> {
             fun readPayload(): Event.AccelerometerData {
                 payload.objectFields(setOf("timestamp_ms", "x_milli_g", "y_milli_g", "z_milli_g"), false)
@@ -208,6 +242,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "ImpactDetected" -> {
             fun readPayload(): Event.ImpactDetected {
                 payload.objectFields(setOf("magnitude_milli_g", "timestamp_ms"), false)
@@ -218,6 +253,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "RelayEscrowReady" -> {
             fun readPayload(): Event.RelayEscrowReady {
                 payload.objectFields(setOf("gate_hash"), false)
@@ -227,6 +263,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "RelayEscrowFailed" -> {
             fun readPayload(): Event.RelayEscrowFailed {
                 payload.objectFields(setOf("gate_hash", "reason"), false)
@@ -237,6 +274,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "LinkOpened" -> {
             fun readPayload(): Event.LinkOpened {
                 payload.objectFields(setOf("peer_public_key"), false)
@@ -246,6 +284,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "RelayEscrowBlobReceived" -> {
             fun readPayload(): Event.RelayEscrowBlobReceived {
                 payload.objectFields(setOf("blob", "gate_hash"), false)
@@ -256,6 +295,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "DirectPayloadReceived" -> {
             fun readPayload(): Event.DirectPayloadReceived {
                 payload.objectFields(setOf("data"), false)
@@ -265,6 +305,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "ImageReceived" -> {
             fun readPayload(): Event.ImageReceived {
                 payload.objectFields(setOf("data"), false)
@@ -274,6 +315,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "FilePickedFromUser" -> {
             fun readPayload(): Event.FilePickedFromUser {
                 payload.objectFields(setOf("bytes", "filename"), false)
@@ -284,6 +326,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleMtuNegotiated" -> {
             fun readPayload(): Event.BleMtuNegotiated {
                 payload.objectFields(setOf("device_id", "mtu"), false)
@@ -294,6 +337,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "DirectCardReceived" -> {
             fun readPayload(): Event.DirectCardReceived {
                 payload.objectFields(setOf("ciphertext"), false)
@@ -303,6 +347,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "ActionActivated" -> {
             fun readPayload(): Event.ActionActivated {
                 payload.objectFields(setOf("interaction_id", "surface_id"), false)
@@ -313,13 +358,18 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "PresentationEnvironmentChanged" -> {
             fun readPayload(): Event.PresentationEnvironmentChanged {
-                payload.objectFields(setOf("available_height", "available_width", "color_scheme", "input_modes", "motion", "pinned_actions"), false)
+                payload.objectFields(
+                    setOf("available_height", "available_width", "color_scheme", "input_modes", "motion", "pinned_actions"),
+                    false,
+                )
                 return Event.PresentationEnvironmentChanged(
                     `availableHeight` = Rd.u32(payload.required("available_height")),
                     `availableWidth` = Rd.u32(payload.required("available_width")),
-                    `colorScheme` = payload.member("color_scheme")?.let { f -> (if (f.json == JsonNull) null else readColorScheme(f)) } ?: null,
+                    `colorScheme` =
+                        payload.member("color_scheme")?.let { f -> (if (f.json == JsonNull) null else readColorScheme(f)) } ?: null,
                     `inputModes` = Rd.list(payload.required("input_modes"), 0, -1) { e0 -> readInputMode(e0) },
                     `motion` = readMotionPreference(payload.required("motion")),
                     `pinnedActions` = payload.member("pinned_actions")?.let { f -> Rd.bool(f) } ?: null,
@@ -327,6 +377,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "SurfaceActivated" -> {
             fun readPayload(): Event.SurfaceActivated {
                 payload.objectFields(setOf("surface_id"), false)
@@ -336,6 +387,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BackRequested" -> {
             fun readPayload(): Event.BackRequested {
                 payload.objectFields(setOf("surface_id"), false)
@@ -345,6 +397,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "OverlayDismissed" -> {
             fun readPayload(): Event.OverlayDismissed {
                 payload.objectFields(setOf("kind", "surface_id"), false)
@@ -355,6 +408,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "ValueChanged" -> {
             fun readPayload(): Event.ValueChanged {
                 payload.objectFields(setOf("binding_id", "surface_id", "value"), false)
@@ -366,6 +420,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "InputSubmitted" -> {
             fun readPayload(): Event.InputSubmitted {
                 payload.objectFields(setOf("binding_id", "surface_id"), false)
@@ -376,6 +431,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "InputFocusEnded" -> {
             fun readPayload(): Event.InputFocusEnded {
                 payload.objectFields(setOf("binding_id", "surface_id"), false)
@@ -386,6 +442,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "DeepLinkOpened" -> {
             fun readPayload(): Event.DeepLinkOpened {
                 payload.objectFields(setOf("uri"), false)
@@ -395,6 +452,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "RefreshRequested" -> {
             fun readPayload(): Event.RefreshRequested {
                 payload.objectFields(setOf("surface_id"), false)
@@ -404,6 +462,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BackgroundBudgetObserved" -> {
             fun readPayload(): Event.BackgroundBudgetObserved {
                 payload.objectFields(setOf("runs", "window_secs"), false)
@@ -414,6 +473,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "BleGattReady" -> {
             fun readPayload(): Event.BleGattReady {
                 payload.objectFields(setOf("device_id"), false)
@@ -423,6 +483,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "UserPresenceSecretCreated" -> {
             fun readPayload(): Event.UserPresenceSecretCreated {
                 payload.objectFields(setOf("secret"), false)
@@ -432,6 +493,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "UserPresenceSecretRevealed" -> {
             fun readPayload(): Event.UserPresenceSecretRevealed {
                 payload.objectFields(setOf("secret"), false)
@@ -441,6 +503,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "ApplicationMenuAvailabilityChanged" -> {
             fun readPayload(): Event.ApplicationMenuAvailabilityChanged {
                 payload.objectFields(setOf("available"), false)
@@ -450,6 +513,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "StatusItemAvailabilityChanged" -> {
             fun readPayload(): Event.StatusItemAvailabilityChanged {
                 payload.objectFields(setOf("available"), false)
@@ -459,6 +523,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "FilePickerCapabilitiesChanged" -> {
             fun readPayload(): Event.FilePickerCapabilitiesChanged {
                 payload.objectFields(setOf("correlated_results"), false)
@@ -468,6 +533,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "FilePickCompleted" -> {
             fun readPayload(): Event.FilePickCompleted {
                 payload.objectFields(setOf("outcome", "request_id"), false)
@@ -478,6 +544,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "HardwareCapabilitiesReported" -> {
             fun readPayload(): Event.HardwareCapabilitiesReported {
                 payload.objectFields(setOf("capabilities"), false)
@@ -487,6 +554,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "PermissionRequired" -> {
             fun readPayload(): Event.PermissionRequired {
                 payload.objectFields(setOf("transport"), false)
@@ -496,6 +564,7 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
+
         "PermissionGranted" -> {
             fun readPayload(): Event.PermissionGranted {
                 payload.objectFields(setOf("transport"), false)
@@ -505,69 +574,374 @@ internal fun readEvent(v: WireValue): Event {
             }
             readPayload()
         }
-        else -> refused()
+
+        else -> {
+            refused()
+        }
     }
 }
 
 internal fun writeEvent(value: Event): JsonElement =
     when (value) {
-        is Event.QrScanned -> Wr.obj("QrScanned" to Wr.obj("data" to JsonPrimitive(value.`data`)))
-        is Event.QrScanProgress -> Wr.obj("QrScanProgress" to Wr.obj("confidence" to value.`confidence`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) }, "detected" to JsonPrimitive(value.`detected`), "frame_skipped" to JsonPrimitive(value.`frameSkipped`)))
-        is Event.LocalNetworkAddressChanged -> Wr.obj("LocalNetworkAddressChanged" to Wr.obj("address" to value.`address`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) }))
-        is Event.NetworkCostChanged -> Wr.obj("NetworkCostChanged" to Wr.obj("cost" to writeNetworkCost(value.`cost`)))
-        is Event.BleAdvertisementObserved -> Wr.obj("BleAdvertisementObserved" to writeBleAdvertisementObservation(value.value))
-        is Event.BleDeviceDiscovered -> Wr.obj("BleDeviceDiscovered" to Wr.obj("adv_data" to JsonArray(value.`advData`.map { e0 -> Wr.number(e0.toString()) }), "id" to JsonPrimitive(value.`id`), "rssi" to Wr.number(value.`rssi`.toString())))
-        is Event.BleConnected -> Wr.obj("BleConnected" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`)))
-        is Event.BleCharacteristicRead -> Wr.obj("BleCharacteristicRead" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }), "device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`), "uuid" to JsonPrimitive(value.`uuid`)))
-        is Event.BleCharacteristicNotified -> Wr.obj("BleCharacteristicNotified" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }), "device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`), "uuid" to JsonPrimitive(value.`uuid`)))
-        is Event.BleDisconnected -> Wr.obj("BleDisconnected" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`), "reason" to JsonPrimitive(value.`reason`)))
-        is Event.NfcDataReceived -> Wr.obj("NfcDataReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.NfcApduReceived -> Wr.obj("NfcApduReceived" to Wr.obj("bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.NfcFailed -> Wr.obj("NfcFailed" to Wr.obj("reason" to JsonPrimitive(value.`reason`)))
-        is Event.AudioSamplesRecorded -> Wr.obj("AudioSamplesRecorded" to Wr.obj("sample_rate" to Wr.number(value.`sampleRate`.toString()), "samples" to JsonArray(value.`samples`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.HardwareError -> Wr.obj("HardwareError" to Wr.obj("error" to JsonPrimitive(value.`error`), "transport" to JsonPrimitive(value.`transport`)))
-        is Event.HardwareUnavailable -> Wr.obj("HardwareUnavailable" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
-        is Event.PermissionDenied -> Wr.obj("PermissionDenied" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
-        is Event.LocationResult -> Wr.obj("LocationResult" to Wr.obj("accuracy_meters" to value.`accuracyMeters`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) }, "latitude" to Wr.number(value.`latitude`.toString()), "longitude" to Wr.number(value.`longitude`.toString())))
-        is Event.AccelerometerData -> Wr.obj("AccelerometerData" to Wr.obj("timestamp_ms" to Wr.number(value.`timestampMs`.toString()), "x_milli_g" to Wr.number(value.`xMilliG`.toString()), "y_milli_g" to Wr.number(value.`yMilliG`.toString()), "z_milli_g" to Wr.number(value.`zMilliG`.toString())))
-        is Event.ImpactDetected -> Wr.obj("ImpactDetected" to Wr.obj("magnitude_milli_g" to Wr.number(value.`magnitudeMilliG`.toString()), "timestamp_ms" to Wr.number(value.`timestampMs`.toString())))
-        is Event.RelayEscrowReady -> Wr.obj("RelayEscrowReady" to Wr.obj("gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.RelayEscrowFailed -> Wr.obj("RelayEscrowFailed" to Wr.obj("gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }), "reason" to JsonPrimitive(value.`reason`)))
-        Event.LinkShared -> JsonPrimitive("LinkShared")
-        is Event.LinkOpened -> Wr.obj("LinkOpened" to Wr.obj("peer_public_key" to JsonArray(value.`peerPublicKey`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.RelayEscrowBlobReceived -> Wr.obj("RelayEscrowBlobReceived" to Wr.obj("blob" to JsonArray(value.`blob`.map { e0 -> Wr.number(e0.toString()) }), "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.DirectPayloadReceived -> Wr.obj("DirectPayloadReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.ImageReceived -> Wr.obj("ImageReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
-        Event.ImagePickCancelled -> JsonPrimitive("ImagePickCancelled")
-        is Event.FilePickedFromUser -> Wr.obj("FilePickedFromUser" to Wr.obj("bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) }), "filename" to JsonPrimitive(value.`filename`)))
-        Event.FilePickCancelledByUser -> JsonPrimitive("FilePickCancelledByUser")
-        Event.BiometricUnlockSucceeded -> JsonPrimitive("BiometricUnlockSucceeded")
-        is Event.BleMtuNegotiated -> Wr.obj("BleMtuNegotiated" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "mtu" to Wr.number(value.`mtu`.toString())))
-        is Event.DirectCardReceived -> Wr.obj("DirectCardReceived" to Wr.obj("ciphertext" to JsonArray(value.`ciphertext`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.ActionActivated -> Wr.obj("ActionActivated" to Wr.obj("interaction_id" to JsonPrimitive(value.`interactionId`), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.PresentationEnvironmentChanged -> Wr.obj("PresentationEnvironmentChanged" to Wr.obj("available_height" to Wr.number(value.`availableHeight`.toString()), "available_width" to Wr.number(value.`availableWidth`.toString()), "color_scheme" to value.`colorScheme`?.let { f -> (f?.let { n0 -> writeColorScheme(n0) } ?: JsonNull) }, "input_modes" to JsonArray(value.`inputModes`.map { e0 -> writeInputMode(e0) }), "motion" to writeMotionPreference(value.`motion`), "pinned_actions" to value.`pinnedActions`?.let { f -> JsonPrimitive(f) }))
-        is Event.SurfaceActivated -> Wr.obj("SurfaceActivated" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.BackRequested -> Wr.obj("BackRequested" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.OverlayDismissed -> Wr.obj("OverlayDismissed" to Wr.obj("kind" to writeOverlayKind(value.`kind`), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.ValueChanged -> Wr.obj("ValueChanged" to Wr.obj("binding_id" to JsonPrimitive(value.`bindingId`), "surface_id" to JsonPrimitive(value.`surfaceId`), "value" to writeInputValue(value.`value`)))
-        is Event.InputSubmitted -> Wr.obj("InputSubmitted" to Wr.obj("binding_id" to JsonPrimitive(value.`bindingId`), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.InputFocusEnded -> Wr.obj("InputFocusEnded" to Wr.obj("binding_id" to JsonPrimitive(value.`bindingId`), "surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.DeepLinkOpened -> Wr.obj("DeepLinkOpened" to Wr.obj("uri" to JsonPrimitive(value.`uri`)))
-        Event.AppBackgrounded -> JsonPrimitive("AppBackgrounded")
-        is Event.RefreshRequested -> Wr.obj("RefreshRequested" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
-        is Event.BackgroundBudgetObserved -> Wr.obj("BackgroundBudgetObserved" to Wr.obj("runs" to Wr.number(value.`runs`.toString()), "window_secs" to Wr.number(value.`windowSecs`.toString())))
-        Event.PresentationInvalidated -> JsonPrimitive("PresentationInvalidated")
-        is Event.BleGattReady -> Wr.obj("BleGattReady" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`)))
-        is Event.UserPresenceSecretCreated -> Wr.obj("UserPresenceSecretCreated" to Wr.obj("secret" to JsonArray(value.`secret`.map { e0 -> Wr.number(e0.toString()) })))
-        is Event.UserPresenceSecretRevealed -> Wr.obj("UserPresenceSecretRevealed" to Wr.obj("secret" to JsonArray(value.`secret`.map { e0 -> Wr.number(e0.toString()) })))
-        Event.UserPresenceCheckCancelled -> JsonPrimitive("UserPresenceCheckCancelled")
-        Event.UserPresenceSecretMissing -> JsonPrimitive("UserPresenceSecretMissing")
-        Event.WakeupFired -> JsonPrimitive("WakeupFired")
-        is Event.ApplicationMenuAvailabilityChanged -> Wr.obj("ApplicationMenuAvailabilityChanged" to Wr.obj("available" to JsonPrimitive(value.`available`)))
-        is Event.StatusItemAvailabilityChanged -> Wr.obj("StatusItemAvailabilityChanged" to Wr.obj("available" to JsonPrimitive(value.`available`)))
-        is Event.FilePickerCapabilitiesChanged -> Wr.obj("FilePickerCapabilitiesChanged" to Wr.obj("correlated_results" to JsonPrimitive(value.`correlatedResults`)))
-        is Event.FilePickCompleted -> Wr.obj("FilePickCompleted" to Wr.obj("outcome" to writeFilePickOutcome(value.`outcome`), "request_id" to JsonPrimitive(value.`requestId`)))
-        is Event.HardwareCapabilitiesReported -> Wr.obj("HardwareCapabilitiesReported" to Wr.obj("capabilities" to writeDeviceCapabilities(value.`capabilities`)))
-        is Event.PermissionRequired -> Wr.obj("PermissionRequired" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
-        is Event.PermissionGranted -> Wr.obj("PermissionGranted" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+        is Event.QrScanned -> {
+            Wr.obj("QrScanned" to Wr.obj("data" to JsonPrimitive(value.`data`)))
+        }
+
+        is Event.QrScanProgress -> {
+            Wr.obj(
+                "QrScanProgress" to
+                    Wr.obj(
+                        "confidence" to value.`confidence`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
+                        "detected" to JsonPrimitive(value.`detected`),
+                        "frame_skipped" to JsonPrimitive(value.`frameSkipped`),
+                    ),
+            )
+        }
+
+        is Event.LocalNetworkAddressChanged -> {
+            Wr.obj(
+                "LocalNetworkAddressChanged" to
+                    Wr.obj("address" to value.`address`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) }),
+            )
+        }
+
+        is Event.NetworkCostChanged -> {
+            Wr.obj("NetworkCostChanged" to Wr.obj("cost" to writeNetworkCost(value.`cost`)))
+        }
+
+        is Event.BleAdvertisementObserved -> {
+            Wr.obj("BleAdvertisementObserved" to writeBleAdvertisementObservation(value.value))
+        }
+
+        is Event.BleDeviceDiscovered -> {
+            Wr.obj(
+                "BleDeviceDiscovered" to
+                    Wr.obj(
+                        "adv_data" to JsonArray(value.`advData`.map { e0 -> Wr.number(e0.toString()) }),
+                        "id" to JsonPrimitive(value.`id`),
+                        "rssi" to Wr.number(value.`rssi`.toString()),
+                    ),
+            )
+        }
+
+        is Event.BleConnected -> {
+            Wr.obj(
+                "BleConnected" to
+                    Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`)),
+            )
+        }
+
+        is Event.BleCharacteristicRead -> {
+            Wr.obj(
+                "BleCharacteristicRead" to
+                    Wr.obj(
+                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
+                        "device_id" to JsonPrimitive(value.`deviceId`),
+                        "direction" to writeBleLinkDirection(value.`direction`),
+                        "uuid" to JsonPrimitive(value.`uuid`),
+                    ),
+            )
+        }
+
+        is Event.BleCharacteristicNotified -> {
+            Wr.obj(
+                "BleCharacteristicNotified" to
+                    Wr.obj(
+                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
+                        "device_id" to JsonPrimitive(value.`deviceId`),
+                        "direction" to writeBleLinkDirection(value.`direction`),
+                        "uuid" to JsonPrimitive(value.`uuid`),
+                    ),
+            )
+        }
+
+        is Event.BleDisconnected -> {
+            Wr.obj(
+                "BleDisconnected" to
+                    Wr.obj(
+                        "device_id" to JsonPrimitive(value.`deviceId`),
+                        "direction" to writeBleLinkDirection(value.`direction`),
+                        "reason" to JsonPrimitive(value.`reason`),
+                    ),
+            )
+        }
+
+        is Event.NfcDataReceived -> {
+            Wr.obj("NfcDataReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.NfcApduReceived -> {
+            Wr.obj("NfcApduReceived" to Wr.obj("bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.NfcFailed -> {
+            Wr.obj("NfcFailed" to Wr.obj("reason" to JsonPrimitive(value.`reason`)))
+        }
+
+        is Event.AudioSamplesRecorded -> {
+            Wr.obj(
+                "AudioSamplesRecorded" to
+                    Wr.obj(
+                        "sample_rate" to Wr.number(value.`sampleRate`.toString()),
+                        "samples" to JsonArray(value.`samples`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        is Event.HardwareError -> {
+            Wr.obj("HardwareError" to Wr.obj("error" to JsonPrimitive(value.`error`), "transport" to JsonPrimitive(value.`transport`)))
+        }
+
+        is Event.HardwareUnavailable -> {
+            Wr.obj("HardwareUnavailable" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+        }
+
+        is Event.PermissionDenied -> {
+            Wr.obj("PermissionDenied" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+        }
+
+        is Event.LocationResult -> {
+            Wr.obj(
+                "LocationResult" to
+                    Wr.obj(
+                        "accuracy_meters" to value.`accuracyMeters`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
+                        "latitude" to Wr.number(value.`latitude`.toString()),
+                        "longitude" to Wr.number(value.`longitude`.toString()),
+                    ),
+            )
+        }
+
+        is Event.AccelerometerData -> {
+            Wr.obj(
+                "AccelerometerData" to
+                    Wr.obj(
+                        "timestamp_ms" to Wr.number(value.`timestampMs`.toString()),
+                        "x_milli_g" to Wr.number(value.`xMilliG`.toString()),
+                        "y_milli_g" to Wr.number(value.`yMilliG`.toString()),
+                        "z_milli_g" to Wr.number(value.`zMilliG`.toString()),
+                    ),
+            )
+        }
+
+        is Event.ImpactDetected -> {
+            Wr.obj(
+                "ImpactDetected" to
+                    Wr.obj(
+                        "magnitude_milli_g" to Wr.number(value.`magnitudeMilliG`.toString()),
+                        "timestamp_ms" to Wr.number(value.`timestampMs`.toString()),
+                    ),
+            )
+        }
+
+        is Event.RelayEscrowReady -> {
+            Wr.obj("RelayEscrowReady" to Wr.obj("gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.RelayEscrowFailed -> {
+            Wr.obj(
+                "RelayEscrowFailed" to
+                    Wr.obj(
+                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
+                        "reason" to JsonPrimitive(value.`reason`),
+                    ),
+            )
+        }
+
+        Event.LinkShared -> {
+            JsonPrimitive("LinkShared")
+        }
+
+        is Event.LinkOpened -> {
+            Wr.obj("LinkOpened" to Wr.obj("peer_public_key" to JsonArray(value.`peerPublicKey`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.RelayEscrowBlobReceived -> {
+            Wr.obj(
+                "RelayEscrowBlobReceived" to
+                    Wr.obj(
+                        "blob" to JsonArray(value.`blob`.map { e0 -> Wr.number(e0.toString()) }),
+                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
+                    ),
+            )
+        }
+
+        is Event.DirectPayloadReceived -> {
+            Wr.obj("DirectPayloadReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.ImageReceived -> {
+            Wr.obj("ImageReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        Event.ImagePickCancelled -> {
+            JsonPrimitive("ImagePickCancelled")
+        }
+
+        is Event.FilePickedFromUser -> {
+            Wr.obj(
+                "FilePickedFromUser" to
+                    Wr.obj(
+                        "bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) }),
+                        "filename" to JsonPrimitive(value.`filename`),
+                    ),
+            )
+        }
+
+        Event.FilePickCancelledByUser -> {
+            JsonPrimitive("FilePickCancelledByUser")
+        }
+
+        Event.BiometricUnlockSucceeded -> {
+            JsonPrimitive("BiometricUnlockSucceeded")
+        }
+
+        is Event.BleMtuNegotiated -> {
+            Wr.obj("BleMtuNegotiated" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "mtu" to Wr.number(value.`mtu`.toString())))
+        }
+
+        is Event.DirectCardReceived -> {
+            Wr.obj("DirectCardReceived" to Wr.obj("ciphertext" to JsonArray(value.`ciphertext`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.ActionActivated -> {
+            Wr.obj(
+                "ActionActivated" to
+                    Wr.obj("interaction_id" to JsonPrimitive(value.`interactionId`), "surface_id" to JsonPrimitive(value.`surfaceId`)),
+            )
+        }
+
+        is Event.PresentationEnvironmentChanged -> {
+            Wr.obj(
+                "PresentationEnvironmentChanged" to
+                    Wr.obj(
+                        "available_height" to Wr.number(value.`availableHeight`.toString()),
+                        "available_width" to Wr.number(value.`availableWidth`.toString()),
+                        "color_scheme" to value.`colorScheme`?.let { f -> (f?.let { n0 -> writeColorScheme(n0) } ?: JsonNull) },
+                        "input_modes" to JsonArray(value.`inputModes`.map { e0 -> writeInputMode(e0) }),
+                        "motion" to writeMotionPreference(value.`motion`),
+                        "pinned_actions" to value.`pinnedActions`?.let { f -> JsonPrimitive(f) },
+                    ),
+            )
+        }
+
+        is Event.SurfaceActivated -> {
+            Wr.obj("SurfaceActivated" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
+        }
+
+        is Event.BackRequested -> {
+            Wr.obj("BackRequested" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
+        }
+
+        is Event.OverlayDismissed -> {
+            Wr.obj("OverlayDismissed" to Wr.obj("kind" to writeOverlayKind(value.`kind`), "surface_id" to JsonPrimitive(value.`surfaceId`)))
+        }
+
+        is Event.ValueChanged -> {
+            Wr.obj(
+                "ValueChanged" to
+                    Wr.obj(
+                        "binding_id" to JsonPrimitive(value.`bindingId`),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                        "value" to writeInputValue(value.`value`),
+                    ),
+            )
+        }
+
+        is Event.InputSubmitted -> {
+            Wr.obj(
+                "InputSubmitted" to
+                    Wr.obj(
+                        "binding_id" to JsonPrimitive(value.`bindingId`),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Event.InputFocusEnded -> {
+            Wr.obj(
+                "InputFocusEnded" to
+                    Wr.obj(
+                        "binding_id" to JsonPrimitive(value.`bindingId`),
+                        "surface_id" to JsonPrimitive(value.`surfaceId`),
+                    ),
+            )
+        }
+
+        is Event.DeepLinkOpened -> {
+            Wr.obj("DeepLinkOpened" to Wr.obj("uri" to JsonPrimitive(value.`uri`)))
+        }
+
+        Event.AppBackgrounded -> {
+            JsonPrimitive("AppBackgrounded")
+        }
+
+        is Event.RefreshRequested -> {
+            Wr.obj("RefreshRequested" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
+        }
+
+        is Event.BackgroundBudgetObserved -> {
+            Wr.obj(
+                "BackgroundBudgetObserved" to
+                    Wr.obj("runs" to Wr.number(value.`runs`.toString()), "window_secs" to Wr.number(value.`windowSecs`.toString())),
+            )
+        }
+
+        Event.PresentationInvalidated -> {
+            JsonPrimitive("PresentationInvalidated")
+        }
+
+        is Event.BleGattReady -> {
+            Wr.obj("BleGattReady" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`)))
+        }
+
+        is Event.UserPresenceSecretCreated -> {
+            Wr.obj("UserPresenceSecretCreated" to Wr.obj("secret" to JsonArray(value.`secret`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        is Event.UserPresenceSecretRevealed -> {
+            Wr.obj("UserPresenceSecretRevealed" to Wr.obj("secret" to JsonArray(value.`secret`.map { e0 -> Wr.number(e0.toString()) })))
+        }
+
+        Event.UserPresenceCheckCancelled -> {
+            JsonPrimitive("UserPresenceCheckCancelled")
+        }
+
+        Event.UserPresenceSecretMissing -> {
+            JsonPrimitive("UserPresenceSecretMissing")
+        }
+
+        Event.WakeupFired -> {
+            JsonPrimitive("WakeupFired")
+        }
+
+        is Event.ApplicationMenuAvailabilityChanged -> {
+            Wr.obj("ApplicationMenuAvailabilityChanged" to Wr.obj("available" to JsonPrimitive(value.`available`)))
+        }
+
+        is Event.StatusItemAvailabilityChanged -> {
+            Wr.obj("StatusItemAvailabilityChanged" to Wr.obj("available" to JsonPrimitive(value.`available`)))
+        }
+
+        is Event.FilePickerCapabilitiesChanged -> {
+            Wr.obj("FilePickerCapabilitiesChanged" to Wr.obj("correlated_results" to JsonPrimitive(value.`correlatedResults`)))
+        }
+
+        is Event.FilePickCompleted -> {
+            Wr.obj(
+                "FilePickCompleted" to
+                    Wr.obj("outcome" to writeFilePickOutcome(value.`outcome`), "request_id" to JsonPrimitive(value.`requestId`)),
+            )
+        }
+
+        is Event.HardwareCapabilitiesReported -> {
+            Wr.obj("HardwareCapabilitiesReported" to Wr.obj("capabilities" to writeDeviceCapabilities(value.`capabilities`)))
+        }
+
+        is Event.PermissionRequired -> {
+            Wr.obj("PermissionRequired" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+        }
+
+        is Event.PermissionGranted -> {
+            Wr.obj("PermissionGranted" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+        }
     }

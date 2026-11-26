@@ -7,7 +7,9 @@ import argparse
 import importlib.util
 import json
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 PACKAGE = "app.vauchi.contract"
@@ -34,12 +36,35 @@ def nullable(name):
 
 
 def literal(value):
-    return json.dumps(value, ensure_ascii=True).replace("$", "\\$")
+    quoted = json.dumps(value, ensure_ascii=True).replace("$", "\\$")
+    if len(quoted) > 100:
+        chunks = [json.dumps(value[index:index + 16], ensure_ascii=True).replace("$", "\\$") for index in range(0, len(value), 16)]
+        return "(" + " +\n".join(chunks) + ")"
+    return quoted
 
 
 def property_name(wire):
     name = reference.pascal(wire)
     return name[0].lower() + name[1:]
+
+
+def formatted(root, files):
+    with tempfile.TemporaryDirectory(prefix="vauchi-kotlin-") as directory:
+        Path(directory, ".editorconfig").write_text((root / "kotlin/.editorconfig").read_text(encoding="utf-8"), encoding="utf-8")
+        for name, text in files.items():
+            Path(directory, name).write_text(text, encoding="utf-8")
+        command = [str(root / "kotlin/gradlew"), "-p", str(root / "kotlin"), "formatGenerated",
+                   "--quiet", f"-PgeneratedRoot={directory}"]
+        result = subprocess.run(command, capture_output=True, text=True, timeout=180, check=False)
+        changed = any(Path(directory, name).read_text(encoding="utf-8") != text for name, text in files.items())
+        # ktlint can report a long line before another rule has wrapped it.
+        # Recheck only after the formatter actually changed the source.
+        if result.returncode and changed:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=180, check=False)
+        if result.returncode:
+            context = [line for name in files for line in Path(directory, name).read_text(encoding="utf-8").splitlines() if len(line) > 140]
+            raise reference.Unsupported("Kotlin formatting failed: " + result.stdout[-2500:] + "\n".join(context) + result.stderr[-1200:])
+        return {name: Path(directory, name).read_text(encoding="utf-8") for name in files}
 
 
 class Generator:
@@ -170,7 +195,7 @@ def main():
         version = re.search(r'(?m)^version\s*=\s*"([^"]+)"', (root / "Cargo.toml").read_text(encoding="utf-8"))
         if version is None:
             raise reference.Unsupported("Cargo.toml has no package version")
-        files = Generator(json.loads(source.read_text(encoding="utf-8")), version.group(1)).generate()
+        files = formatted(root, Generator(json.loads(source.read_text(encoding="utf-8")), version.group(1)).generate())
     except reference.Unsupported as error:
         print(f"Kotlin generation stopped: {error}", file=sys.stderr)
         return 2

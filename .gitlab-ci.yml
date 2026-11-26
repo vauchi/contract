@@ -275,6 +275,61 @@ publish:csharp:
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
 
+# The Kotlin package is independent of Core and consumes the same Rust
+# oracle as C#. Its own Gradle wrapper and dependency locks are committed.
+contract:kotlin:
+  # vci02-ok: .timeout-standard defines only timeout, with no setup to retain.
+  stage: test
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/eclipse-temurin:17-jdk-alpine
+  tags: [docker]
+  extends: .timeout-standard
+  needs: ["oracle:rust"]
+  variables:
+    GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle-kotlin"
+  cache:
+    key:
+      files:
+        - kotlin/gradle.lockfile
+        - kotlin/gradle/wrapper/gradle-wrapper.properties
+    paths:
+      - .gradle-kotlin/caches/
+      - .gradle-kotlin/wrapper/
+  before_script:
+    - apk add --no-cache python3 bash
+  script:
+    - python3 ci/tests/kotlin-generation.test.py
+    - python3 scripts/generate-kotlin.py
+    - ./kotlin/gradlew -p kotlin --no-daemon lintKotlin test jar sourcesJar generatePomFileForContractPublication generateMetadataFileForContractPublication
+    - python3 ci/tests/native-contract-evidence.test.py
+    - python3 ci/native-contract-evidence.py target/native-products-kotlin.md --product kotlin --write --validate
+  artifacts:
+    when: always
+    reports:
+      junit: kotlin/build/test-results/test/TEST-*.xml
+    paths:
+      - kotlin/build/libs/
+      - kotlin/build/publications/contract/
+      - kotlin/build/reports/tests/test/
+      - target/native-products-kotlin.md
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+publish:kotlin:
+  # vci02-ok: .timeout-standard defines only timeout, with no setup to retain.
+  stage: deploy
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/eclipse-temurin:17-jdk-alpine
+  tags: [docker]
+  extends: .timeout-standard
+  needs: ["oracle:rust", "contract:kotlin"]
+  before_script:
+    - apk add --no-cache bash
+  script:
+    - ./kotlin/gradlew -p kotlin --no-daemon publishContractPublicationToGitLabRepository
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
 # The pipeline badge the group README shows
 # (https://vauchi.gitlab.io/contract/badges/pipeline.json) comes from the
 # shared template: a Pages deploy on main, no script of this repository's

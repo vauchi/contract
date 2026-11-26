@@ -78,7 +78,9 @@ class OracleParityTest {
             setOf("command" to true, "command" to false, "event" to true, "event" to false),
             cases.map { it.kind to it.accepted }.toSet(),
         )
-        listOf(":raw_-0", ":raw_-0.0", ":raw_1e400", ":raw_NaN", ":items_1", ":nested_127", ":nested_128", ":placement_1000_1_0").forEach { label ->
+        val labels =
+            listOf(":raw_-0", ":raw_-0.0", ":raw_1e400", ":raw_NaN", ":items_1", ":nested_127", ":nested_128", ":placement_1000_1_0")
+        labels.forEach { label ->
             assertTrue("missing oracle probe $label", everything.any { it.id.endsWith(label) })
         }
     }

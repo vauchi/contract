@@ -157,7 +157,7 @@ class Codec:
         return lines
 
     def generate(self):
-        imports = ["import kotlinx.serialization.json.*"]
+        imports = [f"import kotlinx.serialization.json.{name}" for name in ("Json", "JsonArray", "JsonElement", "JsonNull", "JsonPrimitive")]
         blocks = [imports]
         for name, schema in sorted(self.model.definitions.items()):
             blocks.append(self.emit(name, schema, self.model.kinds[name]))

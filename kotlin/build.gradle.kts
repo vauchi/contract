@@ -23,11 +23,29 @@ dependencyLocking {
     lockAllConfigurations()
 }
 
+val ktlint by configurations.creating
+
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     testImplementation("junit:junit:4.13.2")
     testImplementation("io.kotest:kotest-property:5.9.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    ktlint("com.pinterest.ktlint:ktlint-cli:1.8.0")
+}
+
+tasks.register<JavaExec>("formatGenerated") {
+    classpath = ktlint
+    mainClass = "com.pinterest.ktlint.Main"
+    doFirst {
+        workingDir(providers.gradleProperty("generatedRoot").get())
+        args("-F", "*.kt")
+    }
+}
+
+tasks.register<JavaExec>("lintKotlin") {
+    classpath = ktlint
+    mainClass = "com.pinterest.ktlint.Main"
+    args("src/**/*.kt")
 }
 
 tasks.test {

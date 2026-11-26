@@ -11,6 +11,7 @@ class ContractJsonException internal constructor(
     message: String,
 ) : IllegalArgumentException(message)
 
+/** Strict contract JSON. Callers bound message size before decoding. */
 object ContractJson {
     fun decodeCommand(json: String): Command = decode(json, ::readCommand)
 

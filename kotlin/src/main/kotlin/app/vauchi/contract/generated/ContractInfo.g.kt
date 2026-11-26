@@ -8,7 +8,9 @@ object ContractInfo {
     const val VERSION: kotlin.String = "0.101.0"
 
     fun protocolConformanceV1(): kotlin.String =
-        ContractInfo::class.java.getResourceAsStream("/app/vauchi/contract/protocol_conformance_v1.json")
-            ?.bufferedReader(kotlin.text.Charsets.UTF_8)?.use { it.readText() }
+        ContractInfo::class.java
+            .getResourceAsStream("/app/vauchi/contract/protocol_conformance_v1.json")
+            ?.bufferedReader(kotlin.text.Charsets.UTF_8)
+            ?.use { it.readText() }
             ?: error("contract replay resource is missing")
 }

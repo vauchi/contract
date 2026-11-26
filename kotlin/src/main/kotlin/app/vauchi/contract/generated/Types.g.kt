@@ -23,7 +23,9 @@ data class ActionSpec(
     override fun toString(): kotlin.String = "ActionSpec"
 }
 
-enum class ActionTone(val wireValue: kotlin.String) {
+enum class ActionTone(
+    val wireValue: kotlin.String,
+) {
     Standard("standard"),
     Destructive("destructive"),
     Serious("serious"),
@@ -36,12 +38,16 @@ data class AlertSpec(
     override fun toString(): kotlin.String = "AlertSpec"
 }
 
-enum class AnimationToken(val wireValue: kotlin.String) {
+enum class AnimationToken(
+    val wireValue: kotlin.String,
+) {
     CardsMeet("cards_meet"),
     None("none"),
 }
 
-enum class ApplicationMenuRole(val wireValue: kotlin.String) {
+enum class ApplicationMenuRole(
+    val wireValue: kotlin.String,
+) {
     File("file"),
     Other("other"),
 }
@@ -54,14 +60,18 @@ data class ApplicationMenuSpec(
     override fun toString(): kotlin.String = "ApplicationMenuSpec"
 }
 
-enum class AudioCapability(val wireValue: kotlin.String) {
+enum class AudioCapability(
+    val wireValue: kotlin.String,
+) {
     Full("Full"),
     EmitOnly("EmitOnly"),
     ReceiveOnly("ReceiveOnly"),
     None("None"),
 }
 
-enum class BiometricType(val wireValue: kotlin.String) {
+enum class BiometricType(
+    val wireValue: kotlin.String,
+) {
     Fingerprint("Fingerprint"),
     FaceId("FaceId"),
     Iris("Iris"),
@@ -75,7 +85,9 @@ data class BleAdvertisementObservation(
     override fun toString(): kotlin.String = "BleAdvertisementObservation"
 }
 
-enum class BleLinkDirection(val wireValue: kotlin.String) {
+enum class BleLinkDirection(
+    val wireValue: kotlin.String,
+) {
     Outbound("Outbound"),
     Inbound("Inbound"),
 }
@@ -106,7 +118,9 @@ sealed interface BleServiceUuid {
     }
 }
 
-enum class CameraPurpose(val wireValue: kotlin.String) {
+enum class CameraPurpose(
+    val wireValue: kotlin.String,
+) {
     QrScan("qr_scan"),
     Photo("photo"),
 }
@@ -118,7 +132,9 @@ data class ChoiceOption(
     override fun toString(): kotlin.String = "ChoiceOption"
 }
 
-enum class ColorScheme(val wireValue: kotlin.String) {
+enum class ColorScheme(
+    val wireValue: kotlin.String,
+) {
     Light("light"),
     Dark("dark"),
 }
@@ -179,7 +195,9 @@ data class ExportFileSpec(
     override fun toString(): kotlin.String = "ExportFileSpec"
 }
 
-enum class FilePickFailure(val wireValue: kotlin.String) {
+enum class FilePickFailure(
+    val wireValue: kotlin.String,
+) {
     ReadFailed("read_failed"),
     TooLarge("too_large"),
     InvalidRequest("invalid_request"),
@@ -215,13 +233,17 @@ sealed interface FilePickPurpose {
     }
 }
 
-enum class HapticPattern(val wireValue: kotlin.String) {
+enum class HapticPattern(
+    val wireValue: kotlin.String,
+) {
     Success("success"),
     Light("light"),
     None("none"),
 }
 
-enum class InputMode(val wireValue: kotlin.String) {
+enum class InputMode(
+    val wireValue: kotlin.String,
+) {
     Touch("touch"),
     Pointer("pointer"),
     Keyboard("keyboard"),
@@ -253,7 +275,9 @@ sealed interface InputValue {
     }
 }
 
-enum class InvocationOutcome(val wireValue: kotlin.String) {
+enum class InvocationOutcome(
+    val wireValue: kotlin.String,
+) {
     Succeeded("succeeded"),
     Failed("failed"),
     InvalidInput("invalid_input"),
@@ -261,7 +285,9 @@ enum class InvocationOutcome(val wireValue: kotlin.String) {
     Denied("denied"),
 }
 
-enum class MotionPreference(val wireValue: kotlin.String) {
+enum class MotionPreference(
+    val wireValue: kotlin.String,
+) {
     Full("full"),
     Reduced("reduced"),
 }
@@ -283,7 +309,9 @@ data class NavigationSpec(
     override fun toString(): kotlin.String = "NavigationSpec"
 }
 
-enum class NetworkCost(val wireValue: kotlin.String) {
+enum class NetworkCost(
+    val wireValue: kotlin.String,
+) {
     Unmetered("unmetered"),
     Metered("metered"),
     Unknown("unknown"),
@@ -302,18 +330,24 @@ data class NotificationSpec(
     override fun toString(): kotlin.String = "NotificationSpec"
 }
 
-enum class NotificationUrgency(val wireValue: kotlin.String) {
+enum class NotificationUrgency(
+    val wireValue: kotlin.String,
+) {
     Default("default"),
     High("high"),
     Urgent("urgent"),
 }
 
-enum class Orientation(val wireValue: kotlin.String) {
+enum class Orientation(
+    val wireValue: kotlin.String,
+) {
     Portrait("Portrait"),
     Landscape("Landscape"),
 }
 
-enum class OverlayKind(val wireValue: kotlin.String) {
+enum class OverlayKind(
+    val wireValue: kotlin.String,
+) {
     Navigation("navigation"),
     ActionMenu("action_menu"),
     Information("information"),
@@ -329,12 +363,16 @@ data class OverlaySpec(
     override fun toString(): kotlin.String = "OverlaySpec"
 }
 
-enum class PaneLayout(val wireValue: kotlin.String) {
+enum class PaneLayout(
+    val wireValue: kotlin.String,
+) {
     Single("single"),
     Split("split"),
 }
 
-enum class Platform(val wireValue: kotlin.String) {
+enum class Platform(
+    val wireValue: kotlin.String,
+) {
     Android("Android"),
     Ios("Ios"),
     Desktop("Desktop"),
@@ -342,7 +380,9 @@ enum class Platform(val wireValue: kotlin.String) {
     Unknown("Unknown"),
 }
 
-enum class PresentationAxis(val wireValue: kotlin.String) {
+enum class PresentationAxis(
+    val wireValue: kotlin.String,
+) {
     Horizontal("horizontal"),
     Vertical("vertical"),
 }
@@ -374,12 +414,16 @@ data class PresentationFonts(
     override fun toString(): kotlin.String = "PresentationFonts"
 }
 
-enum class PresentationImageShape(val wireValue: kotlin.String) {
+enum class PresentationImageShape(
+    val wireValue: kotlin.String,
+) {
     Natural("natural"),
     Circle("circle"),
 }
 
-enum class PresentationInputKind(val wireValue: kotlin.String) {
+enum class PresentationInputKind(
+    val wireValue: kotlin.String,
+) {
     Text("text"),
     Email("email"),
     Phone("phone"),
@@ -390,7 +434,9 @@ enum class PresentationInputKind(val wireValue: kotlin.String) {
     Pin("pin"),
 }
 
-enum class PresentationListStyle(val wireValue: kotlin.String) {
+enum class PresentationListStyle(
+    val wireValue: kotlin.String,
+) {
     Rows("rows"),
     Buttons("buttons"),
 }
@@ -558,17 +604,23 @@ data class PresentationProfile(
     override fun toString(): kotlin.String = "PresentationProfile"
 }
 
-enum class PresentationQrErrorCorrection(val wireValue: kotlin.String) {
+enum class PresentationQrErrorCorrection(
+    val wireValue: kotlin.String,
+) {
     Low("low"),
     Medium("medium"),
 }
 
-enum class PresentationQrPurpose(val wireValue: kotlin.String) {
+enum class PresentationQrPurpose(
+    val wireValue: kotlin.String,
+) {
     Display("display"),
     Capture("capture"),
 }
 
-enum class PresentationQrSize(val wireValue: kotlin.String) {
+enum class PresentationQrSize(
+    val wireValue: kotlin.String,
+) {
     Standard("standard"),
     Compact("compact"),
 }
@@ -591,7 +643,9 @@ data class PresentationRow(
     override fun toString(): kotlin.String = "PresentationRow"
 }
 
-enum class PresentationTextStyle(val wireValue: kotlin.String) {
+enum class PresentationTextStyle(
+    val wireValue: kotlin.String,
+) {
     Heading("heading"),
     Body("body"),
     Caption("caption"),
@@ -611,7 +665,9 @@ data class PresentationTokens(
     override fun toString(): kotlin.String = "PresentationTokens"
 }
 
-enum class PresentationTone(val wireValue: kotlin.String) {
+enum class PresentationTone(
+    val wireValue: kotlin.String,
+) {
     Neutral("neutral"),
     Accent("accent"),
     Success("success"),
@@ -627,12 +683,16 @@ data class QrPlacement(
     override fun toString(): kotlin.String = "QrPlacement"
 }
 
-enum class SoundToken(val wireValue: kotlin.String) {
+enum class SoundToken(
+    val wireValue: kotlin.String,
+) {
     ExchangeChime("exchange_chime"),
     None("none"),
 }
 
-enum class StandardShortcut(val wireValue: kotlin.String) {
+enum class StandardShortcut(
+    val wireValue: kotlin.String,
+) {
     Back("back"),
     ActivatePrimary("activate_primary"),
     Undo("undo"),
@@ -647,7 +707,9 @@ data class StatusItemSpec(
     override fun toString(): kotlin.String = "StatusItemSpec"
 }
 
-enum class SurfaceLayout(val wireValue: kotlin.String) {
+enum class SurfaceLayout(
+    val wireValue: kotlin.String,
+) {
     Scroll("scroll"),
     Fixed("fixed"),
     Pinned("pinned"),
@@ -672,12 +734,16 @@ data class ToastSpec(
     override fun toString(): kotlin.String = "ToastSpec"
 }
 
-enum class UserPresenceBinding(val wireValue: kotlin.String) {
+enum class UserPresenceBinding(
+    val wireValue: kotlin.String,
+) {
     Biometry("biometry"),
     DeviceCredential("device_credential"),
 }
 
-enum class WindowClass(val wireValue: kotlin.String) {
+enum class WindowClass(
+    val wireValue: kotlin.String,
+) {
     Compact("compact"),
     Medium("medium"),
     Expanded("expanded"),
