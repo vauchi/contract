@@ -6,6 +6,7 @@
 import argparse
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -42,9 +43,10 @@ def property_name(wire):
 
 
 class Generator:
-    def __init__(self, schema):
+    def __init__(self, schema, version):
         self.model = reference.Generator(schema)
         self.model.generate()
+        self.version = version
 
     def type_of(self, schema):
         if "$ref" in schema:
@@ -142,6 +144,16 @@ class Generator:
         for name, schema in self.model.roots.items():
             result[f"{name}.g.kt"] = self.file([self.emit_union(name, schema)])
         result.update(codec.Codec(self, reference, literal, property_name).generate())
+        result["ContractInfo.g.kt"] = self.file([[
+            "object ContractInfo {",
+            f"    const val VERSION: kotlin.String = {literal(self.version)}",
+            "",
+            "    fun protocolConformanceV1(): kotlin.String =",
+            '        ContractInfo::class.java.getResourceAsStream("/app/vauchi/contract/protocol_conformance_v1.json")',
+            "            ?.bufferedReader(kotlin.text.Charsets.UTF_8)?.use { it.readText() }",
+            '            ?: error("contract replay resource is missing")',
+            "}",
+        ]])
         return result
 
 
@@ -155,7 +167,10 @@ def main():
     source = args.schema or root / "schema/vauchi-contract-v1.json"
     output = args.output or root / "kotlin/src/main/kotlin/app/vauchi/contract/generated"
     try:
-        files = Generator(json.loads(source.read_text(encoding="utf-8"))).generate()
+        version = re.search(r'(?m)^version\s*=\s*"([^"]+)"', (root / "Cargo.toml").read_text(encoding="utf-8"))
+        if version is None:
+            raise reference.Unsupported("Cargo.toml has no package version")
+        files = Generator(json.loads(source.read_text(encoding="utf-8")), version.group(1)).generate()
     except reference.Unsupported as error:
         print(f"Kotlin generation stopped: {error}", file=sys.stderr)
         return 2

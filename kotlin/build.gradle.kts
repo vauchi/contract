@@ -33,3 +33,74 @@ dependencies {
 tasks.test {
     systemProperty("vauchi.contractCheckout", projectDir.parentFile.absolutePath)
 }
+
+tasks.processResources {
+    from("../fixtures/protocol_conformance_v1.json") {
+        into("app/vauchi/contract")
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+tasks.jar {
+    manifest.attributes["Implementation-Version"] = project.version
+}
+
+val verifyReleaseVersion by tasks.registering {
+    doLast {
+        val tag = providers.environmentVariable("CI_COMMIT_TAG").orNull
+        if (!tag.isNullOrEmpty()) {
+            check(tag == "v${project.version}") { "Release tag and contract version disagree" }
+        }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("contract") {
+            from(components["java"])
+            artifactId = "contract"
+            pom {
+                name = "Vauchi Contract"
+                description = "Typed Kotlin shell commands, events and strict JSON codecs"
+                url = "https://gitlab.com/vauchi/contract"
+                licenses {
+                    license {
+                        name = "GNU Affero General Public License v3.0 or later"
+                        url = "https://www.gnu.org/licenses/agpl-3.0.html"
+                    }
+                }
+                scm {
+                    url = "https://gitlab.com/vauchi/contract"
+                    connection = "scm:git:https://gitlab.com/vauchi/contract.git"
+                }
+            }
+        }
+    }
+    repositories {
+        providers.gradleProperty("vauchiPublishRepository").orNull?.let { destination ->
+            maven {
+                name = "LocalCheck"
+                url = uri(destination)
+            }
+        }
+        providers.environmentVariable("CI_PROJECT_ID").orNull?.let { projectId ->
+            maven {
+                name = "GitLab"
+                val api = providers.environmentVariable("CI_API_V4_URL").get()
+                url = uri("$api/projects/$projectId/packages/maven")
+                credentials(HttpHeaderCredentials::class) {
+                    name = "Job-Token"
+                    value = providers.environmentVariable("CI_JOB_TOKEN").orNull
+                }
+                authentication { create<HttpHeaderAuthentication>("header") }
+            }
+        }
+    }
+}
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    dependsOn(verifyReleaseVersion, tasks.test)
+}
