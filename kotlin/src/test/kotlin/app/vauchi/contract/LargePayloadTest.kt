@@ -10,12 +10,7 @@ import java.security.MessageDigest
 class LargePayloadTest {
     @Test
     fun imageSizedBytePayloadsEncodeWithinTheConstrainedHeap() {
-        val bytes =
-            object : AbstractList<UByte>() {
-                override val size = 1_048_576
-
-                override fun get(index: Int): UByte = (index and 255).toUByte()
-            }
+        val bytes = ContractBytes.copyOf(ByteArray(1_048_576) { index -> (index and 255).toByte() })
 
         val encoded = ContractJson.encodeEvent(Event.ImageReceived(bytes))
         val digest =
