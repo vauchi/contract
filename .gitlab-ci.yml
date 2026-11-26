@@ -305,11 +305,11 @@ contract:kotlin:
   artifacts:
     when: always
     reports:
-      junit: kotlin/build/test-results/test/TEST-*.xml
+      junit: kotlin/build/test-results/**/TEST-*.xml
     paths:
       - kotlin/build/libs/
       - kotlin/build/publications/contract/
-      - kotlin/build/reports/tests/test/
+      - kotlin/build/reports/tests/
       - target/native-products-kotlin.md
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
