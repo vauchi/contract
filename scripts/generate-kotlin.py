@@ -82,7 +82,9 @@ class Generator:
         return [
             f"{indent}data class {name}(",
             *[f"{indent}    val `{field}`: {kind}," for field, kind in fields],
-            f"{indent}){suffix}",
+            f"{indent}){suffix} {{",
+            f"{indent}    override fun toString(): kotlin.String = {literal(name)}",
+            f"{indent}}}",
         ]
 
     def emit_union(self, name, schema):

@@ -7,7 +7,9 @@ package app.vauchi.contract
 sealed interface Command {
     data class QrDisplay(
         val `data`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "QrDisplay"
+    }
 
     data object QrRequestScan : Command
 
@@ -17,60 +19,82 @@ sealed interface Command {
         val `earliestMillis`: kotlin.UInt?,
         val `earliestSecs`: kotlin.UInt,
         val `minIntervalSecs`: kotlin.UInt,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "ScheduleWakeup"
+    }
 
     data class BleStartAdvertising(
         val `payload`: kotlin.collections.List<kotlin.UByte>,
         val `serviceUuid`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "BleStartAdvertising"
+    }
 
     data class BleStartScanning(
         val `serviceUuid`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "BleStartScanning"
+    }
 
     data class BleConnect(
         val `deviceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "BleConnect"
+    }
 
     data class BleWriteCharacteristic(
         val `data`: kotlin.collections.List<kotlin.UByte>,
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
         val `uuid`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "BleWriteCharacteristic"
+    }
 
     data class BleReadCharacteristic(
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
         val `uuid`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "BleReadCharacteristic"
+    }
 
     data class BleDisconnect(
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "BleDisconnect"
+    }
 
     data class NfcActivate(
         val `apdus`: kotlin.collections.List<kotlin.collections.List<kotlin.UByte>>,
         val `payload`: kotlin.collections.List<kotlin.UByte>,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "NfcActivate"
+    }
 
     data object NfcDeactivate : Command
 
     data class NfcSendApdu(
         val `apdus`: kotlin.collections.List<kotlin.collections.List<kotlin.UByte>>,
         val `data`: kotlin.collections.List<kotlin.UByte>,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "NfcSendApdu"
+    }
 
     data class AudioEmitChallenge(
         val `sampleRate`: kotlin.UInt,
         val `samples`: kotlin.collections.List<kotlin.Float>,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "AudioEmitChallenge"
+    }
 
     data class AudioListenForResponse(
         val `sampleRate`: kotlin.UInt,
         val `timeoutMs`: kotlin.ULong,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "AudioListenForResponse"
+    }
 
     data object AudioStop : Command
 
@@ -83,21 +107,29 @@ sealed interface Command {
         val `gateHash`: kotlin.collections.List<kotlin.UByte>,
         val `slotHash`: kotlin.collections.List<kotlin.UByte>,
         val `ttlSeconds`: kotlin.UInt,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "RelayEscrowDeposit"
+    }
 
     data class RelayEscrowCheck(
         val `gateHash`: kotlin.collections.List<kotlin.UByte>,
         val `suggestedIntervalMs`: kotlin.UInt,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "RelayEscrowCheck"
+    }
 
     data class RelayEscrowRetrieve(
         val `gateHash`: kotlin.collections.List<kotlin.UByte>,
         val `slotHash`: kotlin.collections.List<kotlin.UByte>,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "RelayEscrowRetrieve"
+    }
 
     data class ShowShareSheet(
         val `url`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "ShowShareSheet"
+    }
 
     data object BleStopScanning : Command
 
@@ -105,7 +137,9 @@ sealed interface Command {
         val `endpoint`: app.vauchi.contract.DirectEndpoint,
         val `isInitiator`: kotlin.Boolean,
         val `payload`: kotlin.collections.List<kotlin.UByte>,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "DirectSend"
+    }
 
     data object ImagePickFromLibrary : Command
 
@@ -115,97 +149,137 @@ sealed interface Command {
 
     data class SwitchCamera(
         val `useFront`: kotlin.Boolean,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SwitchCamera"
+    }
 
     data class FilePickFromUser(
         val `acceptedExtensions`: kotlin.collections.List<kotlin.String>,
         val `acceptedMimeTypes`: kotlin.collections.List<kotlin.String>,
         val `maxBytes`: kotlin.ULong?,
         val `purpose`: app.vauchi.contract.FilePickPurpose,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "FilePickFromUser"
+    }
 
     data class SetScreenBrightness(
         val `level`: kotlin.Float?,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetScreenBrightness"
+    }
 
     data class SetIdleTimerDisabled(
         val `disabled`: kotlin.Boolean,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetIdleTimerDisabled"
+    }
 
     data class SetOrientationLock(
         val `orientation`: app.vauchi.contract.Orientation?,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetOrientationLock"
+    }
 
     data class DirectSendCard(
         val `ciphertext`: kotlin.collections.List<kotlin.UByte>,
         val `isInitiator`: kotlin.Boolean,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "DirectSendCard"
+    }
 
     data class LocationRequest(
         val `timeoutMs`: kotlin.UInt,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "LocationRequest"
+    }
 
     data class Celebrate(
         val `animation`: app.vauchi.contract.AnimationToken,
         val `haptic`: app.vauchi.contract.HapticPattern,
         val `sound`: app.vauchi.contract.SoundToken,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "Celebrate"
+    }
 
     data class SetContextBar(
         val `bar`: app.vauchi.contract.ContextBar,
         val `revision`: kotlin.ULong,
         val `surfaceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetContextBar"
+    }
 
     data class SetNavigation(
         val `navigation`: app.vauchi.contract.NavigationSpec,
         val `revision`: kotlin.ULong,
         val `surfaceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetNavigation"
+    }
 
     data class PresentOverlay(
         val `overlay`: app.vauchi.contract.OverlaySpec,
         val `revision`: kotlin.ULong,
         val `surfaceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "PresentOverlay"
+    }
 
     data class DismissOverlay(
         val `kind`: app.vauchi.contract.OverlayKind,
         val `revision`: kotlin.ULong,
         val `surfaceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "DismissOverlay"
+    }
 
     data class SetPresentationProfile(
         val `profile`: app.vauchi.contract.PresentationProfile,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetPresentationProfile"
+    }
 
     data class ReplaceSurface(
         val `surface`: app.vauchi.contract.SurfaceSpec,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "ReplaceSurface"
+    }
 
     data class PresentAlert(
         val `alert`: app.vauchi.contract.AlertSpec,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "PresentAlert"
+    }
 
     data class ShowToast(
         val `toast`: app.vauchi.contract.ToastSpec,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "ShowToast"
+    }
 
     data class OpenExternalUrl(
         val `url`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "OpenExternalUrl"
+    }
 
     data class ExportFile(
         val `file`: app.vauchi.contract.ExportFileSpec,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "ExportFile"
+    }
 
     data class EmitDocument(
         val `document`: app.vauchi.contract.DocumentSpec,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "EmitDocument"
+    }
 
     data class FinishInvocation(
         val `outcome`: app.vauchi.contract.InvocationOutcome,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "FinishInvocation"
+    }
 
     data object PerformNativeBack : Command
 
@@ -215,38 +289,52 @@ sealed interface Command {
 
     data class PostNotification(
         val `notification`: app.vauchi.contract.NotificationSpec,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "PostNotification"
+    }
 
     data object RequestBiometricUnlock : Command
 
     data class ForgetStoredSecret(
         val `handle`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "ForgetStoredSecret"
+    }
 
     data class CreateUserPresenceSecret(
         val `binding`: app.vauchi.contract.UserPresenceBinding,
         val `prompt`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "CreateUserPresenceSecret"
+    }
 
     data class RevealUserPresenceSecret(
         val `prompt`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "RevealUserPresenceSecret"
+    }
 
     data class SaveRestorableState(
         val `state`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SaveRestorableState"
+    }
 
     data class SetApplicationMenu(
         val `menus`: kotlin.collections.List<app.vauchi.contract.ApplicationMenuSpec>,
         val `revision`: kotlin.ULong,
         val `surfaceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetApplicationMenu"
+    }
 
     data class SetStatusItem(
         val `item`: app.vauchi.contract.StatusItemSpec?,
         val `revision`: kotlin.ULong,
         val `surfaceId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "SetStatusItem"
+    }
 
     data class PickFile(
         val `acceptedExtensions`: kotlin.collections.List<kotlin.String>,
@@ -254,28 +342,40 @@ sealed interface Command {
         val `maxBytes`: kotlin.ULong,
         val `requestId`: kotlin.String,
         val `title`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "PickFile"
+    }
 
     data class CancelFilePick(
         val `requestId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "CancelFilePick"
+    }
 
     data class RequestPermission(
         val `transport`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "RequestPermission"
+    }
 
     data class CameraViewport(
         val `previewId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "CameraViewport"
+    }
 
     data class CameraCapture(
         val `previewId`: kotlin.String,
         val `purpose`: app.vauchi.contract.CameraPurpose,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "CameraCapture"
+    }
 
     data class CameraStop(
         val `previewId`: kotlin.String,
-    ) : Command
+    ) : Command {
+        override fun toString(): kotlin.String = "CameraStop"
+    }
 
     data object BleStopAdvertising : Command
 }

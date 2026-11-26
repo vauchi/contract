@@ -7,139 +7,193 @@ package app.vauchi.contract
 sealed interface Event {
     data class QrScanned(
         val `data`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "QrScanned"
+    }
 
     data class QrScanProgress(
         val `confidence`: kotlin.UByte?,
         val `detected`: kotlin.Boolean,
         val `frameSkipped`: kotlin.Boolean,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "QrScanProgress"
+    }
 
     data class LocalNetworkAddressChanged(
         val `address`: kotlin.String?,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "LocalNetworkAddressChanged"
+    }
 
     data class NetworkCostChanged(
         val `cost`: app.vauchi.contract.NetworkCost,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "NetworkCostChanged"
+    }
 
     data class BleAdvertisementObserved(
         val `value`: app.vauchi.contract.BleAdvertisementObservation,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleAdvertisementObserved"
+    }
 
     data class BleDeviceDiscovered(
         val `advData`: kotlin.collections.List<kotlin.UByte>,
         val `id`: kotlin.String,
         val `rssi`: kotlin.Short,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleDeviceDiscovered"
+    }
 
     data class BleConnected(
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleConnected"
+    }
 
     data class BleCharacteristicRead(
         val `data`: kotlin.collections.List<kotlin.UByte>,
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
         val `uuid`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleCharacteristicRead"
+    }
 
     data class BleCharacteristicNotified(
         val `data`: kotlin.collections.List<kotlin.UByte>,
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
         val `uuid`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleCharacteristicNotified"
+    }
 
     data class BleDisconnected(
         val `deviceId`: kotlin.String,
         val `direction`: app.vauchi.contract.BleLinkDirection,
         val `reason`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleDisconnected"
+    }
 
     data class NfcDataReceived(
         val `data`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "NfcDataReceived"
+    }
 
     data class NfcApduReceived(
         val `bytes`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "NfcApduReceived"
+    }
 
     data class NfcFailed(
         val `reason`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "NfcFailed"
+    }
 
     data class AudioSamplesRecorded(
         val `sampleRate`: kotlin.UInt,
         val `samples`: kotlin.collections.List<kotlin.Float>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "AudioSamplesRecorded"
+    }
 
     data class HardwareError(
         val `error`: kotlin.String,
         val `transport`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "HardwareError"
+    }
 
     data class HardwareUnavailable(
         val `transport`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "HardwareUnavailable"
+    }
 
     data class PermissionDenied(
         val `transport`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "PermissionDenied"
+    }
 
     data class LocationResult(
         val `accuracyMeters`: kotlin.Float?,
         val `latitude`: kotlin.Double,
         val `longitude`: kotlin.Double,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "LocationResult"
+    }
 
     data class AccelerometerData(
         val `timestampMs`: kotlin.ULong,
         val `xMilliG`: kotlin.Int,
         val `yMilliG`: kotlin.Int,
         val `zMilliG`: kotlin.Int,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "AccelerometerData"
+    }
 
     data class ImpactDetected(
         val `magnitudeMilliG`: kotlin.Int,
         val `timestampMs`: kotlin.ULong,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "ImpactDetected"
+    }
 
     data class RelayEscrowReady(
         val `gateHash`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "RelayEscrowReady"
+    }
 
     data class RelayEscrowFailed(
         val `gateHash`: kotlin.collections.List<kotlin.UByte>,
         val `reason`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "RelayEscrowFailed"
+    }
 
     data object LinkShared : Event
 
     data class LinkOpened(
         val `peerPublicKey`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "LinkOpened"
+    }
 
     data class RelayEscrowBlobReceived(
         val `blob`: kotlin.collections.List<kotlin.UByte>,
         val `gateHash`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "RelayEscrowBlobReceived"
+    }
 
     data class DirectPayloadReceived(
         val `data`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "DirectPayloadReceived"
+    }
 
     data class ImageReceived(
         val `data`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "ImageReceived"
+    }
 
     data object ImagePickCancelled : Event
 
     data class FilePickedFromUser(
         val `bytes`: kotlin.collections.List<kotlin.UByte>,
         val `filename`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "FilePickedFromUser"
+    }
 
     data object FilePickCancelledByUser : Event
 
@@ -148,16 +202,22 @@ sealed interface Event {
     data class BleMtuNegotiated(
         val `deviceId`: kotlin.String,
         val `mtu`: kotlin.UInt,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleMtuNegotiated"
+    }
 
     data class DirectCardReceived(
         val `ciphertext`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "DirectCardReceived"
+    }
 
     data class ActionActivated(
         val `interactionId`: kotlin.String,
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "ActionActivated"
+    }
 
     data class PresentationEnvironmentChanged(
         val `availableHeight`: kotlin.UInt,
@@ -166,65 +226,91 @@ sealed interface Event {
         val `inputModes`: kotlin.collections.List<app.vauchi.contract.InputMode>,
         val `motion`: app.vauchi.contract.MotionPreference,
         val `pinnedActions`: kotlin.Boolean?,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "PresentationEnvironmentChanged"
+    }
 
     data class SurfaceActivated(
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "SurfaceActivated"
+    }
 
     data class BackRequested(
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BackRequested"
+    }
 
     data class OverlayDismissed(
         val `kind`: app.vauchi.contract.OverlayKind,
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "OverlayDismissed"
+    }
 
     data class ValueChanged(
         val `bindingId`: kotlin.String,
         val `surfaceId`: kotlin.String,
         val `value`: app.vauchi.contract.InputValue,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "ValueChanged"
+    }
 
     data class InputSubmitted(
         val `bindingId`: kotlin.String,
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "InputSubmitted"
+    }
 
     data class InputFocusEnded(
         val `bindingId`: kotlin.String,
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "InputFocusEnded"
+    }
 
     data class DeepLinkOpened(
         val `uri`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "DeepLinkOpened"
+    }
 
     data object AppBackgrounded : Event
 
     data class RefreshRequested(
         val `surfaceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "RefreshRequested"
+    }
 
     data class BackgroundBudgetObserved(
         val `runs`: kotlin.UInt,
         val `windowSecs`: kotlin.UInt,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BackgroundBudgetObserved"
+    }
 
     data object PresentationInvalidated : Event
 
     data class BleGattReady(
         val `deviceId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "BleGattReady"
+    }
 
     data class UserPresenceSecretCreated(
         val `secret`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "UserPresenceSecretCreated"
+    }
 
     data class UserPresenceSecretRevealed(
         val `secret`: kotlin.collections.List<kotlin.UByte>,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "UserPresenceSecretRevealed"
+    }
 
     data object UserPresenceCheckCancelled : Event
 
@@ -234,30 +320,44 @@ sealed interface Event {
 
     data class ApplicationMenuAvailabilityChanged(
         val `available`: kotlin.Boolean,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "ApplicationMenuAvailabilityChanged"
+    }
 
     data class StatusItemAvailabilityChanged(
         val `available`: kotlin.Boolean,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "StatusItemAvailabilityChanged"
+    }
 
     data class FilePickerCapabilitiesChanged(
         val `correlatedResults`: kotlin.Boolean,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "FilePickerCapabilitiesChanged"
+    }
 
     data class FilePickCompleted(
         val `outcome`: app.vauchi.contract.FilePickOutcome,
         val `requestId`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "FilePickCompleted"
+    }
 
     data class HardwareCapabilitiesReported(
         val `capabilities`: app.vauchi.contract.DeviceCapabilities,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "HardwareCapabilitiesReported"
+    }
 
     data class PermissionRequired(
         val `transport`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "PermissionRequired"
+    }
 
     data class PermissionGranted(
         val `transport`: kotlin.String,
-    ) : Event
+    ) : Event {
+        override fun toString(): kotlin.String = "PermissionGranted"
+    }
 }

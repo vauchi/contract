@@ -7,7 +7,9 @@ package app.vauchi.contract
 data class AccessibilitySpec(
     val `description`: kotlin.String?,
     val `label`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "AccessibilitySpec"
+}
 
 data class ActionSpec(
     val `accessibilityLabel`: kotlin.String,
@@ -17,7 +19,9 @@ data class ActionSpec(
     val `label`: kotlin.String,
     val `shortcut`: app.vauchi.contract.StandardShortcut?,
     val `tone`: app.vauchi.contract.ActionTone?,
-)
+) {
+    override fun toString(): kotlin.String = "ActionSpec"
+}
 
 enum class ActionTone(val wireValue: kotlin.String) {
     Standard("standard"),
@@ -28,7 +32,9 @@ enum class ActionTone(val wireValue: kotlin.String) {
 data class AlertSpec(
     val `message`: kotlin.String,
     val `title`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "AlertSpec"
+}
 
 enum class AnimationToken(val wireValue: kotlin.String) {
     CardsMeet("cards_meet"),
@@ -44,7 +50,9 @@ data class ApplicationMenuSpec(
     val `items`: kotlin.collections.List<app.vauchi.contract.ActionSpec>,
     val `label`: kotlin.String,
     val `role`: app.vauchi.contract.ApplicationMenuRole,
-)
+) {
+    override fun toString(): kotlin.String = "ApplicationMenuSpec"
+}
 
 enum class AudioCapability(val wireValue: kotlin.String) {
     Full("Full"),
@@ -63,7 +71,9 @@ data class BleAdvertisementObservation(
     val `id`: kotlin.String,
     val `rssi`: kotlin.Short,
     val `serviceUuids`: kotlin.collections.List<app.vauchi.contract.BleServiceUuid>,
-)
+) {
+    override fun toString(): kotlin.String = "BleAdvertisementObservation"
+}
 
 enum class BleLinkDirection(val wireValue: kotlin.String) {
     Outbound("Outbound"),
@@ -73,19 +83,27 @@ enum class BleLinkDirection(val wireValue: kotlin.String) {
 sealed interface BleServiceUuid {
     data class Uuid16(
         val `value`: kotlin.collections.List<kotlin.UByte>,
-    ) : BleServiceUuid
+    ) : BleServiceUuid {
+        override fun toString(): kotlin.String = "Uuid16"
+    }
 
     data class Uuid32(
         val `value`: kotlin.collections.List<kotlin.UByte>,
-    ) : BleServiceUuid
+    ) : BleServiceUuid {
+        override fun toString(): kotlin.String = "Uuid32"
+    }
 
     data class Uuid128(
         val `value`: kotlin.collections.List<kotlin.UByte>,
-    ) : BleServiceUuid
+    ) : BleServiceUuid {
+        override fun toString(): kotlin.String = "Uuid128"
+    }
 
     data class Normalized(
         val `value`: kotlin.collections.List<kotlin.UByte>,
-    ) : BleServiceUuid
+    ) : BleServiceUuid {
+        override fun toString(): kotlin.String = "Normalized"
+    }
 }
 
 enum class CameraPurpose(val wireValue: kotlin.String) {
@@ -96,7 +114,9 @@ enum class CameraPurpose(val wireValue: kotlin.String) {
 data class ChoiceOption(
     val `id`: kotlin.String,
     val `label`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "ChoiceOption"
+}
 
 enum class ColorScheme(val wireValue: kotlin.String) {
     Light("light"),
@@ -110,7 +130,9 @@ data class ContextBar(
     val `pinned`: kotlin.collections.List<app.vauchi.contract.ActionSpec>?,
     val `primary`: app.vauchi.contract.ActionSpec?,
     val `secondary`: app.vauchi.contract.ActionSpec?,
-)
+) {
+    override fun toString(): kotlin.String = "ContextBar"
+}
 
 data class DeviceCapabilities(
     val `audio`: app.vauchi.contract.AudioCapability,
@@ -127,7 +149,9 @@ data class DeviceCapabilities(
     val `hasSecureEnclave`: kotlin.Boolean,
     val `hasUsbPort`: kotlin.Boolean,
     val `platform`: app.vauchi.contract.Platform,
-)
+) {
+    override fun toString(): kotlin.String = "DeviceCapabilities"
+}
 
 data class DirectEndpoint(
     val `browseTimeoutMs`: kotlin.UInt,
@@ -135,19 +159,25 @@ data class DirectEndpoint(
     val `ioTimeoutMs`: kotlin.UInt,
     val `port`: kotlin.UShort,
     val `serviceType`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "DirectEndpoint"
+}
 
 data class DocumentSpec(
     val `data`: kotlin.collections.List<kotlin.UByte>,
     val `mediaType`: kotlin.String,
     val `schema`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "DocumentSpec"
+}
 
 data class ExportFileSpec(
     val `data`: kotlin.collections.List<kotlin.UByte>,
     val `mimeType`: kotlin.String,
     val `suggestedName`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "ExportFileSpec"
+}
 
 enum class FilePickFailure(val wireValue: kotlin.String) {
     ReadFailed("read_failed"),
@@ -162,11 +192,15 @@ sealed interface FilePickOutcome {
     data class Selected(
         val `bytes`: kotlin.collections.List<kotlin.UByte>,
         val `filename`: kotlin.String,
-    ) : FilePickOutcome
+    ) : FilePickOutcome {
+        override fun toString(): kotlin.String = "Selected"
+    }
 
     data class Failed(
         val `code`: app.vauchi.contract.FilePickFailure,
-    ) : FilePickOutcome
+    ) : FilePickOutcome {
+        override fun toString(): kotlin.String = "Failed"
+    }
 }
 
 sealed interface FilePickPurpose {
@@ -176,7 +210,9 @@ sealed interface FilePickPurpose {
 
     data class Other(
         val `labelKey`: kotlin.String,
-    ) : FilePickPurpose
+    ) : FilePickPurpose {
+        override fun toString(): kotlin.String = "Other"
+    }
 }
 
 enum class HapticPattern(val wireValue: kotlin.String) {
@@ -194,19 +230,27 @@ enum class InputMode(val wireValue: kotlin.String) {
 sealed interface InputValue {
     data class Text(
         val `value`: kotlin.String,
-    ) : InputValue
+    ) : InputValue {
+        override fun toString(): kotlin.String = "Text"
+    }
 
     data class Boolean(
         val `value`: kotlin.Boolean,
-    ) : InputValue
+    ) : InputValue {
+        override fun toString(): kotlin.String = "Boolean"
+    }
 
     data class Choice(
         val `value`: kotlin.String?,
-    ) : InputValue
+    ) : InputValue {
+        override fun toString(): kotlin.String = "Choice"
+    }
 
     data class Number(
         val `value`: kotlin.Double,
-    ) : InputValue
+    ) : InputValue {
+        override fun toString(): kotlin.String = "Number"
+    }
 }
 
 enum class InvocationOutcome(val wireValue: kotlin.String) {
@@ -229,11 +273,15 @@ data class NavigationItem(
     val `interactionId`: kotlin.String,
     val `label`: kotlin.String,
     val `selected`: kotlin.Boolean,
-)
+) {
+    override fun toString(): kotlin.String = "NavigationItem"
+}
 
 data class NavigationSpec(
     val `items`: kotlin.collections.List<app.vauchi.contract.NavigationItem>,
-)
+) {
+    override fun toString(): kotlin.String = "NavigationSpec"
+}
 
 enum class NetworkCost(val wireValue: kotlin.String) {
     Unmetered("unmetered"),
@@ -250,7 +298,9 @@ data class NotificationSpec(
     val `notificationId`: kotlin.String?,
     val `title`: kotlin.String,
     val `urgency`: app.vauchi.contract.NotificationUrgency,
-)
+) {
+    override fun toString(): kotlin.String = "NotificationSpec"
+}
 
 enum class NotificationUrgency(val wireValue: kotlin.String) {
     Default("default"),
@@ -275,7 +325,9 @@ data class OverlaySpec(
     val `items`: kotlin.collections.List<app.vauchi.contract.ActionSpec>,
     val `kind`: app.vauchi.contract.OverlayKind,
     val `title`: kotlin.String?,
-)
+) {
+    override fun toString(): kotlin.String = "OverlaySpec"
+}
 
 enum class PaneLayout(val wireValue: kotlin.String) {
     Single("single"),
@@ -310,13 +362,17 @@ data class PresentationColors(
     val `textMuted`: kotlin.String,
     val `textOnAccent`: kotlin.String?,
     val `warning`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "PresentationColors"
+}
 
 data class PresentationFonts(
     val `body`: kotlin.String,
     val `display`: kotlin.String,
     val `mono`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "PresentationFonts"
+}
 
 enum class PresentationImageShape(val wireValue: kotlin.String) {
     Natural("natural"),
@@ -347,7 +403,9 @@ sealed interface PresentationNode {
         val `content`: kotlin.String,
         val `id`: kotlin.String?,
         val `style`: app.vauchi.contract.PresentationTextStyle,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Text"
+    }
 
     data class Input(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -359,7 +417,9 @@ sealed interface PresentationNode {
         val `placeholder`: kotlin.String?,
         val `validationError`: kotlin.String?,
         val `value`: kotlin.String,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Input"
+    }
 
     data class Toggle(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -367,7 +427,9 @@ sealed interface PresentationNode {
         val `enabled`: kotlin.Boolean,
         val `label`: kotlin.String,
         val `value`: kotlin.Boolean,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Toggle"
+    }
 
     data class Choice(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -376,7 +438,9 @@ sealed interface PresentationNode {
         val `label`: kotlin.String,
         val `options`: kotlin.collections.List<app.vauchi.contract.ChoiceOption>,
         val `selected`: kotlin.String?,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Choice"
+    }
 
     data class Group(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -384,7 +448,9 @@ sealed interface PresentationNode {
         val `children`: kotlin.collections.List<app.vauchi.contract.PresentationNode>,
         val `id`: kotlin.String?,
         val `label`: kotlin.String?,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Group"
+    }
 
     data class List(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -395,7 +461,9 @@ sealed interface PresentationNode {
         val `searchPlaceholder`: kotlin.String?,
         val `searchable`: kotlin.Boolean,
         val `style`: app.vauchi.contract.PresentationListStyle?,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "List"
+    }
 
     data class Image(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -406,7 +474,9 @@ sealed interface PresentationNode {
         val `id`: kotlin.String?,
         val `shape`: app.vauchi.contract.PresentationImageShape,
         val `size`: kotlin.UShort?,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Image"
+    }
 
     data class Status(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -417,7 +487,9 @@ sealed interface PresentationNode {
         val `id`: kotlin.String?,
         val `title`: kotlin.String,
         val `tone`: app.vauchi.contract.PresentationTone,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Status"
+    }
 
     data class Qr(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -430,7 +502,9 @@ sealed interface PresentationNode {
         val `placement`: app.vauchi.contract.QrPlacement?,
         val `purpose`: app.vauchi.contract.PresentationQrPurpose,
         val `size`: app.vauchi.contract.PresentationQrSize?,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Qr"
+    }
 
     data class Confirmation(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -438,7 +512,9 @@ sealed interface PresentationNode {
         val `confirm`: app.vauchi.contract.ActionSpec,
         val `id`: kotlin.String,
         val `warning`: kotlin.String,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Confirmation"
+    }
 
     data class Slider(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
@@ -450,20 +526,26 @@ sealed interface PresentationNode {
         val `minimumIcon`: kotlin.String?,
         val `step`: kotlin.Double?,
         val `value`: kotlin.Double,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Slider"
+    }
 
     data class Progress(
         val `accessibility`: app.vauchi.contract.AccessibilitySpec,
         val `label`: kotlin.String?,
         val `value`: kotlin.Double?,
-    ) : PresentationNode
+    ) : PresentationNode {
+        override fun toString(): kotlin.String = "Progress"
+    }
 }
 
 data class PresentationPaging(
     val `offset`: kotlin.ULong,
     val `totalCount`: kotlin.ULong,
     val `window`: kotlin.ULong,
-)
+) {
+    override fun toString(): kotlin.String = "PresentationPaging"
+}
 
 data class PresentationProfile(
     val `activeSurface`: kotlin.String,
@@ -472,7 +554,9 @@ data class PresentationProfile(
     val `primarySurface`: kotlin.String,
     val `windowClass`: app.vauchi.contract.WindowClass,
     val `windowTitle`: kotlin.String?,
-)
+) {
+    override fun toString(): kotlin.String = "PresentationProfile"
+}
 
 enum class PresentationQrErrorCorrection(val wireValue: kotlin.String) {
     Low("low"),
@@ -503,7 +587,9 @@ data class PresentationRow(
     val `selected`: kotlin.Boolean,
     val `subtitle`: kotlin.String?,
     val `title`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "PresentationRow"
+}
 
 enum class PresentationTextStyle(val wireValue: kotlin.String) {
     Heading("heading"),
@@ -521,7 +607,9 @@ data class PresentationTokens(
     val `spacingLarge`: kotlin.UShort,
     val `spacingMedium`: kotlin.UShort,
     val `spacingSmall`: kotlin.UShort,
-)
+) {
+    override fun toString(): kotlin.String = "PresentationTokens"
+}
 
 enum class PresentationTone(val wireValue: kotlin.String) {
     Neutral("neutral"),
@@ -535,7 +623,9 @@ data class QrPlacement(
     val `size`: kotlin.UShort,
     val `x`: kotlin.UShort,
     val `y`: kotlin.UShort,
-)
+) {
+    override fun toString(): kotlin.String = "QrPlacement"
+}
 
 enum class SoundToken(val wireValue: kotlin.String) {
     ExchangeChime("exchange_chime"),
@@ -553,7 +643,9 @@ data class StatusItemSpec(
     val `items`: kotlin.collections.List<app.vauchi.contract.ActionSpec>,
     val `showWindowLabel`: kotlin.String,
     val `tooltip`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "StatusItemSpec"
+}
 
 enum class SurfaceLayout(val wireValue: kotlin.String) {
     Scroll("scroll"),
@@ -570,11 +662,15 @@ data class SurfaceSpec(
     val `surfaceId`: kotlin.String,
     val `title`: kotlin.String,
     val `tokens`: app.vauchi.contract.PresentationTokens,
-)
+) {
+    override fun toString(): kotlin.String = "SurfaceSpec"
+}
 
 data class ToastSpec(
     val `message`: kotlin.String,
-)
+) {
+    override fun toString(): kotlin.String = "ToastSpec"
+}
 
 enum class UserPresenceBinding(val wireValue: kotlin.String) {
     Biometry("biometry"),
