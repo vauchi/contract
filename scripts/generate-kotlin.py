@@ -23,6 +23,10 @@ spec = importlib.util.spec_from_file_location("contract_schema_reference", Path(
 reference = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(reference)
 
+codec_spec = importlib.util.spec_from_file_location("kotlin_codec", Path(__file__).with_name("kotlin-codec.py"))
+codec = importlib.util.module_from_spec(codec_spec)
+codec_spec.loader.exec_module(codec)
+
 
 def nullable(name):
     return name if name.endswith("?") else name + "?"
@@ -137,6 +141,7 @@ class Generator:
         result = {"Types.g.kt": self.file(blocks)}
         for name, schema in self.model.roots.items():
             result[f"{name}.g.kt"] = self.file([self.emit_union(name, schema)])
+        result.update(codec.Codec(self, reference, literal, property_name).generate())
         return result
 
 
