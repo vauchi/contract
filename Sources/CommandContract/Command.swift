@@ -690,13 +690,17 @@ public extension AudioListenForResponse {
 // MARK: - BleConnect
 public struct BleConnect: Codable {
     public let deviceID: String
+    /// Core-prepared setup, required by prepared-data executors.
+    public let prepared: BleCentralSpec?
 
     public enum CodingKeys: String, CodingKey {
         case deviceID = "device_id"
+        case prepared = "prepared"
     }
 
-    public init(deviceID: String) {
+    public init(deviceID: String, prepared: BleCentralSpec?) {
         self.deviceID = deviceID
+        self.prepared = prepared
     }
 }
 
@@ -719,10 +723,12 @@ public extension BleConnect {
     }
 
     func with(
-        deviceID: String? = nil
+        deviceID: String? = nil,
+        prepared: BleCentralSpec?? = nil
     ) -> BleConnect {
         return BleConnect(
-            deviceID: deviceID ?? self.deviceID
+            deviceID: deviceID ?? self.deviceID,
+            prepared: prepared ?? self.prepared
         )
     }
 
@@ -733,6 +739,263 @@ public extension BleConnect {
     func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
         return String(data: try self.jsonData(), encoding: encoding)
     }
+}
+
+/// Discover the supplied attributes and apply subscriptions in order before reporting GATT
+/// readiness. Core supplies every UUID, write mode and retry.
+// MARK: - BleCentralSpec
+public struct BleCentralSpec: Codable {
+    public let requestedMTU: Int
+    public let requiredCharacteristics: [[Int]]
+    public let retry: BleGattRetrySpec
+    public let serviceUUID: [Int]
+    public let subscriptions: [BleSubscriptionSpec]
+    public let writeModes: [BleCharacteristicWriteSpec]
+
+    public enum CodingKeys: String, CodingKey {
+        case requestedMTU = "requested_mtu"
+        case requiredCharacteristics = "required_characteristics"
+        case retry = "retry"
+        case serviceUUID = "service_uuid"
+        case subscriptions = "subscriptions"
+        case writeModes = "write_modes"
+    }
+
+    public init(requestedMTU: Int, requiredCharacteristics: [[Int]], retry: BleGattRetrySpec, serviceUUID: [Int], subscriptions: [BleSubscriptionSpec], writeModes: [BleCharacteristicWriteSpec]) {
+        self.requestedMTU = requestedMTU
+        self.requiredCharacteristics = requiredCharacteristics
+        self.retry = retry
+        self.serviceUUID = serviceUUID
+        self.subscriptions = subscriptions
+        self.writeModes = writeModes
+    }
+}
+
+// MARK: BleCentralSpec convenience initializers and mutators
+
+public extension BleCentralSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleCentralSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        requestedMTU: Int? = nil,
+        requiredCharacteristics: [[Int]]? = nil,
+        retry: BleGattRetrySpec? = nil,
+        serviceUUID: [Int]? = nil,
+        subscriptions: [BleSubscriptionSpec]? = nil,
+        writeModes: [BleCharacteristicWriteSpec]? = nil
+    ) -> BleCentralSpec {
+        return BleCentralSpec(
+            requestedMTU: requestedMTU ?? self.requestedMTU,
+            requiredCharacteristics: requiredCharacteristics ?? self.requiredCharacteristics,
+            retry: retry ?? self.retry,
+            serviceUUID: serviceUUID ?? self.serviceUUID,
+            subscriptions: subscriptions ?? self.subscriptions,
+            writeModes: writeModes ?? self.writeModes
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+/// Core selects separate delay sequences for each native retry condition. A rejected
+/// operation or missing callback consumes the busy/timeout sequence; exhaustion reports a
+/// terminal outcome rather than dropping queued work.
+// MARK: - BleGattRetrySpec
+public struct BleGattRetrySpec: Codable {
+    public let busyOrTimeoutDelaysMillis: [Int]
+    public let incompleteDiscoveryDelaysMillis: [Int]
+    public let missingAttributeDelaysMillis: [Int]
+    public let operationTimeoutMillis: Int
+
+    public enum CodingKeys: String, CodingKey {
+        case busyOrTimeoutDelaysMillis = "busy_or_timeout_delays_millis"
+        case incompleteDiscoveryDelaysMillis = "incomplete_discovery_delays_millis"
+        case missingAttributeDelaysMillis = "missing_attribute_delays_millis"
+        case operationTimeoutMillis = "operation_timeout_millis"
+    }
+
+    public init(busyOrTimeoutDelaysMillis: [Int], incompleteDiscoveryDelaysMillis: [Int], missingAttributeDelaysMillis: [Int], operationTimeoutMillis: Int) {
+        self.busyOrTimeoutDelaysMillis = busyOrTimeoutDelaysMillis
+        self.incompleteDiscoveryDelaysMillis = incompleteDiscoveryDelaysMillis
+        self.missingAttributeDelaysMillis = missingAttributeDelaysMillis
+        self.operationTimeoutMillis = operationTimeoutMillis
+    }
+}
+
+// MARK: BleGattRetrySpec convenience initializers and mutators
+
+public extension BleGattRetrySpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleGattRetrySpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        busyOrTimeoutDelaysMillis: [Int]? = nil,
+        incompleteDiscoveryDelaysMillis: [Int]? = nil,
+        missingAttributeDelaysMillis: [Int]? = nil,
+        operationTimeoutMillis: Int? = nil
+    ) -> BleGattRetrySpec {
+        return BleGattRetrySpec(
+            busyOrTimeoutDelaysMillis: busyOrTimeoutDelaysMillis ?? self.busyOrTimeoutDelaysMillis,
+            incompleteDiscoveryDelaysMillis: incompleteDiscoveryDelaysMillis ?? self.incompleteDiscoveryDelaysMillis,
+            missingAttributeDelaysMillis: missingAttributeDelaysMillis ?? self.missingAttributeDelaysMillis,
+            operationTimeoutMillis: operationTimeoutMillis ?? self.operationTimeoutMillis
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleSubscriptionSpec
+public struct BleSubscriptionSpec: Codable {
+    public let characteristicUUID: [Int]
+    public let descriptorUUID: [Int]
+    public let value: [Int]
+
+    public enum CodingKeys: String, CodingKey {
+        case characteristicUUID = "characteristic_uuid"
+        case descriptorUUID = "descriptor_uuid"
+        case value = "value"
+    }
+
+    public init(characteristicUUID: [Int], descriptorUUID: [Int], value: [Int]) {
+        self.characteristicUUID = characteristicUUID
+        self.descriptorUUID = descriptorUUID
+        self.value = value
+    }
+}
+
+// MARK: BleSubscriptionSpec convenience initializers and mutators
+
+public extension BleSubscriptionSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleSubscriptionSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        characteristicUUID: [Int]? = nil,
+        descriptorUUID: [Int]? = nil,
+        value: [Int]? = nil
+    ) -> BleSubscriptionSpec {
+        return BleSubscriptionSpec(
+            characteristicUUID: characteristicUUID ?? self.characteristicUUID,
+            descriptorUUID: descriptorUUID ?? self.descriptorUUID,
+            value: value ?? self.value
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleCharacteristicWriteSpec
+public struct BleCharacteristicWriteSpec: Codable {
+    public let characteristicUUID: [Int]
+    public let mode: BleWriteMode
+
+    public enum CodingKeys: String, CodingKey {
+        case characteristicUUID = "characteristic_uuid"
+        case mode = "mode"
+    }
+
+    public init(characteristicUUID: [Int], mode: BleWriteMode) {
+        self.characteristicUUID = characteristicUUID
+        self.mode = mode
+    }
+}
+
+// MARK: BleCharacteristicWriteSpec convenience initializers and mutators
+
+public extension BleCharacteristicWriteSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleCharacteristicWriteSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        characteristicUUID: [Int]? = nil,
+        mode: BleWriteMode? = nil
+    ) -> BleCharacteristicWriteSpec {
+        return BleCharacteristicWriteSpec(
+            characteristicUUID: characteristicUUID ?? self.characteristicUUID,
+            mode: mode ?? self.mode
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+public enum BleWriteMode: String, Codable {
+    case withResponse = "WithResponse"
+    case withoutResponse = "WithoutResponse"
 }
 
 // MARK: - BleDisconnect
@@ -865,15 +1128,20 @@ public extension BleReadCharacteristic {
 // MARK: - BleStartAdvertising
 public struct BleStartAdvertising: Codable {
     public let payload: [Int]
+    /// Core-prepared setup. Prepared-data executors reject absence rather than reconstructing
+    /// protocol data from the legacy fields.
+    public let prepared: BlePeripheralSpec?
     public let serviceUUID: String
 
     public enum CodingKeys: String, CodingKey {
         case payload = "payload"
+        case prepared = "prepared"
         case serviceUUID = "service_uuid"
     }
 
-    public init(payload: [Int], serviceUUID: String) {
+    public init(payload: [Int], prepared: BlePeripheralSpec?, serviceUUID: String) {
         self.payload = payload
+        self.prepared = prepared
         self.serviceUUID = serviceUUID
     }
 }
@@ -898,11 +1166,630 @@ public extension BleStartAdvertising {
 
     func with(
         payload: [Int]? = nil,
+        prepared: BlePeripheralSpec?? = nil,
         serviceUUID: String? = nil
     ) -> BleStartAdvertising {
         return BleStartAdvertising(
             payload: payload ?? self.payload,
+            prepared: prepared ?? self.prepared,
             serviceUUID: serviceUUID ?? self.serviceUUID
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+/// Register the service before advertising so early peers can discover it. All readiness
+/// conditions must be observed on the same link before it is ready.
+// MARK: - BlePeripheralSpec
+public struct BlePeripheralSpec: Codable {
+    public let advertisement: BleAdvertisementSpec
+    public let readinessConditions: [BleDescriptorWriteCondition]
+    public let service: BleGattServiceSpec
+
+    public enum CodingKeys: String, CodingKey {
+        case advertisement = "advertisement"
+        case readinessConditions = "readiness_conditions"
+        case service = "service"
+    }
+
+    public init(advertisement: BleAdvertisementSpec, readinessConditions: [BleDescriptorWriteCondition], service: BleGattServiceSpec) {
+        self.advertisement = advertisement
+        self.readinessConditions = readinessConditions
+        self.service = service
+    }
+}
+
+// MARK: BlePeripheralSpec convenience initializers and mutators
+
+public extension BlePeripheralSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BlePeripheralSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        advertisement: BleAdvertisementSpec? = nil,
+        readinessConditions: [BleDescriptorWriteCondition]? = nil,
+        service: BleGattServiceSpec? = nil
+    ) -> BlePeripheralSpec {
+        return BlePeripheralSpec(
+            advertisement: advertisement ?? self.advertisement,
+            readinessConditions: readinessConditions ?? self.readinessConditions,
+            service: service ?? self.service
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleAdvertisementSpec
+public struct BleAdvertisementSpec: Codable {
+    public let parameters: BleAdvertisingParameters
+    public let serviceUuids: [BleAdvertisedUUID]
+
+    public enum CodingKeys: String, CodingKey {
+        case parameters = "parameters"
+        case serviceUuids = "service_uuids"
+    }
+
+    public init(parameters: BleAdvertisingParameters, serviceUuids: [BleAdvertisedUUID]) {
+        self.parameters = parameters
+        self.serviceUuids = serviceUuids
+    }
+}
+
+// MARK: BleAdvertisementSpec convenience initializers and mutators
+
+public extension BleAdvertisementSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleAdvertisementSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        parameters: BleAdvertisingParameters? = nil,
+        serviceUuids: [BleAdvertisedUUID]? = nil
+    ) -> BleAdvertisementSpec {
+        return BleAdvertisementSpec(
+            parameters: parameters ?? self.parameters,
+            serviceUuids: serviceUuids ?? self.serviceUuids
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleAdvertisingParameters
+public struct BleAdvertisingParameters: Codable {
+    public let connectable: Bool
+    public let includeDeviceName: Bool
+    public let mode: BleAdvertisingMode
+    public let timeoutMillis: Int
+    public let txPower: BleAdvertisingTxPower
+
+    public enum CodingKeys: String, CodingKey {
+        case connectable = "connectable"
+        case includeDeviceName = "include_device_name"
+        case mode = "mode"
+        case timeoutMillis = "timeout_millis"
+        case txPower = "tx_power"
+    }
+
+    public init(connectable: Bool, includeDeviceName: Bool, mode: BleAdvertisingMode, timeoutMillis: Int, txPower: BleAdvertisingTxPower) {
+        self.connectable = connectable
+        self.includeDeviceName = includeDeviceName
+        self.mode = mode
+        self.timeoutMillis = timeoutMillis
+        self.txPower = txPower
+    }
+}
+
+// MARK: BleAdvertisingParameters convenience initializers and mutators
+
+public extension BleAdvertisingParameters {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleAdvertisingParameters.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        connectable: Bool? = nil,
+        includeDeviceName: Bool? = nil,
+        mode: BleAdvertisingMode? = nil,
+        timeoutMillis: Int? = nil,
+        txPower: BleAdvertisingTxPower? = nil
+    ) -> BleAdvertisingParameters {
+        return BleAdvertisingParameters(
+            connectable: connectable ?? self.connectable,
+            includeDeviceName: includeDeviceName ?? self.includeDeviceName,
+            mode: mode ?? self.mode,
+            timeoutMillis: timeoutMillis ?? self.timeoutMillis,
+            txPower: txPower ?? self.txPower
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+public enum BleAdvertisingMode: String, Codable {
+    case balanced = "Balanced"
+    case lowLatency = "LowLatency"
+    case lowPower = "LowPower"
+}
+
+public enum BleAdvertisingTxPower: String, Codable {
+    case high = "High"
+    case low = "Low"
+    case medium = "Medium"
+    case ultraLow = "UltraLow"
+}
+
+/// Prepared UUIDs retain the width requested for the advertisement.
+// MARK: - BleAdvertisedUUID
+public struct BleAdvertisedUUID: Codable {
+    public let uuid16: [Int]?
+    public let uuid32: [Int]?
+    public let uuid128: [Int]?
+
+    public enum CodingKeys: String, CodingKey {
+        case uuid16 = "Uuid16"
+        case uuid32 = "Uuid32"
+        case uuid128 = "Uuid128"
+    }
+
+    public init(uuid16: [Int]?, uuid32: [Int]?, uuid128: [Int]?) {
+        self.uuid16 = uuid16
+        self.uuid32 = uuid32
+        self.uuid128 = uuid128
+    }
+}
+
+// MARK: BleAdvertisedUUID convenience initializers and mutators
+
+public extension BleAdvertisedUUID {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleAdvertisedUUID.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        uuid16: [Int]?? = nil,
+        uuid32: [Int]?? = nil,
+        uuid128: [Int]?? = nil
+    ) -> BleAdvertisedUUID {
+        return BleAdvertisedUUID(
+            uuid16: uuid16 ?? self.uuid16,
+            uuid32: uuid32 ?? self.uuid32,
+            uuid128: uuid128 ?? self.uuid128
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+/// A descriptor write matches when its bytes start with `value_prefix`.
+// MARK: - BleDescriptorWriteCondition
+public struct BleDescriptorWriteCondition: Codable {
+    public let characteristicUUID: [Int]
+    public let descriptorUUID: [Int]
+    public let valuePrefix: [Int]
+
+    public enum CodingKeys: String, CodingKey {
+        case characteristicUUID = "characteristic_uuid"
+        case descriptorUUID = "descriptor_uuid"
+        case valuePrefix = "value_prefix"
+    }
+
+    public init(characteristicUUID: [Int], descriptorUUID: [Int], valuePrefix: [Int]) {
+        self.characteristicUUID = characteristicUUID
+        self.descriptorUUID = descriptorUUID
+        self.valuePrefix = valuePrefix
+    }
+}
+
+// MARK: BleDescriptorWriteCondition convenience initializers and mutators
+
+public extension BleDescriptorWriteCondition {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleDescriptorWriteCondition.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        characteristicUUID: [Int]? = nil,
+        descriptorUUID: [Int]? = nil,
+        valuePrefix: [Int]? = nil
+    ) -> BleDescriptorWriteCondition {
+        return BleDescriptorWriteCondition(
+            characteristicUUID: characteristicUUID ?? self.characteristicUUID,
+            descriptorUUID: descriptorUUID ?? self.descriptorUUID,
+            valuePrefix: valuePrefix ?? self.valuePrefix
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleGattServiceSpec
+public struct BleGattServiceSpec: Codable {
+    public let characteristics: [BleGattCharacteristicSpec]
+    public let primary: Bool
+    public let uuid: [Int]
+
+    public enum CodingKeys: String, CodingKey {
+        case characteristics = "characteristics"
+        case primary = "primary"
+        case uuid = "uuid"
+    }
+
+    public init(characteristics: [BleGattCharacteristicSpec], primary: Bool, uuid: [Int]) {
+        self.characteristics = characteristics
+        self.primary = primary
+        self.uuid = uuid
+    }
+}
+
+// MARK: BleGattServiceSpec convenience initializers and mutators
+
+public extension BleGattServiceSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleGattServiceSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        characteristics: [BleGattCharacteristicSpec]? = nil,
+        primary: Bool? = nil,
+        uuid: [Int]? = nil
+    ) -> BleGattServiceSpec {
+        return BleGattServiceSpec(
+            characteristics: characteristics ?? self.characteristics,
+            primary: primary ?? self.primary,
+            uuid: uuid ?? self.uuid
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleGattCharacteristicSpec
+public struct BleGattCharacteristicSpec: Codable {
+    public let descriptors: [BleGattDescriptorSpec]
+    public let initialValue: [Int]
+    public let permissions: BleGattPermissions
+    public let properties: BleGattProperties
+    public let uuid: [Int]
+
+    public enum CodingKeys: String, CodingKey {
+        case descriptors = "descriptors"
+        case initialValue = "initial_value"
+        case permissions = "permissions"
+        case properties = "properties"
+        case uuid = "uuid"
+    }
+
+    public init(descriptors: [BleGattDescriptorSpec], initialValue: [Int], permissions: BleGattPermissions, properties: BleGattProperties, uuid: [Int]) {
+        self.descriptors = descriptors
+        self.initialValue = initialValue
+        self.permissions = permissions
+        self.properties = properties
+        self.uuid = uuid
+    }
+}
+
+// MARK: BleGattCharacteristicSpec convenience initializers and mutators
+
+public extension BleGattCharacteristicSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleGattCharacteristicSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        descriptors: [BleGattDescriptorSpec]? = nil,
+        initialValue: [Int]? = nil,
+        permissions: BleGattPermissions? = nil,
+        properties: BleGattProperties? = nil,
+        uuid: [Int]? = nil
+    ) -> BleGattCharacteristicSpec {
+        return BleGattCharacteristicSpec(
+            descriptors: descriptors ?? self.descriptors,
+            initialValue: initialValue ?? self.initialValue,
+            permissions: permissions ?? self.permissions,
+            properties: properties ?? self.properties,
+            uuid: uuid ?? self.uuid
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleGattDescriptorSpec
+public struct BleGattDescriptorSpec: Codable {
+    public let permissions: BleGattPermissions
+    public let uuid: [Int]
+    public let value: [Int]
+
+    public enum CodingKeys: String, CodingKey {
+        case permissions = "permissions"
+        case uuid = "uuid"
+        case value = "value"
+    }
+
+    public init(permissions: BleGattPermissions, uuid: [Int], value: [Int]) {
+        self.permissions = permissions
+        self.uuid = uuid
+        self.value = value
+    }
+}
+
+// MARK: BleGattDescriptorSpec convenience initializers and mutators
+
+public extension BleGattDescriptorSpec {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleGattDescriptorSpec.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        permissions: BleGattPermissions? = nil,
+        uuid: [Int]? = nil,
+        value: [Int]? = nil
+    ) -> BleGattDescriptorSpec {
+        return BleGattDescriptorSpec(
+            permissions: permissions ?? self.permissions,
+            uuid: uuid ?? self.uuid,
+            value: value ?? self.value
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleGattPermissions
+public struct BleGattPermissions: Codable {
+    public let read: Bool
+    public let write: Bool
+
+    public enum CodingKeys: String, CodingKey {
+        case read = "read"
+        case write = "write"
+    }
+
+    public init(read: Bool, write: Bool) {
+        self.read = read
+        self.write = write
+    }
+}
+
+// MARK: BleGattPermissions convenience initializers and mutators
+
+public extension BleGattPermissions {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleGattPermissions.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        read: Bool? = nil,
+        write: Bool? = nil
+    ) -> BleGattPermissions {
+        return BleGattPermissions(
+            read: read ?? self.read,
+            write: write ?? self.write
+        )
+    }
+
+    func jsonData() throws -> Data {
+        return try newJSONEncoder().encode(self)
+    }
+
+    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
+        return String(data: try self.jsonData(), encoding: encoding)
+    }
+}
+
+// MARK: - BleGattProperties
+public struct BleGattProperties: Codable {
+    public let indicate: Bool
+    public let notify: Bool
+    public let read: Bool
+    public let write: Bool
+    public let writeWithoutResponse: Bool
+
+    public enum CodingKeys: String, CodingKey {
+        case indicate = "indicate"
+        case notify = "notify"
+        case read = "read"
+        case write = "write"
+        case writeWithoutResponse = "write_without_response"
+    }
+
+    public init(indicate: Bool, notify: Bool, read: Bool, write: Bool, writeWithoutResponse: Bool) {
+        self.indicate = indicate
+        self.notify = notify
+        self.read = read
+        self.write = write
+        self.writeWithoutResponse = writeWithoutResponse
+    }
+}
+
+// MARK: BleGattProperties convenience initializers and mutators
+
+public extension BleGattProperties {
+    init(data: Data) throws {
+        self = try newJSONDecoder().decode(BleGattProperties.self, from: data)
+    }
+
+    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+        guard let data = json.data(using: encoding) else {
+            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
+        }
+        try self.init(data: data)
+    }
+
+    init(fromURL url: URL) throws {
+        try self.init(data: try Data(contentsOf: url))
+    }
+
+    func with(
+        indicate: Bool? = nil,
+        notify: Bool? = nil,
+        read: Bool? = nil,
+        write: Bool? = nil,
+        writeWithoutResponse: Bool? = nil
+    ) -> BleGattProperties {
+        return BleGattProperties(
+            indicate: indicate ?? self.indicate,
+            notify: notify ?? self.notify,
+            read: read ?? self.read,
+            write: write ?? self.write,
+            writeWithoutResponse: writeWithoutResponse ?? self.writeWithoutResponse
         )
     }
 

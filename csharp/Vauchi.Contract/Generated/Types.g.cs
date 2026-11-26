@@ -480,6 +480,80 @@ namespace Vauchi.Contract
     }
 
     /// <summary>
+    /// Prepared UUIDs retain the width requested for the advertisement.
+    /// </summary>
+    public abstract record BleAdvertisedUuid
+    {
+        private protected BleAdvertisedUuid() { }
+
+        public sealed override string ToString() => GetType().Name;
+
+        internal abstract void Write(Utf8JsonWriter w);
+
+        internal static BleAdvertisedUuid Read(ref Utf8JsonReader r)
+        {
+            string tag = Rd.Tag(ref r, "BleAdvertisedUuid");
+            BleAdvertisedUuid value = tag switch
+            {
+                "Uuid16" => Uuid16.ReadPayload(ref r),
+                "Uuid32" => Uuid32.ReadPayload(ref r),
+                "Uuid128" => Uuid128.ReadPayload(ref r),
+                _ => throw Rd.UnknownVariant("BleAdvertisedUuid"),
+            };
+            Rd.EndTag(ref r, "BleAdvertisedUuid");
+            return value;
+        }
+
+        public sealed record Uuid16(byte[] Value) : BleAdvertisedUuid
+        {
+            internal static Uuid16 ReadPayload(ref Utf8JsonReader r)
+            {
+                return new Uuid16(Rd.Bytes(ref r, 2, 2));
+            }
+
+            internal override void Write(Utf8JsonWriter w)
+            {
+                w.WriteStartObject();
+                w.WritePropertyName("Uuid16");
+                Wr.Bytes(w, Value, 2, 2);
+                w.WriteEndObject();
+            }
+        }
+
+        public sealed record Uuid32(byte[] Value) : BleAdvertisedUuid
+        {
+            internal static Uuid32 ReadPayload(ref Utf8JsonReader r)
+            {
+                return new Uuid32(Rd.Bytes(ref r, 4, 4));
+            }
+
+            internal override void Write(Utf8JsonWriter w)
+            {
+                w.WriteStartObject();
+                w.WritePropertyName("Uuid32");
+                Wr.Bytes(w, Value, 4, 4);
+                w.WriteEndObject();
+            }
+        }
+
+        public sealed record Uuid128(byte[] Value) : BleAdvertisedUuid
+        {
+            internal static Uuid128 ReadPayload(ref Utf8JsonReader r)
+            {
+                return new Uuid128(Rd.Bytes(ref r, 16, 16));
+            }
+
+            internal override void Write(Utf8JsonWriter w)
+            {
+                w.WriteStartObject();
+                w.WritePropertyName("Uuid128");
+                Wr.Bytes(w, Value, 16, 16);
+                w.WriteEndObject();
+            }
+        }
+    }
+
+    /// <summary>
     /// Bounded native observations, without decoded exchange state. UUID bytes use network order (the order in the conventional hexadecimal UUID).
     /// </summary>
     public sealed record BleAdvertisementObservation
@@ -548,6 +622,859 @@ namespace Vauchi.Contract
         }
     }
 
+    public sealed record BleAdvertisementSpec
+    {
+        public required global::Vauchi.Contract.BleAdvertisingParameters Parameters { get; init; }
+
+        public required IReadOnlyList<global::Vauchi.Contract.BleAdvertisedUuid> ServiceUuids { get; init; }
+
+        public override string ToString() => "BleAdvertisementSpec";
+
+        internal static BleAdvertisementSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            global::Vauchi.Contract.BleAdvertisingParameters? f0 = default;
+            bool h0 = false;
+            IReadOnlyList<global::Vauchi.Contract.BleAdvertisedUuid>? f1 = default;
+            bool h1 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "parameters":
+                        Rd.Once(ref h0, name);
+                        f0 = global::Vauchi.Contract.BleAdvertisingParameters.Read(ref r);
+                        break;
+                    case "service_uuids":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.List<global::Vauchi.Contract.BleAdvertisedUuid>(ref r, static (ref Utf8JsonReader rx) => global::Vauchi.Contract.BleAdvertisedUuid.Read(ref rx), 0, 32);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("parameters");
+            if (!h1) throw Rd.MissingField("service_uuids");
+            return new BleAdvertisementSpec { Parameters = f0!, ServiceUuids = f1! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("parameters");
+            Parameters.Write(w);
+            w.WritePropertyName("service_uuids");
+            if (ServiceUuids is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(ServiceUuids.Count, 0, 32);
+            w.WriteStartArray();
+            foreach (var e0 in ServiceUuids)
+            {
+                e0.Write(w);
+            }
+            w.WriteEndArray();
+            w.WriteEndObject();
+        }
+    }
+
+    public enum BleAdvertisingMode
+    {
+        LowPower,
+        Balanced,
+        LowLatency,
+    }
+
+    internal static class BleAdvertisingModeJson
+    {
+        internal static BleAdvertisingMode Read(ref Utf8JsonReader r) => Rd.Name(ref r) switch
+        {
+            "LowPower" => BleAdvertisingMode.LowPower,
+            "Balanced" => BleAdvertisingMode.Balanced,
+            "LowLatency" => BleAdvertisingMode.LowLatency,
+            _ => throw Rd.UnknownVariant("BleAdvertisingMode"),
+        };
+
+        internal static void Write(Utf8JsonWriter w, BleAdvertisingMode value) => w.WriteStringValue(value switch
+        {
+            BleAdvertisingMode.LowPower => "LowPower",
+            BleAdvertisingMode.Balanced => "Balanced",
+            BleAdvertisingMode.LowLatency => "LowLatency",
+            _ => throw Rd.UnknownVariant("BleAdvertisingMode"),
+        });
+    }
+
+    public sealed record BleAdvertisingParameters
+    {
+        public required bool Connectable { get; init; }
+
+        public required bool IncludeDeviceName { get; init; }
+
+        public required global::Vauchi.Contract.BleAdvertisingMode Mode { get; init; }
+
+        public required uint TimeoutMillis { get; init; }
+
+        public required global::Vauchi.Contract.BleAdvertisingTxPower TxPower { get; init; }
+
+        public override string ToString() => "BleAdvertisingParameters";
+
+        internal static BleAdvertisingParameters Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            bool f0 = default;
+            bool h0 = false;
+            bool f1 = default;
+            bool h1 = false;
+            global::Vauchi.Contract.BleAdvertisingMode f2 = default;
+            bool h2 = false;
+            uint f3 = default;
+            bool h3 = false;
+            global::Vauchi.Contract.BleAdvertisingTxPower f4 = default;
+            bool h4 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "connectable":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.Bool(ref r);
+                        break;
+                    case "include_device_name":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bool(ref r);
+                        break;
+                    case "mode":
+                        Rd.Once(ref h2, name);
+                        f2 = global::Vauchi.Contract.BleAdvertisingModeJson.Read(ref r);
+                        break;
+                    case "timeout_millis":
+                        Rd.Once(ref h3, name);
+                        f3 = Rd.U32(ref r);
+                        break;
+                    case "tx_power":
+                        Rd.Once(ref h4, name);
+                        f4 = global::Vauchi.Contract.BleAdvertisingTxPowerJson.Read(ref r);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("connectable");
+            if (!h1) throw Rd.MissingField("include_device_name");
+            if (!h2) throw Rd.MissingField("mode");
+            if (!h3) throw Rd.MissingField("timeout_millis");
+            if (!h4) throw Rd.MissingField("tx_power");
+            return new BleAdvertisingParameters { Connectable = f0, IncludeDeviceName = f1, Mode = f2, TimeoutMillis = f3, TxPower = f4 };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("connectable");
+            w.WriteBooleanValue(Connectable);
+            w.WritePropertyName("include_device_name");
+            w.WriteBooleanValue(IncludeDeviceName);
+            w.WritePropertyName("mode");
+            global::Vauchi.Contract.BleAdvertisingModeJson.Write(w, Mode);
+            w.WritePropertyName("timeout_millis");
+            w.WriteNumberValue(TimeoutMillis);
+            w.WritePropertyName("tx_power");
+            global::Vauchi.Contract.BleAdvertisingTxPowerJson.Write(w, TxPower);
+            w.WriteEndObject();
+        }
+    }
+
+    public enum BleAdvertisingTxPower
+    {
+        UltraLow,
+        Low,
+        Medium,
+        High,
+    }
+
+    internal static class BleAdvertisingTxPowerJson
+    {
+        internal static BleAdvertisingTxPower Read(ref Utf8JsonReader r) => Rd.Name(ref r) switch
+        {
+            "UltraLow" => BleAdvertisingTxPower.UltraLow,
+            "Low" => BleAdvertisingTxPower.Low,
+            "Medium" => BleAdvertisingTxPower.Medium,
+            "High" => BleAdvertisingTxPower.High,
+            _ => throw Rd.UnknownVariant("BleAdvertisingTxPower"),
+        };
+
+        internal static void Write(Utf8JsonWriter w, BleAdvertisingTxPower value) => w.WriteStringValue(value switch
+        {
+            BleAdvertisingTxPower.UltraLow => "UltraLow",
+            BleAdvertisingTxPower.Low => "Low",
+            BleAdvertisingTxPower.Medium => "Medium",
+            BleAdvertisingTxPower.High => "High",
+            _ => throw Rd.UnknownVariant("BleAdvertisingTxPower"),
+        });
+    }
+
+    /// <summary>
+    /// Discover the supplied attributes and apply subscriptions in order before reporting GATT readiness. Core supplies every UUID, write mode and retry.
+    /// </summary>
+    public sealed record BleCentralSpec
+    {
+        public required ushort RequestedMtu { get; init; }
+
+        public required IReadOnlyList<byte[]> RequiredCharacteristics { get; init; }
+
+        public required global::Vauchi.Contract.BleGattRetrySpec Retry { get; init; }
+
+        public required byte[] ServiceUuid { get; init; }
+
+        public required IReadOnlyList<global::Vauchi.Contract.BleSubscriptionSpec> Subscriptions { get; init; }
+
+        public required IReadOnlyList<global::Vauchi.Contract.BleCharacteristicWriteSpec> WriteModes { get; init; }
+
+        public override string ToString() => "BleCentralSpec";
+
+        internal static BleCentralSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            ushort f0 = default;
+            bool h0 = false;
+            IReadOnlyList<byte[]>? f1 = default;
+            bool h1 = false;
+            global::Vauchi.Contract.BleGattRetrySpec? f2 = default;
+            bool h2 = false;
+            byte[]? f3 = default;
+            bool h3 = false;
+            IReadOnlyList<global::Vauchi.Contract.BleSubscriptionSpec>? f4 = default;
+            bool h4 = false;
+            IReadOnlyList<global::Vauchi.Contract.BleCharacteristicWriteSpec>? f5 = default;
+            bool h5 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "requested_mtu":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.U16(ref r);
+                        break;
+                    case "required_characteristics":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.List<byte[]>(ref r, static (ref Utf8JsonReader rx) => Rd.Bytes(ref rx, 16, 16), 0, 16);
+                        break;
+                    case "retry":
+                        Rd.Once(ref h2, name);
+                        f2 = global::Vauchi.Contract.BleGattRetrySpec.Read(ref r);
+                        break;
+                    case "service_uuid":
+                        Rd.Once(ref h3, name);
+                        f3 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "subscriptions":
+                        Rd.Once(ref h4, name);
+                        f4 = Rd.List<global::Vauchi.Contract.BleSubscriptionSpec>(ref r, static (ref Utf8JsonReader rx) => global::Vauchi.Contract.BleSubscriptionSpec.Read(ref rx), 0, 16);
+                        break;
+                    case "write_modes":
+                        Rd.Once(ref h5, name);
+                        f5 = Rd.List<global::Vauchi.Contract.BleCharacteristicWriteSpec>(ref r, static (ref Utf8JsonReader rx) => global::Vauchi.Contract.BleCharacteristicWriteSpec.Read(ref rx), 0, 16);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("requested_mtu");
+            if (!h1) throw Rd.MissingField("required_characteristics");
+            if (!h2) throw Rd.MissingField("retry");
+            if (!h3) throw Rd.MissingField("service_uuid");
+            if (!h4) throw Rd.MissingField("subscriptions");
+            if (!h5) throw Rd.MissingField("write_modes");
+            return new BleCentralSpec { RequestedMtu = f0, RequiredCharacteristics = f1!, Retry = f2!, ServiceUuid = f3!, Subscriptions = f4!, WriteModes = f5! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("requested_mtu");
+            w.WriteNumberValue(RequestedMtu);
+            w.WritePropertyName("required_characteristics");
+            if (RequiredCharacteristics is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(RequiredCharacteristics.Count, 0, 16);
+            w.WriteStartArray();
+            foreach (var e0 in RequiredCharacteristics)
+            {
+                Wr.Bytes(w, e0, 16, 16);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("retry");
+            Retry.Write(w);
+            w.WritePropertyName("service_uuid");
+            Wr.Bytes(w, ServiceUuid, 16, 16);
+            w.WritePropertyName("subscriptions");
+            if (Subscriptions is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Subscriptions.Count, 0, 16);
+            w.WriteStartArray();
+            foreach (var e0 in Subscriptions)
+            {
+                e0.Write(w);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("write_modes");
+            if (WriteModes is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(WriteModes.Count, 0, 16);
+            w.WriteStartArray();
+            foreach (var e0 in WriteModes)
+            {
+                e0.Write(w);
+            }
+            w.WriteEndArray();
+            w.WriteEndObject();
+        }
+    }
+
+    public sealed record BleCharacteristicWriteSpec
+    {
+        public required byte[] CharacteristicUuid { get; init; }
+
+        public required global::Vauchi.Contract.BleWriteMode Mode { get; init; }
+
+        public override string ToString() => "BleCharacteristicWriteSpec";
+
+        internal static BleCharacteristicWriteSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            byte[]? f0 = default;
+            bool h0 = false;
+            global::Vauchi.Contract.BleWriteMode f1 = default;
+            bool h1 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "characteristic_uuid":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "mode":
+                        Rd.Once(ref h1, name);
+                        f1 = global::Vauchi.Contract.BleWriteModeJson.Read(ref r);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("characteristic_uuid");
+            if (!h1) throw Rd.MissingField("mode");
+            return new BleCharacteristicWriteSpec { CharacteristicUuid = f0!, Mode = f1 };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("characteristic_uuid");
+            Wr.Bytes(w, CharacteristicUuid, 16, 16);
+            w.WritePropertyName("mode");
+            global::Vauchi.Contract.BleWriteModeJson.Write(w, Mode);
+            w.WriteEndObject();
+        }
+    }
+
+    /// <summary>
+    /// A descriptor write matches when its bytes start with `value_prefix`.
+    /// </summary>
+    public sealed record BleDescriptorWriteCondition
+    {
+        public required byte[] CharacteristicUuid { get; init; }
+
+        public required byte[] DescriptorUuid { get; init; }
+
+        public required byte[] ValuePrefix { get; init; }
+
+        public override string ToString() => "BleDescriptorWriteCondition";
+
+        internal static BleDescriptorWriteCondition Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            byte[]? f0 = default;
+            bool h0 = false;
+            byte[]? f1 = default;
+            bool h1 = false;
+            byte[]? f2 = default;
+            bool h2 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "characteristic_uuid":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "descriptor_uuid":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "value_prefix":
+                        Rd.Once(ref h2, name);
+                        f2 = Rd.Bytes(ref r, 0, 512);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("characteristic_uuid");
+            if (!h1) throw Rd.MissingField("descriptor_uuid");
+            if (!h2) throw Rd.MissingField("value_prefix");
+            return new BleDescriptorWriteCondition { CharacteristicUuid = f0!, DescriptorUuid = f1!, ValuePrefix = f2! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("characteristic_uuid");
+            Wr.Bytes(w, CharacteristicUuid, 16, 16);
+            w.WritePropertyName("descriptor_uuid");
+            Wr.Bytes(w, DescriptorUuid, 16, 16);
+            w.WritePropertyName("value_prefix");
+            Wr.Bytes(w, ValuePrefix, 0, 512);
+            w.WriteEndObject();
+        }
+    }
+
+    public sealed record BleGattCharacteristicSpec
+    {
+        public required IReadOnlyList<global::Vauchi.Contract.BleGattDescriptorSpec> Descriptors { get; init; }
+
+        public required byte[] InitialValue { get; init; }
+
+        public required global::Vauchi.Contract.BleGattPermissions Permissions { get; init; }
+
+        public required global::Vauchi.Contract.BleGattProperties Properties { get; init; }
+
+        public required byte[] Uuid { get; init; }
+
+        public override string ToString() => "BleGattCharacteristicSpec";
+
+        internal static BleGattCharacteristicSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            IReadOnlyList<global::Vauchi.Contract.BleGattDescriptorSpec>? f0 = default;
+            bool h0 = false;
+            byte[]? f1 = default;
+            bool h1 = false;
+            global::Vauchi.Contract.BleGattPermissions? f2 = default;
+            bool h2 = false;
+            global::Vauchi.Contract.BleGattProperties? f3 = default;
+            bool h3 = false;
+            byte[]? f4 = default;
+            bool h4 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "descriptors":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.List<global::Vauchi.Contract.BleGattDescriptorSpec>(ref r, static (ref Utf8JsonReader rx) => global::Vauchi.Contract.BleGattDescriptorSpec.Read(ref rx), 0, 4);
+                        break;
+                    case "initial_value":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bytes(ref r, 0, 512);
+                        break;
+                    case "permissions":
+                        Rd.Once(ref h2, name);
+                        f2 = global::Vauchi.Contract.BleGattPermissions.Read(ref r);
+                        break;
+                    case "properties":
+                        Rd.Once(ref h3, name);
+                        f3 = global::Vauchi.Contract.BleGattProperties.Read(ref r);
+                        break;
+                    case "uuid":
+                        Rd.Once(ref h4, name);
+                        f4 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("descriptors");
+            if (!h1) throw Rd.MissingField("initial_value");
+            if (!h2) throw Rd.MissingField("permissions");
+            if (!h3) throw Rd.MissingField("properties");
+            if (!h4) throw Rd.MissingField("uuid");
+            return new BleGattCharacteristicSpec { Descriptors = f0!, InitialValue = f1!, Permissions = f2!, Properties = f3!, Uuid = f4! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("descriptors");
+            if (Descriptors is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Descriptors.Count, 0, 4);
+            w.WriteStartArray();
+            foreach (var e0 in Descriptors)
+            {
+                e0.Write(w);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("initial_value");
+            Wr.Bytes(w, InitialValue, 0, 512);
+            w.WritePropertyName("permissions");
+            Permissions.Write(w);
+            w.WritePropertyName("properties");
+            Properties.Write(w);
+            w.WritePropertyName("uuid");
+            Wr.Bytes(w, Uuid, 16, 16);
+            w.WriteEndObject();
+        }
+    }
+
+    public sealed record BleGattDescriptorSpec
+    {
+        public required global::Vauchi.Contract.BleGattPermissions Permissions { get; init; }
+
+        public required byte[] Uuid { get; init; }
+
+        public required byte[] Value { get; init; }
+
+        public override string ToString() => "BleGattDescriptorSpec";
+
+        internal static BleGattDescriptorSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            global::Vauchi.Contract.BleGattPermissions? f0 = default;
+            bool h0 = false;
+            byte[]? f1 = default;
+            bool h1 = false;
+            byte[]? f2 = default;
+            bool h2 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "permissions":
+                        Rd.Once(ref h0, name);
+                        f0 = global::Vauchi.Contract.BleGattPermissions.Read(ref r);
+                        break;
+                    case "uuid":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "value":
+                        Rd.Once(ref h2, name);
+                        f2 = Rd.Bytes(ref r, 0, 512);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("permissions");
+            if (!h1) throw Rd.MissingField("uuid");
+            if (!h2) throw Rd.MissingField("value");
+            return new BleGattDescriptorSpec { Permissions = f0!, Uuid = f1!, Value = f2! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("permissions");
+            Permissions.Write(w);
+            w.WritePropertyName("uuid");
+            Wr.Bytes(w, Uuid, 16, 16);
+            w.WritePropertyName("value");
+            Wr.Bytes(w, Value, 0, 512);
+            w.WriteEndObject();
+        }
+    }
+
+    public sealed record BleGattPermissions
+    {
+        public required bool ReadValue { get; init; }
+
+        public required bool WriteValue { get; init; }
+
+        public override string ToString() => "BleGattPermissions";
+
+        internal static BleGattPermissions Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            bool f0 = default;
+            bool h0 = false;
+            bool f1 = default;
+            bool h1 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "read":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.Bool(ref r);
+                        break;
+                    case "write":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bool(ref r);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("read");
+            if (!h1) throw Rd.MissingField("write");
+            return new BleGattPermissions { ReadValue = f0, WriteValue = f1 };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("read");
+            w.WriteBooleanValue(ReadValue);
+            w.WritePropertyName("write");
+            w.WriteBooleanValue(WriteValue);
+            w.WriteEndObject();
+        }
+    }
+
+    public sealed record BleGattProperties
+    {
+        public required bool Indicate { get; init; }
+
+        public required bool Notify { get; init; }
+
+        public required bool ReadValue { get; init; }
+
+        public required bool WriteValue { get; init; }
+
+        public required bool WriteWithoutResponse { get; init; }
+
+        public override string ToString() => "BleGattProperties";
+
+        internal static BleGattProperties Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            bool f0 = default;
+            bool h0 = false;
+            bool f1 = default;
+            bool h1 = false;
+            bool f2 = default;
+            bool h2 = false;
+            bool f3 = default;
+            bool h3 = false;
+            bool f4 = default;
+            bool h4 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "indicate":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.Bool(ref r);
+                        break;
+                    case "notify":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bool(ref r);
+                        break;
+                    case "read":
+                        Rd.Once(ref h2, name);
+                        f2 = Rd.Bool(ref r);
+                        break;
+                    case "write":
+                        Rd.Once(ref h3, name);
+                        f3 = Rd.Bool(ref r);
+                        break;
+                    case "write_without_response":
+                        Rd.Once(ref h4, name);
+                        f4 = Rd.Bool(ref r);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("indicate");
+            if (!h1) throw Rd.MissingField("notify");
+            if (!h2) throw Rd.MissingField("read");
+            if (!h3) throw Rd.MissingField("write");
+            if (!h4) throw Rd.MissingField("write_without_response");
+            return new BleGattProperties { Indicate = f0, Notify = f1, ReadValue = f2, WriteValue = f3, WriteWithoutResponse = f4 };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("indicate");
+            w.WriteBooleanValue(Indicate);
+            w.WritePropertyName("notify");
+            w.WriteBooleanValue(Notify);
+            w.WritePropertyName("read");
+            w.WriteBooleanValue(ReadValue);
+            w.WritePropertyName("write");
+            w.WriteBooleanValue(WriteValue);
+            w.WritePropertyName("write_without_response");
+            w.WriteBooleanValue(WriteWithoutResponse);
+            w.WriteEndObject();
+        }
+    }
+
+    /// <summary>
+    /// Core selects separate delay sequences for each native retry condition. A rejected operation or missing callback consumes the busy/timeout sequence; exhaustion reports a terminal outcome rather than dropping queued work.
+    /// </summary>
+    public sealed record BleGattRetrySpec
+    {
+        public required IReadOnlyList<uint> BusyOrTimeoutDelaysMillis { get; init; }
+
+        public required IReadOnlyList<uint> IncompleteDiscoveryDelaysMillis { get; init; }
+
+        public required IReadOnlyList<uint> MissingAttributeDelaysMillis { get; init; }
+
+        public required uint OperationTimeoutMillis { get; init; }
+
+        public override string ToString() => "BleGattRetrySpec";
+
+        internal static BleGattRetrySpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            IReadOnlyList<uint>? f0 = default;
+            bool h0 = false;
+            IReadOnlyList<uint>? f1 = default;
+            bool h1 = false;
+            IReadOnlyList<uint>? f2 = default;
+            bool h2 = false;
+            uint f3 = default;
+            bool h3 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "busy_or_timeout_delays_millis":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.List<uint>(ref r, static (ref Utf8JsonReader rx) => Rd.U32(ref rx), 0, 32);
+                        break;
+                    case "incomplete_discovery_delays_millis":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.List<uint>(ref r, static (ref Utf8JsonReader rx) => Rd.U32(ref rx), 0, 32);
+                        break;
+                    case "missing_attribute_delays_millis":
+                        Rd.Once(ref h2, name);
+                        f2 = Rd.List<uint>(ref r, static (ref Utf8JsonReader rx) => Rd.U32(ref rx), 0, 32);
+                        break;
+                    case "operation_timeout_millis":
+                        Rd.Once(ref h3, name);
+                        f3 = Rd.U32(ref r);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("busy_or_timeout_delays_millis");
+            if (!h1) throw Rd.MissingField("incomplete_discovery_delays_millis");
+            if (!h2) throw Rd.MissingField("missing_attribute_delays_millis");
+            if (!h3) throw Rd.MissingField("operation_timeout_millis");
+            return new BleGattRetrySpec { BusyOrTimeoutDelaysMillis = f0!, IncompleteDiscoveryDelaysMillis = f1!, MissingAttributeDelaysMillis = f2!, OperationTimeoutMillis = f3 };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("busy_or_timeout_delays_millis");
+            if (BusyOrTimeoutDelaysMillis is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(BusyOrTimeoutDelaysMillis.Count, 0, 32);
+            w.WriteStartArray();
+            foreach (var e0 in BusyOrTimeoutDelaysMillis)
+            {
+                w.WriteNumberValue(e0);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("incomplete_discovery_delays_millis");
+            if (IncompleteDiscoveryDelaysMillis is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(IncompleteDiscoveryDelaysMillis.Count, 0, 32);
+            w.WriteStartArray();
+            foreach (var e0 in IncompleteDiscoveryDelaysMillis)
+            {
+                w.WriteNumberValue(e0);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("missing_attribute_delays_millis");
+            if (MissingAttributeDelaysMillis is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(MissingAttributeDelaysMillis.Count, 0, 32);
+            w.WriteStartArray();
+            foreach (var e0 in MissingAttributeDelaysMillis)
+            {
+                w.WriteNumberValue(e0);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("operation_timeout_millis");
+            w.WriteNumberValue(OperationTimeoutMillis);
+            w.WriteEndObject();
+        }
+    }
+
+    public sealed record BleGattServiceSpec
+    {
+        public required IReadOnlyList<global::Vauchi.Contract.BleGattCharacteristicSpec> Characteristics { get; init; }
+
+        public required bool Primary { get; init; }
+
+        public required byte[] Uuid { get; init; }
+
+        public override string ToString() => "BleGattServiceSpec";
+
+        internal static BleGattServiceSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            IReadOnlyList<global::Vauchi.Contract.BleGattCharacteristicSpec>? f0 = default;
+            bool h0 = false;
+            bool f1 = default;
+            bool h1 = false;
+            byte[]? f2 = default;
+            bool h2 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "characteristics":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.List<global::Vauchi.Contract.BleGattCharacteristicSpec>(ref r, static (ref Utf8JsonReader rx) => global::Vauchi.Contract.BleGattCharacteristicSpec.Read(ref rx), 0, 16);
+                        break;
+                    case "primary":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bool(ref r);
+                        break;
+                    case "uuid":
+                        Rd.Once(ref h2, name);
+                        f2 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("characteristics");
+            if (!h1) throw Rd.MissingField("primary");
+            if (!h2) throw Rd.MissingField("uuid");
+            return new BleGattServiceSpec { Characteristics = f0!, Primary = f1, Uuid = f2! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("characteristics");
+            if (Characteristics is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Characteristics.Count, 0, 16);
+            w.WriteStartArray();
+            foreach (var e0 in Characteristics)
+            {
+                e0.Write(w);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("primary");
+            w.WriteBooleanValue(Primary);
+            w.WritePropertyName("uuid");
+            Wr.Bytes(w, Uuid, 16, 16);
+            w.WriteEndObject();
+        }
+    }
+
     /// <summary>
     /// Which physical direction a BLE link was established in, reported by the shell on [`Event::BleConnected`]. This is the ground truth for the exchange protocol role: the GATT **central** (it dialed out) drives the handshake as initiator; the GATT **peripheral** (it was connected to) responds. Deriving the role from the physical link — not the pre-connection token tiebreak — is what lets asymmetric BLE discovery self-heal: whichever side actually connects becomes the initiator, even if the token said otherwise (`_private/docs/designs/2026-07-22-role-tiebreak-and-glare-design.md`).
     /// </summary>
@@ -578,6 +1505,75 @@ namespace Vauchi.Contract
             BleLinkDirection.Inbound => "Inbound",
             _ => throw Rd.UnknownVariant("BleLinkDirection"),
         });
+    }
+
+    /// <summary>
+    /// Register the service before advertising so early peers can discover it. All readiness conditions must be observed on the same link before it is ready.
+    /// </summary>
+    public sealed record BlePeripheralSpec
+    {
+        public required global::Vauchi.Contract.BleAdvertisementSpec Advertisement { get; init; }
+
+        public required IReadOnlyList<global::Vauchi.Contract.BleDescriptorWriteCondition> ReadinessConditions { get; init; }
+
+        public required global::Vauchi.Contract.BleGattServiceSpec Service { get; init; }
+
+        public override string ToString() => "BlePeripheralSpec";
+
+        internal static BlePeripheralSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            global::Vauchi.Contract.BleAdvertisementSpec? f0 = default;
+            bool h0 = false;
+            IReadOnlyList<global::Vauchi.Contract.BleDescriptorWriteCondition>? f1 = default;
+            bool h1 = false;
+            global::Vauchi.Contract.BleGattServiceSpec? f2 = default;
+            bool h2 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "advertisement":
+                        Rd.Once(ref h0, name);
+                        f0 = global::Vauchi.Contract.BleAdvertisementSpec.Read(ref r);
+                        break;
+                    case "readiness_conditions":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.List<global::Vauchi.Contract.BleDescriptorWriteCondition>(ref r, static (ref Utf8JsonReader rx) => global::Vauchi.Contract.BleDescriptorWriteCondition.Read(ref rx), 0, 16);
+                        break;
+                    case "service":
+                        Rd.Once(ref h2, name);
+                        f2 = global::Vauchi.Contract.BleGattServiceSpec.Read(ref r);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("advertisement");
+            if (!h1) throw Rd.MissingField("readiness_conditions");
+            if (!h2) throw Rd.MissingField("service");
+            return new BlePeripheralSpec { Advertisement = f0!, ReadinessConditions = f1!, Service = f2! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("advertisement");
+            Advertisement.Write(w);
+            w.WritePropertyName("readiness_conditions");
+            if (ReadinessConditions is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(ReadinessConditions.Count, 0, 16);
+            w.WriteStartArray();
+            foreach (var e0 in ReadinessConditions)
+            {
+                e0.Write(w);
+            }
+            w.WriteEndArray();
+            w.WritePropertyName("service");
+            Service.Write(w);
+            w.WriteEndObject();
+        }
     }
 
     /// <summary>
@@ -669,6 +1665,88 @@ namespace Vauchi.Contract
                 w.WriteEndObject();
             }
         }
+    }
+
+    public sealed record BleSubscriptionSpec
+    {
+        public required byte[] CharacteristicUuid { get; init; }
+
+        public required byte[] DescriptorUuid { get; init; }
+
+        public required byte[] Value { get; init; }
+
+        public override string ToString() => "BleSubscriptionSpec";
+
+        internal static BleSubscriptionSpec Read(ref Utf8JsonReader r)
+        {
+            Rd.StartObject(ref r);
+            byte[]? f0 = default;
+            bool h0 = false;
+            byte[]? f1 = default;
+            bool h1 = false;
+            byte[]? f2 = default;
+            bool h2 = false;
+            while (Rd.NextProperty(ref r, out string name))
+            {
+                switch (name)
+                {
+                    case "characteristic_uuid":
+                        Rd.Once(ref h0, name);
+                        f0 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "descriptor_uuid":
+                        Rd.Once(ref h1, name);
+                        f1 = Rd.Bytes(ref r, 16, 16);
+                        break;
+                    case "value":
+                        Rd.Once(ref h2, name);
+                        f2 = Rd.Bytes(ref r, 0, 512);
+                        break;
+                    default:
+                        r.Skip();
+                        break;
+                }
+            }
+            if (!h0) throw Rd.MissingField("characteristic_uuid");
+            if (!h1) throw Rd.MissingField("descriptor_uuid");
+            if (!h2) throw Rd.MissingField("value");
+            return new BleSubscriptionSpec { CharacteristicUuid = f0!, DescriptorUuid = f1!, Value = f2! };
+        }
+
+        internal void Write(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WritePropertyName("characteristic_uuid");
+            Wr.Bytes(w, CharacteristicUuid, 16, 16);
+            w.WritePropertyName("descriptor_uuid");
+            Wr.Bytes(w, DescriptorUuid, 16, 16);
+            w.WritePropertyName("value");
+            Wr.Bytes(w, Value, 0, 512);
+            w.WriteEndObject();
+        }
+    }
+
+    public enum BleWriteMode
+    {
+        WithResponse,
+        WithoutResponse,
+    }
+
+    internal static class BleWriteModeJson
+    {
+        internal static BleWriteMode Read(ref Utf8JsonReader r) => Rd.Name(ref r) switch
+        {
+            "WithResponse" => BleWriteMode.WithResponse,
+            "WithoutResponse" => BleWriteMode.WithoutResponse,
+            _ => throw Rd.UnknownVariant("BleWriteMode"),
+        };
+
+        internal static void Write(Utf8JsonWriter w, BleWriteMode value) => w.WriteStringValue(value switch
+        {
+            BleWriteMode.WithResponse => "WithResponse",
+            BleWriteMode.WithoutResponse => "WithoutResponse",
+            _ => throw Rd.UnknownVariant("BleWriteMode"),
+        });
     }
 
     /// <summary>

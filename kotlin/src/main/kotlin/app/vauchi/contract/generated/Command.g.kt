@@ -25,6 +25,7 @@ sealed interface Command {
 
     data class BleStartAdvertising(
         val `payload`: kotlin.collections.List<kotlin.UByte>,
+        val `prepared`: app.vauchi.contract.BlePeripheralSpec?,
         val `serviceUuid`: kotlin.String,
     ) : Command {
         override fun toString(): kotlin.String = "BleStartAdvertising"
@@ -38,6 +39,7 @@ sealed interface Command {
 
     data class BleConnect(
         val `deviceId`: kotlin.String,
+        val `prepared`: app.vauchi.contract.BleCentralSpec?,
     ) : Command {
         override fun toString(): kotlin.String = "BleConnect"
     }

@@ -15,3 +15,8 @@ pub fn presentation_contract_v1_json() -> &'static str {
 pub fn screen_catalog_v1_json() -> &'static str {
     include_str!("../fixtures/screen_catalog_v1.json")
 }
+
+/// Prepared BLE setup examples shared by the SDK codec tests.
+pub fn prepared_ble_v1_json() -> &'static str {
+    include_str!("../fixtures/prepared_ble_v1.json")
+}

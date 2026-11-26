@@ -143,6 +143,447 @@
         ],
         "type": "object"
       },
+      "BleAdvertisedUuid": {
+        "description": "Prepared UUIDs retain the width requested for the advertisement.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Uuid16": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Uuid16"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Uuid32": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 4,
+                "minItems": 4,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Uuid32"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Uuid128": {
+                "items": {
+                  "format": "uint8",
+                  "minimum": 0.0,
+                  "type": "integer"
+                },
+                "maxItems": 16,
+                "minItems": 16,
+                "type": "array"
+              }
+            },
+            "required": [
+              "Uuid128"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "BleAdvertisementSpec": {
+        "properties": {
+          "parameters": {
+            "$ref": "#/definitions/BleAdvertisingParameters"
+          },
+          "service_uuids": {
+            "items": {
+              "$ref": "#/definitions/BleAdvertisedUuid"
+            },
+            "maxItems": 32,
+            "type": "array"
+          }
+        },
+        "required": [
+          "parameters",
+          "service_uuids"
+        ],
+        "type": "object"
+      },
+      "BleAdvertisingMode": {
+        "enum": [
+          "LowPower",
+          "Balanced",
+          "LowLatency"
+        ],
+        "type": "string"
+      },
+      "BleAdvertisingParameters": {
+        "properties": {
+          "connectable": {
+            "type": "boolean"
+          },
+          "include_device_name": {
+            "type": "boolean"
+          },
+          "mode": {
+            "$ref": "#/definitions/BleAdvertisingMode"
+          },
+          "timeout_millis": {
+            "format": "uint32",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "tx_power": {
+            "$ref": "#/definitions/BleAdvertisingTxPower"
+          }
+        },
+        "required": [
+          "connectable",
+          "include_device_name",
+          "mode",
+          "timeout_millis",
+          "tx_power"
+        ],
+        "type": "object"
+      },
+      "BleAdvertisingTxPower": {
+        "enum": [
+          "UltraLow",
+          "Low",
+          "Medium",
+          "High"
+        ],
+        "type": "string"
+      },
+      "BleCentralSpec": {
+        "description": "Discover the supplied attributes and apply subscriptions in order before reporting GATT readiness. Core supplies every UUID, write mode and retry.",
+        "properties": {
+          "requested_mtu": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "required_characteristics": {
+            "items": {
+              "items": {
+                "format": "uint8",
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              "maxItems": 16,
+              "minItems": 16,
+              "type": "array"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "retry": {
+            "$ref": "#/definitions/BleGattRetrySpec"
+          },
+          "service_uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "subscriptions": {
+            "items": {
+              "$ref": "#/definitions/BleSubscriptionSpec"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "write_modes": {
+            "items": {
+              "$ref": "#/definitions/BleCharacteristicWriteSpec"
+            },
+            "maxItems": 16,
+            "type": "array"
+          }
+        },
+        "required": [
+          "requested_mtu",
+          "required_characteristics",
+          "retry",
+          "service_uuid",
+          "subscriptions",
+          "write_modes"
+        ],
+        "type": "object"
+      },
+      "BleCharacteristicWriteSpec": {
+        "properties": {
+          "characteristic_uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "mode": {
+            "$ref": "#/definitions/BleWriteMode"
+          }
+        },
+        "required": [
+          "characteristic_uuid",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "BleDescriptorWriteCondition": {
+        "description": "A descriptor write matches when its bytes start with `value_prefix`.",
+        "properties": {
+          "characteristic_uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "descriptor_uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "value_prefix": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 512,
+            "type": "array"
+          }
+        },
+        "required": [
+          "characteristic_uuid",
+          "descriptor_uuid",
+          "value_prefix"
+        ],
+        "type": "object"
+      },
+      "BleGattCharacteristicSpec": {
+        "properties": {
+          "descriptors": {
+            "items": {
+              "$ref": "#/definitions/BleGattDescriptorSpec"
+            },
+            "maxItems": 4,
+            "type": "array"
+          },
+          "initial_value": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "permissions": {
+            "$ref": "#/definitions/BleGattPermissions"
+          },
+          "properties": {
+            "$ref": "#/definitions/BleGattProperties"
+          },
+          "uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          }
+        },
+        "required": [
+          "descriptors",
+          "initial_value",
+          "permissions",
+          "properties",
+          "uuid"
+        ],
+        "type": "object"
+      },
+      "BleGattDescriptorSpec": {
+        "properties": {
+          "permissions": {
+            "$ref": "#/definitions/BleGattPermissions"
+          },
+          "uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "value": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 512,
+            "type": "array"
+          }
+        },
+        "required": [
+          "permissions",
+          "uuid",
+          "value"
+        ],
+        "type": "object"
+      },
+      "BleGattPermissions": {
+        "properties": {
+          "read": {
+            "type": "boolean"
+          },
+          "write": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "read",
+          "write"
+        ],
+        "type": "object"
+      },
+      "BleGattProperties": {
+        "properties": {
+          "indicate": {
+            "type": "boolean"
+          },
+          "notify": {
+            "type": "boolean"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "write": {
+            "type": "boolean"
+          },
+          "write_without_response": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "indicate",
+          "notify",
+          "read",
+          "write",
+          "write_without_response"
+        ],
+        "type": "object"
+      },
+      "BleGattRetrySpec": {
+        "description": "Core selects separate delay sequences for each native retry condition. A rejected operation or missing callback consumes the busy/timeout sequence; exhaustion reports a terminal outcome rather than dropping queued work.",
+        "properties": {
+          "busy_or_timeout_delays_millis": {
+            "items": {
+              "format": "uint32",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "incomplete_discovery_delays_millis": {
+            "items": {
+              "format": "uint32",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "missing_attribute_delays_millis": {
+            "items": {
+              "format": "uint32",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "operation_timeout_millis": {
+            "format": "uint32",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "busy_or_timeout_delays_millis",
+          "incomplete_discovery_delays_millis",
+          "missing_attribute_delays_millis",
+          "operation_timeout_millis"
+        ],
+        "type": "object"
+      },
+      "BleGattServiceSpec": {
+        "properties": {
+          "characteristics": {
+            "items": {
+              "$ref": "#/definitions/BleGattCharacteristicSpec"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          }
+        },
+        "required": [
+          "characteristics",
+          "primary",
+          "uuid"
+        ],
+        "type": "object"
+      },
       "BleLinkDirection": {
         "description": "Which physical direction a BLE link was established in, reported by the shell on [`Event::BleConnected`]. This is the ground truth for the exchange protocol role: the GATT **central** (it dialed out) drives the handshake as initiator; the GATT **peripheral** (it was connected to) responds. Deriving the role from the physical link — not the pre-connection token tiebreak — is what lets asymmetric BLE discovery self-heal: whichever side actually connects becomes the initiator, even if the token said otherwise (`_private/docs/designs/2026-07-22-role-tiebreak-and-glare-design.md`).",
         "oneOf": [
@@ -161,6 +602,76 @@
             "type": "string"
           }
         ]
+      },
+      "BlePeripheralSpec": {
+        "description": "Register the service before advertising so early peers can discover it. All readiness conditions must be observed on the same link before it is ready.",
+        "properties": {
+          "advertisement": {
+            "$ref": "#/definitions/BleAdvertisementSpec"
+          },
+          "readiness_conditions": {
+            "items": {
+              "$ref": "#/definitions/BleDescriptorWriteCondition"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "service": {
+            "$ref": "#/definitions/BleGattServiceSpec"
+          }
+        },
+        "required": [
+          "advertisement",
+          "readiness_conditions",
+          "service"
+        ],
+        "type": "object"
+      },
+      "BleSubscriptionSpec": {
+        "properties": {
+          "characteristic_uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "descriptor_uuid": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 16,
+            "minItems": 16,
+            "type": "array"
+          },
+          "value": {
+            "items": {
+              "format": "uint8",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "maxItems": 512,
+            "type": "array"
+          }
+        },
+        "required": [
+          "characteristic_uuid",
+          "descriptor_uuid",
+          "value"
+        ],
+        "type": "object"
+      },
+      "BleWriteMode": {
+        "enum": [
+          "WithResponse",
+          "WithoutResponse"
+        ],
+        "type": "string"
       },
       "CameraPurpose": {
         "description": "What a [`super::Command::CameraCapture`] produces.",
@@ -1907,6 +2418,17 @@
                 },
                 "type": "array"
               },
+              "prepared": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/BlePeripheralSpec"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Core-prepared setup. Prepared-data executors reject absence rather than reconstructing protocol data from the legacy fields."
+              },
               "service_uuid": {
                 "type": "string"
               }
@@ -1952,6 +2474,17 @@
             "properties": {
               "device_id": {
                 "type": "string"
+              },
+              "prepared": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/BleCentralSpec"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Core-prepared setup, required by prepared-data executors."
               }
             },
             "required": [

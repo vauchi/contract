@@ -48,8 +48,15 @@ tasks.register<JavaExec>("lintKotlin") {
     args("src/**/*.kt")
 }
 
+val rustOracleDirectory = providers.environmentVariable("VAUCHI_ORACLE_DIR")
+    .filter { it.isNotEmpty() }
+    .orElse(projectDir.parentFile.resolve("cache/oracle").absolutePath)
+
 tasks.test {
     systemProperty("vauchi.contractCheckout", projectDir.parentFile.absolutePath)
+    inputs.files(rustOracleDirectory.map { fileTree(it) { include("*.jsonl") } })
+        .withPropertyName("rustOracle")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     exclude("**/LargePayloadTest.class")
 }
 

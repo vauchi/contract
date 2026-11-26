@@ -10,7 +10,7 @@ let package = Package(
     products: [
         .library(name: "VauchiContract", targets: ["VauchiContract"]),
         .library(name: "CommandContract", targets: ["CommandContract"]),
-        .library(name: "EventContract", targets: ["EventContract"])
+        .library(name: "EventContract", targets: ["EventContract"]),
     ],
     targets: [
         .target(name: "CommandContract", path: "Sources/CommandContract"),
@@ -23,8 +23,8 @@ let package = Package(
         ),
         .testTarget(
             name: "VauchiContractTests",
-            dependencies: ["VauchiContract"],
+            dependencies: ["VauchiContract", "CommandContract", "EventContract"],
             path: "Tests/VauchiContractTests"
-        )
+        ),
     ]
 )

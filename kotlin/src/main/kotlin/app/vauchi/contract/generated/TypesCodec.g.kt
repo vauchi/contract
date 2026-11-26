@@ -192,6 +192,67 @@ internal fun writeBiometricType(
     w.string(value.wireValue)
 }
 
+internal fun readBleAdvertisedUuid(v: WireValue): BleAdvertisedUuid {
+    val (tag, payload) = v.variant()
+    return when (tag) {
+        "Uuid16" -> {
+            BleAdvertisedUuid.Uuid16(Rd.list(payload, 2, 2) { e0 -> Rd.u8(e0) })
+        }
+
+        "Uuid32" -> {
+            BleAdvertisedUuid.Uuid32(Rd.list(payload, 4, 4) { e0 -> Rd.u8(e0) })
+        }
+
+        "Uuid128" -> {
+            BleAdvertisedUuid.Uuid128(Rd.list(payload, 16, 16) { e0 -> Rd.u8(e0) })
+        }
+
+        else -> {
+            refused()
+        }
+    }
+}
+
+internal fun writeBleAdvertisedUuid(
+    w: WireOutput,
+    value: BleAdvertisedUuid,
+) {
+    when (value) {
+        is BleAdvertisedUuid.Uuid16 -> {
+            w.beginObject()
+            w.name("Uuid16")
+            w.beginArray(value.value.size, 2, 2)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
+
+        is BleAdvertisedUuid.Uuid32 -> {
+            w.beginObject()
+            w.name("Uuid32")
+            w.beginArray(value.value.size, 4, 4)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
+
+        is BleAdvertisedUuid.Uuid128 -> {
+            w.beginObject()
+            w.name("Uuid128")
+            w.beginArray(value.value.size, 16, 16)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
+    }
+}
+
 internal fun readBleAdvertisementObservation(v: WireValue): BleAdvertisementObservation {
     v.objectFields(setOf("id", "rssi", "service_uuids"), false)
     return BleAdvertisementObservation(
@@ -219,6 +280,397 @@ internal fun writeBleAdvertisementObservation(
     w.endObject()
 }
 
+internal fun readBleAdvertisementSpec(v: WireValue): BleAdvertisementSpec {
+    v.objectFields(setOf("parameters", "service_uuids"), false)
+    return BleAdvertisementSpec(
+        `parameters` = readBleAdvertisingParameters(v.required("parameters")),
+        `serviceUuids` = Rd.list(v.required("service_uuids"), 0, 32) { e0 -> readBleAdvertisedUuid(e0) },
+    )
+}
+
+internal fun writeBleAdvertisementSpec(
+    w: WireOutput,
+    value: BleAdvertisementSpec,
+) {
+    w.beginObject()
+    w.name("parameters")
+    writeBleAdvertisingParameters(w, value.`parameters`)
+    w.name("service_uuids")
+    w.beginArray(value.`serviceUuids`.size, 0, 32)
+    for (e0 in value.`serviceUuids`) {
+        writeBleAdvertisedUuid(w, e0)
+    }
+    w.endArray()
+    w.endObject()
+}
+
+internal fun readBleAdvertisingMode(v: WireValue): BleAdvertisingMode {
+    val wire = Rd.string(v)
+    return BleAdvertisingMode.entries.firstOrNull { it.wireValue == wire } ?: refused()
+}
+
+internal fun writeBleAdvertisingMode(
+    w: WireOutput,
+    value: BleAdvertisingMode,
+) {
+    w.string(value.wireValue)
+}
+
+internal fun readBleAdvertisingParameters(v: WireValue): BleAdvertisingParameters {
+    v.objectFields(setOf("connectable", "include_device_name", "mode", "timeout_millis", "tx_power"), false)
+    return BleAdvertisingParameters(
+        `connectable` = Rd.bool(v.required("connectable")),
+        `includeDeviceName` = Rd.bool(v.required("include_device_name")),
+        `mode` = readBleAdvertisingMode(v.required("mode")),
+        `timeoutMillis` = Rd.u32(v.required("timeout_millis")),
+        `txPower` = readBleAdvertisingTxPower(v.required("tx_power")),
+    )
+}
+
+internal fun writeBleAdvertisingParameters(
+    w: WireOutput,
+    value: BleAdvertisingParameters,
+) {
+    w.beginObject()
+    w.name("connectable")
+    w.bool(value.`connectable`)
+    w.name("include_device_name")
+    w.bool(value.`includeDeviceName`)
+    w.name("mode")
+    writeBleAdvertisingMode(w, value.`mode`)
+    w.name("timeout_millis")
+    w.number(value.`timeoutMillis`.toString())
+    w.name("tx_power")
+    writeBleAdvertisingTxPower(w, value.`txPower`)
+    w.endObject()
+}
+
+internal fun readBleAdvertisingTxPower(v: WireValue): BleAdvertisingTxPower {
+    val wire = Rd.string(v)
+    return BleAdvertisingTxPower.entries.firstOrNull { it.wireValue == wire } ?: refused()
+}
+
+internal fun writeBleAdvertisingTxPower(
+    w: WireOutput,
+    value: BleAdvertisingTxPower,
+) {
+    w.string(value.wireValue)
+}
+
+internal fun readBleCentralSpec(v: WireValue): BleCentralSpec {
+    v.objectFields(setOf("requested_mtu", "required_characteristics", "retry", "service_uuid", "subscriptions", "write_modes"), false)
+    return BleCentralSpec(
+        `requestedMtu` = Rd.u16(v.required("requested_mtu")),
+        `requiredCharacteristics` =
+            Rd.list(
+                v.required("required_characteristics"),
+                0,
+                16,
+            ) { e0 -> Rd.list(e0, 16, 16) { e1 -> Rd.u8(e1) } },
+        `retry` = readBleGattRetrySpec(v.required("retry")),
+        `serviceUuid` = Rd.list(v.required("service_uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `subscriptions` = Rd.list(v.required("subscriptions"), 0, 16) { e0 -> readBleSubscriptionSpec(e0) },
+        `writeModes` = Rd.list(v.required("write_modes"), 0, 16) { e0 -> readBleCharacteristicWriteSpec(e0) },
+    )
+}
+
+internal fun writeBleCentralSpec(
+    w: WireOutput,
+    value: BleCentralSpec,
+) {
+    w.beginObject()
+    w.name("requested_mtu")
+    w.number(value.`requestedMtu`.toString())
+    w.name("required_characteristics")
+    w.beginArray(value.`requiredCharacteristics`.size, 0, 16)
+    for (e0 in value.`requiredCharacteristics`) {
+        w.beginArray(e0.size, 16, 16)
+        for (e1 in e0) {
+            w.number(e1.toString())
+        }
+        w.endArray()
+    }
+    w.endArray()
+    w.name("retry")
+    writeBleGattRetrySpec(w, value.`retry`)
+    w.name("service_uuid")
+    w.beginArray(value.`serviceUuid`.size, 16, 16)
+    for (e0 in value.`serviceUuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("subscriptions")
+    w.beginArray(value.`subscriptions`.size, 0, 16)
+    for (e0 in value.`subscriptions`) {
+        writeBleSubscriptionSpec(w, e0)
+    }
+    w.endArray()
+    w.name("write_modes")
+    w.beginArray(value.`writeModes`.size, 0, 16)
+    for (e0 in value.`writeModes`) {
+        writeBleCharacteristicWriteSpec(w, e0)
+    }
+    w.endArray()
+    w.endObject()
+}
+
+internal fun readBleCharacteristicWriteSpec(v: WireValue): BleCharacteristicWriteSpec {
+    v.objectFields(setOf("characteristic_uuid", "mode"), false)
+    return BleCharacteristicWriteSpec(
+        `characteristicUuid` = Rd.list(v.required("characteristic_uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `mode` = readBleWriteMode(v.required("mode")),
+    )
+}
+
+internal fun writeBleCharacteristicWriteSpec(
+    w: WireOutput,
+    value: BleCharacteristicWriteSpec,
+) {
+    w.beginObject()
+    w.name("characteristic_uuid")
+    w.beginArray(value.`characteristicUuid`.size, 16, 16)
+    for (e0 in value.`characteristicUuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("mode")
+    writeBleWriteMode(w, value.`mode`)
+    w.endObject()
+}
+
+internal fun readBleDescriptorWriteCondition(v: WireValue): BleDescriptorWriteCondition {
+    v.objectFields(setOf("characteristic_uuid", "descriptor_uuid", "value_prefix"), false)
+    return BleDescriptorWriteCondition(
+        `characteristicUuid` = Rd.list(v.required("characteristic_uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `descriptorUuid` = Rd.list(v.required("descriptor_uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `valuePrefix` = Rd.list(v.required("value_prefix"), 0, 512) { e0 -> Rd.u8(e0) },
+    )
+}
+
+internal fun writeBleDescriptorWriteCondition(
+    w: WireOutput,
+    value: BleDescriptorWriteCondition,
+) {
+    w.beginObject()
+    w.name("characteristic_uuid")
+    w.beginArray(value.`characteristicUuid`.size, 16, 16)
+    for (e0 in value.`characteristicUuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("descriptor_uuid")
+    w.beginArray(value.`descriptorUuid`.size, 16, 16)
+    for (e0 in value.`descriptorUuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("value_prefix")
+    w.beginArray(value.`valuePrefix`.size, 0, 512)
+    for (e0 in value.`valuePrefix`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.endObject()
+}
+
+internal fun readBleGattCharacteristicSpec(v: WireValue): BleGattCharacteristicSpec {
+    v.objectFields(setOf("descriptors", "initial_value", "permissions", "properties", "uuid"), false)
+    return BleGattCharacteristicSpec(
+        `descriptors` = Rd.list(v.required("descriptors"), 0, 4) { e0 -> readBleGattDescriptorSpec(e0) },
+        `initialValue` = Rd.list(v.required("initial_value"), 0, 512) { e0 -> Rd.u8(e0) },
+        `permissions` = readBleGattPermissions(v.required("permissions")),
+        `properties` = readBleGattProperties(v.required("properties")),
+        `uuid` = Rd.list(v.required("uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+    )
+}
+
+internal fun writeBleGattCharacteristicSpec(
+    w: WireOutput,
+    value: BleGattCharacteristicSpec,
+) {
+    w.beginObject()
+    w.name("descriptors")
+    w.beginArray(value.`descriptors`.size, 0, 4)
+    for (e0 in value.`descriptors`) {
+        writeBleGattDescriptorSpec(w, e0)
+    }
+    w.endArray()
+    w.name("initial_value")
+    w.beginArray(value.`initialValue`.size, 0, 512)
+    for (e0 in value.`initialValue`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("permissions")
+    writeBleGattPermissions(w, value.`permissions`)
+    w.name("properties")
+    writeBleGattProperties(w, value.`properties`)
+    w.name("uuid")
+    w.beginArray(value.`uuid`.size, 16, 16)
+    for (e0 in value.`uuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.endObject()
+}
+
+internal fun readBleGattDescriptorSpec(v: WireValue): BleGattDescriptorSpec {
+    v.objectFields(setOf("permissions", "uuid", "value"), false)
+    return BleGattDescriptorSpec(
+        `permissions` = readBleGattPermissions(v.required("permissions")),
+        `uuid` = Rd.list(v.required("uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `value` = Rd.list(v.required("value"), 0, 512) { e0 -> Rd.u8(e0) },
+    )
+}
+
+internal fun writeBleGattDescriptorSpec(
+    w: WireOutput,
+    value: BleGattDescriptorSpec,
+) {
+    w.beginObject()
+    w.name("permissions")
+    writeBleGattPermissions(w, value.`permissions`)
+    w.name("uuid")
+    w.beginArray(value.`uuid`.size, 16, 16)
+    for (e0 in value.`uuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("value")
+    w.beginArray(value.`value`.size, 0, 512)
+    for (e0 in value.`value`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.endObject()
+}
+
+internal fun readBleGattPermissions(v: WireValue): BleGattPermissions {
+    v.objectFields(setOf("read", "write"), false)
+    return BleGattPermissions(
+        `read` = Rd.bool(v.required("read")),
+        `write` = Rd.bool(v.required("write")),
+    )
+}
+
+internal fun writeBleGattPermissions(
+    w: WireOutput,
+    value: BleGattPermissions,
+) {
+    w.beginObject()
+    w.name("read")
+    w.bool(value.`read`)
+    w.name("write")
+    w.bool(value.`write`)
+    w.endObject()
+}
+
+internal fun readBleGattProperties(v: WireValue): BleGattProperties {
+    v.objectFields(setOf("indicate", "notify", "read", "write", "write_without_response"), false)
+    return BleGattProperties(
+        `indicate` = Rd.bool(v.required("indicate")),
+        `notify` = Rd.bool(v.required("notify")),
+        `read` = Rd.bool(v.required("read")),
+        `write` = Rd.bool(v.required("write")),
+        `writeWithoutResponse` = Rd.bool(v.required("write_without_response")),
+    )
+}
+
+internal fun writeBleGattProperties(
+    w: WireOutput,
+    value: BleGattProperties,
+) {
+    w.beginObject()
+    w.name("indicate")
+    w.bool(value.`indicate`)
+    w.name("notify")
+    w.bool(value.`notify`)
+    w.name("read")
+    w.bool(value.`read`)
+    w.name("write")
+    w.bool(value.`write`)
+    w.name("write_without_response")
+    w.bool(value.`writeWithoutResponse`)
+    w.endObject()
+}
+
+internal fun readBleGattRetrySpec(v: WireValue): BleGattRetrySpec {
+    v.objectFields(
+        setOf(
+            "busy_or_timeout_delays_millis",
+            "incomplete_discovery_delays_millis",
+            "missing_attribute_delays_millis",
+            "operation_timeout_millis",
+        ),
+        false,
+    )
+    return BleGattRetrySpec(
+        `busyOrTimeoutDelaysMillis` = Rd.list(v.required("busy_or_timeout_delays_millis"), 0, 32) { e0 -> Rd.u32(e0) },
+        `incompleteDiscoveryDelaysMillis` = Rd.list(v.required("incomplete_discovery_delays_millis"), 0, 32) { e0 -> Rd.u32(e0) },
+        `missingAttributeDelaysMillis` = Rd.list(v.required("missing_attribute_delays_millis"), 0, 32) { e0 -> Rd.u32(e0) },
+        `operationTimeoutMillis` = Rd.u32(v.required("operation_timeout_millis")),
+    )
+}
+
+internal fun writeBleGattRetrySpec(
+    w: WireOutput,
+    value: BleGattRetrySpec,
+) {
+    w.beginObject()
+    w.name("busy_or_timeout_delays_millis")
+    w.beginArray(value.`busyOrTimeoutDelaysMillis`.size, 0, 32)
+    for (e0 in value.`busyOrTimeoutDelaysMillis`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("incomplete_discovery_delays_millis")
+    w.beginArray(value.`incompleteDiscoveryDelaysMillis`.size, 0, 32)
+    for (e0 in value.`incompleteDiscoveryDelaysMillis`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("missing_attribute_delays_millis")
+    w.beginArray(value.`missingAttributeDelaysMillis`.size, 0, 32)
+    for (e0 in value.`missingAttributeDelaysMillis`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("operation_timeout_millis")
+    w.number(value.`operationTimeoutMillis`.toString())
+    w.endObject()
+}
+
+internal fun readBleGattServiceSpec(v: WireValue): BleGattServiceSpec {
+    v.objectFields(setOf("characteristics", "primary", "uuid"), false)
+    return BleGattServiceSpec(
+        `characteristics` = Rd.list(v.required("characteristics"), 0, 16) { e0 -> readBleGattCharacteristicSpec(e0) },
+        `primary` = Rd.bool(v.required("primary")),
+        `uuid` = Rd.list(v.required("uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+    )
+}
+
+internal fun writeBleGattServiceSpec(
+    w: WireOutput,
+    value: BleGattServiceSpec,
+) {
+    w.beginObject()
+    w.name("characteristics")
+    w.beginArray(value.`characteristics`.size, 0, 16)
+    for (e0 in value.`characteristics`) {
+        writeBleGattCharacteristicSpec(w, e0)
+    }
+    w.endArray()
+    w.name("primary")
+    w.bool(value.`primary`)
+    w.name("uuid")
+    w.beginArray(value.`uuid`.size, 16, 16)
+    for (e0 in value.`uuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.endObject()
+}
+
 internal fun readBleLinkDirection(v: WireValue): BleLinkDirection {
     val wire = Rd.string(v)
     return BleLinkDirection.entries.firstOrNull { it.wireValue == wire } ?: refused()
@@ -229,6 +681,33 @@ internal fun writeBleLinkDirection(
     value: BleLinkDirection,
 ) {
     w.string(value.wireValue)
+}
+
+internal fun readBlePeripheralSpec(v: WireValue): BlePeripheralSpec {
+    v.objectFields(setOf("advertisement", "readiness_conditions", "service"), false)
+    return BlePeripheralSpec(
+        `advertisement` = readBleAdvertisementSpec(v.required("advertisement")),
+        `readinessConditions` = Rd.list(v.required("readiness_conditions"), 0, 16) { e0 -> readBleDescriptorWriteCondition(e0) },
+        `service` = readBleGattServiceSpec(v.required("service")),
+    )
+}
+
+internal fun writeBlePeripheralSpec(
+    w: WireOutput,
+    value: BlePeripheralSpec,
+) {
+    w.beginObject()
+    w.name("advertisement")
+    writeBleAdvertisementSpec(w, value.`advertisement`)
+    w.name("readiness_conditions")
+    w.beginArray(value.`readinessConditions`.size, 0, 16)
+    for (e0 in value.`readinessConditions`) {
+        writeBleDescriptorWriteCondition(w, e0)
+    }
+    w.endArray()
+    w.name("service")
+    writeBleGattServiceSpec(w, value.`service`)
+    w.endObject()
 }
 
 internal fun readBleServiceUuid(v: WireValue): BleServiceUuid {
@@ -305,6 +784,53 @@ internal fun writeBleServiceUuid(
             w.endObject()
         }
     }
+}
+
+internal fun readBleSubscriptionSpec(v: WireValue): BleSubscriptionSpec {
+    v.objectFields(setOf("characteristic_uuid", "descriptor_uuid", "value"), false)
+    return BleSubscriptionSpec(
+        `characteristicUuid` = Rd.list(v.required("characteristic_uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `descriptorUuid` = Rd.list(v.required("descriptor_uuid"), 16, 16) { e0 -> Rd.u8(e0) },
+        `value` = Rd.list(v.required("value"), 0, 512) { e0 -> Rd.u8(e0) },
+    )
+}
+
+internal fun writeBleSubscriptionSpec(
+    w: WireOutput,
+    value: BleSubscriptionSpec,
+) {
+    w.beginObject()
+    w.name("characteristic_uuid")
+    w.beginArray(value.`characteristicUuid`.size, 16, 16)
+    for (e0 in value.`characteristicUuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("descriptor_uuid")
+    w.beginArray(value.`descriptorUuid`.size, 16, 16)
+    for (e0 in value.`descriptorUuid`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("value")
+    w.beginArray(value.`value`.size, 0, 512)
+    for (e0 in value.`value`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.endObject()
+}
+
+internal fun readBleWriteMode(v: WireValue): BleWriteMode {
+    val wire = Rd.string(v)
+    return BleWriteMode.entries.firstOrNull { it.wireValue == wire } ?: refused()
+}
+
+internal fun writeBleWriteMode(
+    w: WireOutput,
+    value: BleWriteMode,
+) {
+    w.string(value.wireValue)
 }
 
 internal fun readCameraPurpose(v: WireValue): CameraPurpose {

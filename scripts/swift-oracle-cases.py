@@ -107,6 +107,14 @@ for index, step in enumerate(fixture["steps"]):
     add(f"fixture_event_{index}", "event", step["event"])
     for command_index, command in enumerate(step["commands"]):
         add(f"fixture_step_{index}_{command_index}", "command", command)
+prepared_fixture = json.loads((root / "fixtures/prepared_ble_v1.json").read_text())
+for index, command in enumerate(prepared_fixture["commands"]):
+    tag, body = next(iter(command.items()))
+    add(f"prepared_ble_{index}", "command", command)
+    add(f"prepared_ble_{index}_absent", "command", {tag: {key: value for key, value in body.items() if key != "prepared"}})
+    for label, prepared in [("null", None), ("missing_fields", {}), ("wrong_type", True)]:
+        add(f"prepared_ble_{index}_{label}", "command", {tag: dict(body, prepared=prepared)})
+
 output = root / "cache/oracle/cases.jsonl"
 output.parent.mkdir(parents=True, exist_ok=True)
 output.write_text(

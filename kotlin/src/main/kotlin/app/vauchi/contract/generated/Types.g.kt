@@ -77,6 +77,26 @@ enum class BiometricType(
     Iris("Iris"),
 }
 
+sealed interface BleAdvertisedUuid {
+    data class Uuid16(
+        val `value`: kotlin.collections.List<kotlin.UByte>,
+    ) : BleAdvertisedUuid {
+        override fun toString(): kotlin.String = "Uuid16"
+    }
+
+    data class Uuid32(
+        val `value`: kotlin.collections.List<kotlin.UByte>,
+    ) : BleAdvertisedUuid {
+        override fun toString(): kotlin.String = "Uuid32"
+    }
+
+    data class Uuid128(
+        val `value`: kotlin.collections.List<kotlin.UByte>,
+    ) : BleAdvertisedUuid {
+        override fun toString(): kotlin.String = "Uuid128"
+    }
+}
+
 data class BleAdvertisementObservation(
     val `id`: kotlin.String,
     val `rssi`: kotlin.Short,
@@ -85,11 +105,131 @@ data class BleAdvertisementObservation(
     override fun toString(): kotlin.String = "BleAdvertisementObservation"
 }
 
+data class BleAdvertisementSpec(
+    val `parameters`: app.vauchi.contract.BleAdvertisingParameters,
+    val `serviceUuids`: kotlin.collections.List<app.vauchi.contract.BleAdvertisedUuid>,
+) {
+    override fun toString(): kotlin.String = "BleAdvertisementSpec"
+}
+
+enum class BleAdvertisingMode(
+    val wireValue: kotlin.String,
+) {
+    LowPower("LowPower"),
+    Balanced("Balanced"),
+    LowLatency("LowLatency"),
+}
+
+data class BleAdvertisingParameters(
+    val `connectable`: kotlin.Boolean,
+    val `includeDeviceName`: kotlin.Boolean,
+    val `mode`: app.vauchi.contract.BleAdvertisingMode,
+    val `timeoutMillis`: kotlin.UInt,
+    val `txPower`: app.vauchi.contract.BleAdvertisingTxPower,
+) {
+    override fun toString(): kotlin.String = "BleAdvertisingParameters"
+}
+
+enum class BleAdvertisingTxPower(
+    val wireValue: kotlin.String,
+) {
+    UltraLow("UltraLow"),
+    Low("Low"),
+    Medium("Medium"),
+    High("High"),
+}
+
+data class BleCentralSpec(
+    val `requestedMtu`: kotlin.UShort,
+    val `requiredCharacteristics`: kotlin.collections.List<kotlin.collections.List<kotlin.UByte>>,
+    val `retry`: app.vauchi.contract.BleGattRetrySpec,
+    val `serviceUuid`: kotlin.collections.List<kotlin.UByte>,
+    val `subscriptions`: kotlin.collections.List<app.vauchi.contract.BleSubscriptionSpec>,
+    val `writeModes`: kotlin.collections.List<app.vauchi.contract.BleCharacteristicWriteSpec>,
+) {
+    override fun toString(): kotlin.String = "BleCentralSpec"
+}
+
+data class BleCharacteristicWriteSpec(
+    val `characteristicUuid`: kotlin.collections.List<kotlin.UByte>,
+    val `mode`: app.vauchi.contract.BleWriteMode,
+) {
+    override fun toString(): kotlin.String = "BleCharacteristicWriteSpec"
+}
+
+data class BleDescriptorWriteCondition(
+    val `characteristicUuid`: kotlin.collections.List<kotlin.UByte>,
+    val `descriptorUuid`: kotlin.collections.List<kotlin.UByte>,
+    val `valuePrefix`: kotlin.collections.List<kotlin.UByte>,
+) {
+    override fun toString(): kotlin.String = "BleDescriptorWriteCondition"
+}
+
+data class BleGattCharacteristicSpec(
+    val `descriptors`: kotlin.collections.List<app.vauchi.contract.BleGattDescriptorSpec>,
+    val `initialValue`: kotlin.collections.List<kotlin.UByte>,
+    val `permissions`: app.vauchi.contract.BleGattPermissions,
+    val `properties`: app.vauchi.contract.BleGattProperties,
+    val `uuid`: kotlin.collections.List<kotlin.UByte>,
+) {
+    override fun toString(): kotlin.String = "BleGattCharacteristicSpec"
+}
+
+data class BleGattDescriptorSpec(
+    val `permissions`: app.vauchi.contract.BleGattPermissions,
+    val `uuid`: kotlin.collections.List<kotlin.UByte>,
+    val `value`: kotlin.collections.List<kotlin.UByte>,
+) {
+    override fun toString(): kotlin.String = "BleGattDescriptorSpec"
+}
+
+data class BleGattPermissions(
+    val `read`: kotlin.Boolean,
+    val `write`: kotlin.Boolean,
+) {
+    override fun toString(): kotlin.String = "BleGattPermissions"
+}
+
+data class BleGattProperties(
+    val `indicate`: kotlin.Boolean,
+    val `notify`: kotlin.Boolean,
+    val `read`: kotlin.Boolean,
+    val `write`: kotlin.Boolean,
+    val `writeWithoutResponse`: kotlin.Boolean,
+) {
+    override fun toString(): kotlin.String = "BleGattProperties"
+}
+
+data class BleGattRetrySpec(
+    val `busyOrTimeoutDelaysMillis`: kotlin.collections.List<kotlin.UInt>,
+    val `incompleteDiscoveryDelaysMillis`: kotlin.collections.List<kotlin.UInt>,
+    val `missingAttributeDelaysMillis`: kotlin.collections.List<kotlin.UInt>,
+    val `operationTimeoutMillis`: kotlin.UInt,
+) {
+    override fun toString(): kotlin.String = "BleGattRetrySpec"
+}
+
+data class BleGattServiceSpec(
+    val `characteristics`: kotlin.collections.List<app.vauchi.contract.BleGattCharacteristicSpec>,
+    val `primary`: kotlin.Boolean,
+    val `uuid`: kotlin.collections.List<kotlin.UByte>,
+) {
+    override fun toString(): kotlin.String = "BleGattServiceSpec"
+}
+
 enum class BleLinkDirection(
     val wireValue: kotlin.String,
 ) {
     Outbound("Outbound"),
     Inbound("Inbound"),
+}
+
+data class BlePeripheralSpec(
+    val `advertisement`: app.vauchi.contract.BleAdvertisementSpec,
+    val `readinessConditions`: kotlin.collections.List<app.vauchi.contract.BleDescriptorWriteCondition>,
+    val `service`: app.vauchi.contract.BleGattServiceSpec,
+) {
+    override fun toString(): kotlin.String = "BlePeripheralSpec"
 }
 
 sealed interface BleServiceUuid {
@@ -116,6 +256,21 @@ sealed interface BleServiceUuid {
     ) : BleServiceUuid {
         override fun toString(): kotlin.String = "Normalized"
     }
+}
+
+data class BleSubscriptionSpec(
+    val `characteristicUuid`: kotlin.collections.List<kotlin.UByte>,
+    val `descriptorUuid`: kotlin.collections.List<kotlin.UByte>,
+    val `value`: kotlin.collections.List<kotlin.UByte>,
+) {
+    override fun toString(): kotlin.String = "BleSubscriptionSpec"
+}
+
+enum class BleWriteMode(
+    val wireValue: kotlin.String,
+) {
+    WithResponse("WithResponse"),
+    WithoutResponse("WithoutResponse"),
 }
 
 enum class CameraPurpose(

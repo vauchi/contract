@@ -69,9 +69,11 @@ internal fun readCommand(v: WireValue): Command {
 
         "BleStartAdvertising" -> {
             fun readPayload(): Command.BleStartAdvertising {
-                payload.objectFields(setOf("payload", "service_uuid"), false)
+                payload.objectFields(setOf("payload", "prepared", "service_uuid"), false)
                 return Command.BleStartAdvertising(
                     `payload` = Rd.list(payload.required("payload"), 0, -1) { e0 -> Rd.u8(e0) },
+                    `prepared` =
+                        payload.member("prepared")?.let { f -> (if (f.json == JsonNull) null else readBlePeripheralSpec(f)) } ?: null,
                     `serviceUuid` = Rd.string(payload.required("service_uuid"), 0, -1),
                 )
             }
@@ -90,9 +92,10 @@ internal fun readCommand(v: WireValue): Command {
 
         "BleConnect" -> {
             fun readPayload(): Command.BleConnect {
-                payload.objectFields(setOf("device_id"), false)
+                payload.objectFields(setOf("device_id", "prepared"), false)
                 return Command.BleConnect(
                     `deviceId` = Rd.string(payload.required("device_id"), 0, -1),
+                    `prepared` = payload.member("prepared")?.let { f -> (if (f.json == JsonNull) null else readBleCentralSpec(f)) } ?: null,
                 )
             }
             readPayload()
@@ -673,6 +676,14 @@ internal fun writeCommand(
                 w.number(e0.toString())
             }
             w.endArray()
+            if (value.`prepared` != null) {
+                w.name("prepared")
+                if (value.`prepared` == null) {
+                    w.nullValue()
+                } else {
+                    writeBlePeripheralSpec(w, value.`prepared`)
+                }
+            }
             w.name("service_uuid")
             w.string(value.`serviceUuid`, 0, -1)
             w.endObject()
@@ -695,6 +706,14 @@ internal fun writeCommand(
             w.beginObject()
             w.name("device_id")
             w.string(value.`deviceId`, 0, -1)
+            if (value.`prepared` != null) {
+                w.name("prepared")
+                if (value.`prepared` == null) {
+                    w.nullValue()
+                } else {
+                    writeBleCentralSpec(w, value.`prepared`)
+                }
+            }
             w.endObject()
             w.endObject()
         }

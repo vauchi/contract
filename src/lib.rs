@@ -123,11 +123,20 @@ pub enum Command {
     BleStartAdvertising {
         service_uuid: String,
         payload: Vec<u8>,
+        /// Core-prepared setup. Prepared-data executors reject absence rather
+        /// than reconstructing protocol data from the legacy fields.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        prepared: Option<BlePeripheralSpec>,
     },
     /// Start scanning for vauchi BLE peripherals.
     BleStartScanning { service_uuid: String },
     /// Connect to a discovered BLE device.
-    BleConnect { device_id: String },
+    BleConnect {
+        device_id: String,
+        /// Core-prepared setup, required by prepared-data executors.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        prepared: Option<BleCentralSpec>,
+    },
     /// Write data to a BLE characteristic on the link to `device_id`.
     ///
     /// `device_id` addresses the target link so shells holding more than
@@ -1238,9 +1247,10 @@ mod tests {
         let cmd = Command::BleStartAdvertising {
             service_uuid: "12345678-1234-1234-1234-123456789abc".into(),
             payload: payload.clone(),
+            prepared: None,
         };
         assert!(
-            matches!(cmd, Command::BleStartAdvertising { service_uuid, payload: p }
+            matches!(cmd, Command::BleStartAdvertising { service_uuid, payload: p, prepared: None }
                 if service_uuid == "12345678-1234-1234-1234-123456789abc" && p == payload)
         );
     }
@@ -1342,6 +1352,7 @@ mod tests {
             Command::BleStartAdvertising {
                 service_uuid: "uuid".into(),
                 payload: vec![1, 2, 3],
+                prepared: None,
             },
             Command::BleDisconnect {
                 device_id: "d1".into(),
@@ -1594,12 +1605,14 @@ mod tests {
             Command::BleStartAdvertising {
                 service_uuid: "".into(),
                 payload: vec![],
+                prepared: None,
             },
             Command::BleStartScanning {
                 service_uuid: "".into(),
             },
             Command::BleConnect {
                 device_id: "".into(),
+                prepared: None,
             },
             Command::BleWriteCharacteristic {
                 device_id: "".into(),

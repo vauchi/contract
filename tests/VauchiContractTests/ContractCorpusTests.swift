@@ -6,6 +6,26 @@ import Foundation
 import XCTest
 
 final class ContractCorpusTests: XCTestCase {
+    func testPreparedBleFixtureKeepsAllEncodedData() throws {
+        let url = URL(fileURLWithPath: "fixtures/prepared_ble_v1.json")
+        let fixture = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+        )
+        XCTAssertEqual(fixture["schema_version"] as? Int, 1)
+        let commands = try XCTUnwrap(fixture["commands"] as? [[String: Any]])
+        XCTAssertEqual(commands.count, 2)
+        for expected in commands {
+            let input = try JSONSerialization.data(withJSONObject: expected, options: [.sortedKeys])
+            let encoded = try ContractJSON.encodeCommand(ContractJSON.decodeCommand(input))
+            let actual = try JSONSerialization.jsonObject(with: encoded)
+            XCTAssertEqual(
+                try JSONSerialization.data(withJSONObject: actual, options: [.sortedKeys]),
+                input,
+                "prepared data must survive the public codec"
+            )
+        }
+    }
+
     func testAllOracleCasesAndCorpusMessages() throws {
         let directory = ProcessInfo.processInfo.environment["VAUCHI_ORACLE_DIR"] ?? "cache/oracle"
         for name in ["cases", "corpus"] {

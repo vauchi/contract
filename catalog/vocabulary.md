@@ -18,10 +18,10 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `AudioEmitChallenge` | `sample_rate`, `samples` |
 | `AudioListenForResponse` | `sample_rate`, `timeout_ms` |
 | `AudioStop` | wire string |
-| `BleConnect` | `device_id` |
+| `BleConnect` | `device_id`, `prepared` |
 | `BleDisconnect` | `device_id`, `direction` |
 | `BleReadCharacteristic` | `device_id`, `direction`, `uuid` |
-| `BleStartAdvertising` | `payload`, `service_uuid` |
+| `BleStartAdvertising` | `payload`, `prepared`, `service_uuid` |
 | `BleStartScanning` | `service_uuid` |
 | `BleStopAdvertising` | wire string |
 | `BleStopScanning` | wire string |
@@ -97,6 +97,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | Field | Required | Schema |
 | --- | --- | --- |
 | `device_id` | yes | `{"type":"string"}` |
+| `prepared` | no | `{"anyOf":[{"$ref":"#/definitions/BleCentralSpec"},{"type":"null"}]}` |
 
 ### `command.BleDisconnect`
 
@@ -118,6 +119,7 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | Field | Required | Schema |
 | --- | --- | --- |
 | `payload` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"type":"array"}` |
+| `prepared` | no | `{"anyOf":[{"$ref":"#/definitions/BlePeripheralSpec"},{"type":"null"}]}` |
 | `service_uuid` | yes | `{"type":"string"}` |
 
 ### `command.BleStartScanning`
@@ -520,6 +522,195 @@ Custom Rust validation and renderer behavior require separate conformance tests.
 | `label` | yes | `{"type":"string"}` |
 | `role` | yes | `{"$ref":"#/definitions/ApplicationMenuRole"}` |
 
+### `command.BleAdvertisedUuid`
+
+```json
+{
+  "description": "Prepared UUIDs retain the width requested for the advertisement.",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "Uuid16": {
+          "items": {
+            "format": "uint8",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": "array"
+        }
+      },
+      "required": [
+        "Uuid16"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "Uuid32": {
+          "items": {
+            "format": "uint8",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        }
+      },
+      "required": [
+        "Uuid32"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "Uuid128": {
+          "items": {
+            "format": "uint8",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "maxItems": 16,
+          "minItems": 16,
+          "type": "array"
+        }
+      },
+      "required": [
+        "Uuid128"
+      ],
+      "type": "object"
+    }
+  ]
+}
+```
+
+### `command.BleAdvertisementSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `parameters` | yes | `{"$ref":"#/definitions/BleAdvertisingParameters"}` |
+| `service_uuids` | yes | `{"items":{"$ref":"#/definitions/BleAdvertisedUuid"},"maxItems":32,"type":"array"}` |
+
+### `command.BleAdvertisingMode`
+
+```json
+{
+  "enum": [
+    "LowPower",
+    "Balanced",
+    "LowLatency"
+  ],
+  "type": "string"
+}
+```
+
+### `command.BleAdvertisingParameters`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `connectable` | yes | `{"type":"boolean"}` |
+| `include_device_name` | yes | `{"type":"boolean"}` |
+| `mode` | yes | `{"$ref":"#/definitions/BleAdvertisingMode"}` |
+| `timeout_millis` | yes | `{"format":"uint32","minimum":0.0,"type":"integer"}` |
+| `tx_power` | yes | `{"$ref":"#/definitions/BleAdvertisingTxPower"}` |
+
+### `command.BleAdvertisingTxPower`
+
+```json
+{
+  "enum": [
+    "UltraLow",
+    "Low",
+    "Medium",
+    "High"
+  ],
+  "type": "string"
+}
+```
+
+### `command.BleCentralSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `requested_mtu` | yes | `{"format":"uint16","minimum":0.0,"type":"integer"}` |
+| `required_characteristics` | yes | `{"items":{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"},"maxItems":16,"type":"array"}` |
+| `retry` | yes | `{"$ref":"#/definitions/BleGattRetrySpec"}` |
+| `service_uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `subscriptions` | yes | `{"items":{"$ref":"#/definitions/BleSubscriptionSpec"},"maxItems":16,"type":"array"}` |
+| `write_modes` | yes | `{"items":{"$ref":"#/definitions/BleCharacteristicWriteSpec"},"maxItems":16,"type":"array"}` |
+
+### `command.BleCharacteristicWriteSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `characteristic_uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `mode` | yes | `{"$ref":"#/definitions/BleWriteMode"}` |
+
+### `command.BleDescriptorWriteCondition`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `characteristic_uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `descriptor_uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `value_prefix` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":512,"type":"array"}` |
+
+### `command.BleGattCharacteristicSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `descriptors` | yes | `{"items":{"$ref":"#/definitions/BleGattDescriptorSpec"},"maxItems":4,"type":"array"}` |
+| `initial_value` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":512,"type":"array"}` |
+| `permissions` | yes | `{"$ref":"#/definitions/BleGattPermissions"}` |
+| `properties` | yes | `{"$ref":"#/definitions/BleGattProperties"}` |
+| `uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+
+### `command.BleGattDescriptorSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `permissions` | yes | `{"$ref":"#/definitions/BleGattPermissions"}` |
+| `uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `value` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":512,"type":"array"}` |
+
+### `command.BleGattPermissions`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `read` | yes | `{"type":"boolean"}` |
+| `write` | yes | `{"type":"boolean"}` |
+
+### `command.BleGattProperties`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `indicate` | yes | `{"type":"boolean"}` |
+| `notify` | yes | `{"type":"boolean"}` |
+| `read` | yes | `{"type":"boolean"}` |
+| `write` | yes | `{"type":"boolean"}` |
+| `write_without_response` | yes | `{"type":"boolean"}` |
+
+### `command.BleGattRetrySpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `busy_or_timeout_delays_millis` | yes | `{"items":{"format":"uint32","minimum":0.0,"type":"integer"},"maxItems":32,"type":"array"}` |
+| `incomplete_discovery_delays_millis` | yes | `{"items":{"format":"uint32","minimum":0.0,"type":"integer"},"maxItems":32,"type":"array"}` |
+| `missing_attribute_delays_millis` | yes | `{"items":{"format":"uint32","minimum":0.0,"type":"integer"},"maxItems":32,"type":"array"}` |
+| `operation_timeout_millis` | yes | `{"format":"uint32","minimum":0.0,"type":"integer"}` |
+
+### `command.BleGattServiceSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `characteristics` | yes | `{"items":{"$ref":"#/definitions/BleGattCharacteristicSpec"},"maxItems":16,"type":"array"}` |
+| `primary` | yes | `{"type":"boolean"}` |
+| `uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+
 ### `command.BleLinkDirection`
 
 ```json
@@ -541,6 +732,34 @@ Custom Rust validation and renderer behavior require separate conformance tests.
       "type": "string"
     }
   ]
+}
+```
+
+### `command.BlePeripheralSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `advertisement` | yes | `{"$ref":"#/definitions/BleAdvertisementSpec"}` |
+| `readiness_conditions` | yes | `{"items":{"$ref":"#/definitions/BleDescriptorWriteCondition"},"maxItems":16,"type":"array"}` |
+| `service` | yes | `{"$ref":"#/definitions/BleGattServiceSpec"}` |
+
+### `command.BleSubscriptionSpec`
+
+| Field | Required | Schema |
+| --- | --- | --- |
+| `characteristic_uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `descriptor_uuid` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":16,"minItems":16,"type":"array"}` |
+| `value` | yes | `{"items":{"format":"uint8","minimum":0.0,"type":"integer"},"maxItems":512,"type":"array"}` |
+
+### `command.BleWriteMode`
+
+```json
+{
+  "enum": [
+    "WithResponse",
+    "WithoutResponse"
+  ],
+  "type": "string"
 }
 ```
 

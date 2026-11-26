@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "commands": [
+    {
+      "BleStartAdvertising": {
+        "service_uuid": "00010203-0405-0607-0809-0a0b0c0d0e0f",
+        "payload": [0, 1, 2, 3],
+        "prepared": {
+          "advertisement": {
+            "service_uuids": [
+              {"Uuid128": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]},
+              {"Uuid16": [170, 85]}
+            ],
+            "parameters": {
+              "mode": "LowLatency",
+              "tx_power": "Medium",
+              "connectable": true,
+              "include_device_name": false,
+              "timeout_millis": 0
+            }
+          },
+          "service": {
+            "uuid": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+            "primary": true,
+            "characteristics": [
+              {
+                "uuid": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+                "properties": {
+                  "read": true,
+                  "write": true,
+                  "write_without_response": false,
+                  "notify": true,
+                  "indicate": false
+                },
+                "permissions": {"read": true, "write": true},
+                "initial_value": [0, 1, 2, 3],
+                "descriptors": [
+                  {
+                    "uuid": [0, 0, 41, 2, 0, 0, 16, 0, 128, 0, 0, 128, 95, 155, 52, 251],
+                    "permissions": {"read": true, "write": true},
+                    "value": [0, 0]
+                  }
+                ]
+              }
+            ]
+          },
+          "readiness_conditions": [
+            {
+              "characteristic_uuid": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+              "descriptor_uuid": [0, 0, 41, 2, 0, 0, 16, 0, 128, 0, 0, 128, 95, 155, 52, 251],
+              "value_prefix": [1]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "BleConnect": {
+        "device_id": "native-peer",
+        "prepared": {
+          "service_uuid": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          "requested_mtu": 247,
+          "required_characteristics": [
+            [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+          ],
+          "subscriptions": [
+            {
+              "characteristic_uuid": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+              "descriptor_uuid": [0, 0, 41, 2, 0, 0, 16, 0, 128, 0, 0, 128, 95, 155, 52, 251],
+              "value": [1, 0]
+            }
+          ],
+          "write_modes": [
+            {
+              "characteristic_uuid": [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+              "mode": "WithResponse"
+            }
+          ],
+          "retry": {
+            "incomplete_discovery_delays_millis": [50, 100],
+            "missing_attribute_delays_millis": [25, 50],
+            "busy_or_timeout_delays_millis": [10, 20],
+            "operation_timeout_millis": 250
+          }
+        }
+      }
+    }
+  ]
+}

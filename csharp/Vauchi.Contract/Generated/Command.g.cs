@@ -381,6 +381,11 @@ namespace Vauchi.Contract
         {
             public required byte[] Payload { get; init; }
 
+            /// <summary>
+            /// Core-prepared setup. Prepared-data executors reject absence rather than reconstructing protocol data from the legacy fields.
+            /// </summary>
+            public global::Vauchi.Contract.BlePeripheralSpec? Prepared { get; init; }
+
             public required string ServiceUuid { get; init; }
 
             internal static BleStartAdvertising ReadPayload(ref Utf8JsonReader r)
@@ -388,8 +393,10 @@ namespace Vauchi.Contract
                 Rd.StartObject(ref r);
                 byte[]? f0 = default;
                 bool h0 = false;
-                string? f1 = default;
+                global::Vauchi.Contract.BlePeripheralSpec? f1 = default;
                 bool h1 = false;
+                string? f2 = default;
+                bool h2 = false;
                 while (Rd.NextProperty(ref r, out string name))
                 {
                     switch (name)
@@ -398,9 +405,13 @@ namespace Vauchi.Contract
                             Rd.Once(ref h0, name);
                             f0 = Rd.Bytes(ref r, 0, -1);
                             break;
-                        case "service_uuid":
+                        case "prepared":
                             Rd.Once(ref h1, name);
-                            f1 = Rd.String(ref r);
+                            f1 = (r.TokenType == JsonTokenType.Null ? default(global::Vauchi.Contract.BlePeripheralSpec?) : global::Vauchi.Contract.BlePeripheralSpec.Read(ref r));
+                            break;
+                        case "service_uuid":
+                            Rd.Once(ref h2, name);
+                            f2 = Rd.String(ref r);
                             break;
                         default:
                             r.Skip();
@@ -408,8 +419,8 @@ namespace Vauchi.Contract
                     }
                 }
                 if (!h0) throw Rd.MissingField("payload");
-                if (!h1) throw Rd.MissingField("service_uuid");
-                return new BleStartAdvertising { Payload = f0!, ServiceUuid = f1! };
+                if (!h2) throw Rd.MissingField("service_uuid");
+                return new BleStartAdvertising { Payload = f0!, Prepared = f1, ServiceUuid = f2! };
             }
 
             internal override void Write(Utf8JsonWriter w)
@@ -419,6 +430,18 @@ namespace Vauchi.Contract
                 w.WriteStartObject();
                 w.WritePropertyName("payload");
                 Wr.Bytes(w, Payload, 0, -1);
+                if (Prepared is not null)
+                {
+                    w.WritePropertyName("prepared");
+                    if (Prepared is { } x0)
+                    {
+                        x0.Write(w);
+                    }
+                    else
+                    {
+                        w.WriteNullValue();
+                    }
+                }
                 w.WritePropertyName("service_uuid");
                 w.WriteStringValue(ServiceUuid);
                 w.WriteEndObject();
@@ -474,11 +497,18 @@ namespace Vauchi.Contract
         {
             public required string DeviceId { get; init; }
 
+            /// <summary>
+            /// Core-prepared setup, required by prepared-data executors.
+            /// </summary>
+            public global::Vauchi.Contract.BleCentralSpec? Prepared { get; init; }
+
             internal static BleConnect ReadPayload(ref Utf8JsonReader r)
             {
                 Rd.StartObject(ref r);
                 string? f0 = default;
                 bool h0 = false;
+                global::Vauchi.Contract.BleCentralSpec? f1 = default;
+                bool h1 = false;
                 while (Rd.NextProperty(ref r, out string name))
                 {
                     switch (name)
@@ -487,13 +517,17 @@ namespace Vauchi.Contract
                             Rd.Once(ref h0, name);
                             f0 = Rd.String(ref r);
                             break;
+                        case "prepared":
+                            Rd.Once(ref h1, name);
+                            f1 = (r.TokenType == JsonTokenType.Null ? default(global::Vauchi.Contract.BleCentralSpec?) : global::Vauchi.Contract.BleCentralSpec.Read(ref r));
+                            break;
                         default:
                             r.Skip();
                             break;
                     }
                 }
                 if (!h0) throw Rd.MissingField("device_id");
-                return new BleConnect { DeviceId = f0! };
+                return new BleConnect { DeviceId = f0!, Prepared = f1 };
             }
 
             internal override void Write(Utf8JsonWriter w)
@@ -503,6 +537,18 @@ namespace Vauchi.Contract
                 w.WriteStartObject();
                 w.WritePropertyName("device_id");
                 w.WriteStringValue(DeviceId);
+                if (Prepared is not null)
+                {
+                    w.WritePropertyName("prepared");
+                    if (Prepared is { } x0)
+                    {
+                        x0.Write(w);
+                    }
+                    else
+                    {
+                        w.WriteNullValue();
+                    }
+                }
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
