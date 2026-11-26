@@ -19,6 +19,9 @@ thiserror = "2.0"
 zeroize = { version = "1.8", features = ["derive"] }
 schemars = { version = "0.8", optional = true }
 
+[dev-dependencies]
+proptest = "1"
+
 [[bin]]
 name = "gen-schema"
 required-features = ["schema-gen"]

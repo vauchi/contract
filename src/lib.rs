@@ -29,6 +29,7 @@
 use serde::{Deserialize, Serialize};
 
 mod ble_observation;
+mod ble_prepared;
 mod camera;
 mod command_target;
 pub mod direct;
@@ -40,6 +41,7 @@ pub mod network_cost;
 #[cfg(feature = "schema-gen")]
 pub mod schema;
 pub use ble_observation::{BleAdvertisementObservation, BleObservationError, BleServiceUuid};
+pub use ble_prepared::{BleAttributeValue, BlePreparationError};
 pub use camera::CameraPurpose;
 pub use command_target::CommandTarget;
 mod presentation;
