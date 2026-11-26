@@ -581,367 +581,716 @@ internal fun readEvent(v: WireValue): Event {
     }
 }
 
-internal fun writeEvent(value: Event): JsonElement =
+internal fun writeEvent(
+    w: WireOutput,
+    value: Event,
+) {
     when (value) {
         is Event.QrScanned -> {
-            Wr.obj("QrScanned" to Wr.obj("data" to JsonPrimitive(value.`data`)))
+            w.beginObject()
+            w.name("QrScanned")
+            w.beginObject()
+            w.name("data")
+            w.string(value.`data`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.QrScanProgress -> {
-            Wr.obj(
-                "QrScanProgress" to
-                    Wr.obj(
-                        "confidence" to value.`confidence`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                        "detected" to JsonPrimitive(value.`detected`),
-                        "frame_skipped" to JsonPrimitive(value.`frameSkipped`),
-                    ),
-            )
+            w.beginObject()
+            w.name("QrScanProgress")
+            w.beginObject()
+            if (value.`confidence` != null) {
+                w.name("confidence")
+                if (value.`confidence` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`confidence`.toString())
+                }
+            }
+            w.name("detected")
+            w.bool(value.`detected`)
+            w.name("frame_skipped")
+            w.bool(value.`frameSkipped`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.LocalNetworkAddressChanged -> {
-            Wr.obj(
-                "LocalNetworkAddressChanged" to
-                    Wr.obj("address" to value.`address`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) }),
-            )
+            w.beginObject()
+            w.name("LocalNetworkAddressChanged")
+            w.beginObject()
+            if (value.`address` != null) {
+                w.name("address")
+                if (value.`address` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`address`, 0, -1)
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is Event.NetworkCostChanged -> {
-            Wr.obj("NetworkCostChanged" to Wr.obj("cost" to writeNetworkCost(value.`cost`)))
+            w.beginObject()
+            w.name("NetworkCostChanged")
+            w.beginObject()
+            w.name("cost")
+            writeNetworkCost(w, value.`cost`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BleAdvertisementObserved -> {
-            Wr.obj("BleAdvertisementObserved" to writeBleAdvertisementObservation(value.value))
+            w.beginObject()
+            w.name("BleAdvertisementObserved")
+            writeBleAdvertisementObservation(w, value.value)
+            w.endObject()
         }
 
         is Event.BleDeviceDiscovered -> {
-            Wr.obj(
-                "BleDeviceDiscovered" to
-                    Wr.obj(
-                        "adv_data" to JsonArray(value.`advData`.map { e0 -> Wr.number(e0.toString()) }),
-                        "id" to JsonPrimitive(value.`id`),
-                        "rssi" to Wr.number(value.`rssi`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleDeviceDiscovered")
+            w.beginObject()
+            w.name("adv_data")
+            w.beginArray(value.`advData`.size, 0, -1)
+            for (e0 in value.`advData`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("id")
+            w.string(value.`id`, 0, -1)
+            w.name("rssi")
+            w.number(value.`rssi`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BleConnected -> {
-            Wr.obj(
-                "BleConnected" to
-                    Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`)),
-            )
+            w.beginObject()
+            w.name("BleConnected")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BleCharacteristicRead -> {
-            Wr.obj(
-                "BleCharacteristicRead" to
-                    Wr.obj(
-                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
-                        "device_id" to JsonPrimitive(value.`deviceId`),
-                        "direction" to writeBleLinkDirection(value.`direction`),
-                        "uuid" to JsonPrimitive(value.`uuid`),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleCharacteristicRead")
+            w.beginObject()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.name("uuid")
+            w.string(value.`uuid`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BleCharacteristicNotified -> {
-            Wr.obj(
-                "BleCharacteristicNotified" to
-                    Wr.obj(
-                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
-                        "device_id" to JsonPrimitive(value.`deviceId`),
-                        "direction" to writeBleLinkDirection(value.`direction`),
-                        "uuid" to JsonPrimitive(value.`uuid`),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleCharacteristicNotified")
+            w.beginObject()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.name("uuid")
+            w.string(value.`uuid`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BleDisconnected -> {
-            Wr.obj(
-                "BleDisconnected" to
-                    Wr.obj(
-                        "device_id" to JsonPrimitive(value.`deviceId`),
-                        "direction" to writeBleLinkDirection(value.`direction`),
-                        "reason" to JsonPrimitive(value.`reason`),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleDisconnected")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.name("reason")
+            w.string(value.`reason`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.NfcDataReceived -> {
-            Wr.obj("NfcDataReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("NfcDataReceived")
+            w.beginObject()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.NfcApduReceived -> {
-            Wr.obj("NfcApduReceived" to Wr.obj("bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("NfcApduReceived")
+            w.beginObject()
+            w.name("bytes")
+            w.beginArray(value.`bytes`.size, 0, -1)
+            for (e0 in value.`bytes`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.NfcFailed -> {
-            Wr.obj("NfcFailed" to Wr.obj("reason" to JsonPrimitive(value.`reason`)))
+            w.beginObject()
+            w.name("NfcFailed")
+            w.beginObject()
+            w.name("reason")
+            w.string(value.`reason`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.AudioSamplesRecorded -> {
-            Wr.obj(
-                "AudioSamplesRecorded" to
-                    Wr.obj(
-                        "sample_rate" to Wr.number(value.`sampleRate`.toString()),
-                        "samples" to JsonArray(value.`samples`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("AudioSamplesRecorded")
+            w.beginObject()
+            w.name("sample_rate")
+            w.number(value.`sampleRate`.toString())
+            w.name("samples")
+            w.beginArray(value.`samples`.size, 0, -1)
+            for (e0 in value.`samples`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.HardwareError -> {
-            Wr.obj("HardwareError" to Wr.obj("error" to JsonPrimitive(value.`error`), "transport" to JsonPrimitive(value.`transport`)))
+            w.beginObject()
+            w.name("HardwareError")
+            w.beginObject()
+            w.name("error")
+            w.string(value.`error`, 0, -1)
+            w.name("transport")
+            w.string(value.`transport`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.HardwareUnavailable -> {
-            Wr.obj("HardwareUnavailable" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+            w.beginObject()
+            w.name("HardwareUnavailable")
+            w.beginObject()
+            w.name("transport")
+            w.string(value.`transport`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.PermissionDenied -> {
-            Wr.obj("PermissionDenied" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+            w.beginObject()
+            w.name("PermissionDenied")
+            w.beginObject()
+            w.name("transport")
+            w.string(value.`transport`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.LocationResult -> {
-            Wr.obj(
-                "LocationResult" to
-                    Wr.obj(
-                        "accuracy_meters" to value.`accuracyMeters`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                        "latitude" to Wr.number(value.`latitude`.toString()),
-                        "longitude" to Wr.number(value.`longitude`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("LocationResult")
+            w.beginObject()
+            if (value.`accuracyMeters` != null) {
+                w.name("accuracy_meters")
+                if (value.`accuracyMeters` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`accuracyMeters`.toString())
+                }
+            }
+            w.name("latitude")
+            w.number(value.`latitude`.toString())
+            w.name("longitude")
+            w.number(value.`longitude`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Event.AccelerometerData -> {
-            Wr.obj(
-                "AccelerometerData" to
-                    Wr.obj(
-                        "timestamp_ms" to Wr.number(value.`timestampMs`.toString()),
-                        "x_milli_g" to Wr.number(value.`xMilliG`.toString()),
-                        "y_milli_g" to Wr.number(value.`yMilliG`.toString()),
-                        "z_milli_g" to Wr.number(value.`zMilliG`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("AccelerometerData")
+            w.beginObject()
+            w.name("timestamp_ms")
+            w.number(value.`timestampMs`.toString())
+            w.name("x_milli_g")
+            w.number(value.`xMilliG`.toString())
+            w.name("y_milli_g")
+            w.number(value.`yMilliG`.toString())
+            w.name("z_milli_g")
+            w.number(value.`zMilliG`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Event.ImpactDetected -> {
-            Wr.obj(
-                "ImpactDetected" to
-                    Wr.obj(
-                        "magnitude_milli_g" to Wr.number(value.`magnitudeMilliG`.toString()),
-                        "timestamp_ms" to Wr.number(value.`timestampMs`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("ImpactDetected")
+            w.beginObject()
+            w.name("magnitude_milli_g")
+            w.number(value.`magnitudeMilliG`.toString())
+            w.name("timestamp_ms")
+            w.number(value.`timestampMs`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Event.RelayEscrowReady -> {
-            Wr.obj("RelayEscrowReady" to Wr.obj("gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("RelayEscrowReady")
+            w.beginObject()
+            w.name("gate_hash")
+            w.beginArray(value.`gateHash`.size, 0, -1)
+            for (e0 in value.`gateHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.RelayEscrowFailed -> {
-            Wr.obj(
-                "RelayEscrowFailed" to
-                    Wr.obj(
-                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
-                        "reason" to JsonPrimitive(value.`reason`),
-                    ),
-            )
+            w.beginObject()
+            w.name("RelayEscrowFailed")
+            w.beginObject()
+            w.name("gate_hash")
+            w.beginArray(value.`gateHash`.size, 0, -1)
+            for (e0 in value.`gateHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("reason")
+            w.string(value.`reason`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         Event.LinkShared -> {
-            JsonPrimitive("LinkShared")
+            w.string("LinkShared")
         }
 
         is Event.LinkOpened -> {
-            Wr.obj("LinkOpened" to Wr.obj("peer_public_key" to JsonArray(value.`peerPublicKey`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("LinkOpened")
+            w.beginObject()
+            w.name("peer_public_key")
+            w.beginArray(value.`peerPublicKey`.size, 0, -1)
+            for (e0 in value.`peerPublicKey`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.RelayEscrowBlobReceived -> {
-            Wr.obj(
-                "RelayEscrowBlobReceived" to
-                    Wr.obj(
-                        "blob" to JsonArray(value.`blob`.map { e0 -> Wr.number(e0.toString()) }),
-                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("RelayEscrowBlobReceived")
+            w.beginObject()
+            w.name("blob")
+            w.beginArray(value.`blob`.size, 0, -1)
+            for (e0 in value.`blob`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("gate_hash")
+            w.beginArray(value.`gateHash`.size, 0, -1)
+            for (e0 in value.`gateHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.DirectPayloadReceived -> {
-            Wr.obj("DirectPayloadReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("DirectPayloadReceived")
+            w.beginObject()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.ImageReceived -> {
-            Wr.obj("ImageReceived" to Wr.obj("data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("ImageReceived")
+            w.beginObject()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         Event.ImagePickCancelled -> {
-            JsonPrimitive("ImagePickCancelled")
+            w.string("ImagePickCancelled")
         }
 
         is Event.FilePickedFromUser -> {
-            Wr.obj(
-                "FilePickedFromUser" to
-                    Wr.obj(
-                        "bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) }),
-                        "filename" to JsonPrimitive(value.`filename`),
-                    ),
-            )
+            w.beginObject()
+            w.name("FilePickedFromUser")
+            w.beginObject()
+            w.name("bytes")
+            w.beginArray(value.`bytes`.size, 0, -1)
+            for (e0 in value.`bytes`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("filename")
+            w.string(value.`filename`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         Event.FilePickCancelledByUser -> {
-            JsonPrimitive("FilePickCancelledByUser")
+            w.string("FilePickCancelledByUser")
         }
 
         Event.BiometricUnlockSucceeded -> {
-            JsonPrimitive("BiometricUnlockSucceeded")
+            w.string("BiometricUnlockSucceeded")
         }
 
         is Event.BleMtuNegotiated -> {
-            Wr.obj("BleMtuNegotiated" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "mtu" to Wr.number(value.`mtu`.toString())))
+            w.beginObject()
+            w.name("BleMtuNegotiated")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("mtu")
+            w.number(value.`mtu`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Event.DirectCardReceived -> {
-            Wr.obj("DirectCardReceived" to Wr.obj("ciphertext" to JsonArray(value.`ciphertext`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("DirectCardReceived")
+            w.beginObject()
+            w.name("ciphertext")
+            w.beginArray(value.`ciphertext`.size, 0, -1)
+            for (e0 in value.`ciphertext`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.ActionActivated -> {
-            Wr.obj(
-                "ActionActivated" to
-                    Wr.obj("interaction_id" to JsonPrimitive(value.`interactionId`), "surface_id" to JsonPrimitive(value.`surfaceId`)),
-            )
+            w.beginObject()
+            w.name("ActionActivated")
+            w.beginObject()
+            w.name("interaction_id")
+            w.string(Rd.identifier(value.`interactionId`), 0, -1)
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.PresentationEnvironmentChanged -> {
-            Wr.obj(
-                "PresentationEnvironmentChanged" to
-                    Wr.obj(
-                        "available_height" to Wr.number(value.`availableHeight`.toString()),
-                        "available_width" to Wr.number(value.`availableWidth`.toString()),
-                        "color_scheme" to value.`colorScheme`?.let { f -> (f?.let { n0 -> writeColorScheme(n0) } ?: JsonNull) },
-                        "input_modes" to JsonArray(value.`inputModes`.map { e0 -> writeInputMode(e0) }),
-                        "motion" to writeMotionPreference(value.`motion`),
-                        "pinned_actions" to value.`pinnedActions`?.let { f -> JsonPrimitive(f) },
-                    ),
-            )
+            w.beginObject()
+            w.name("PresentationEnvironmentChanged")
+            w.beginObject()
+            w.name("available_height")
+            w.number(value.`availableHeight`.toString())
+            w.name("available_width")
+            w.number(value.`availableWidth`.toString())
+            if (value.`colorScheme` != null) {
+                w.name("color_scheme")
+                if (value.`colorScheme` == null) {
+                    w.nullValue()
+                } else {
+                    writeColorScheme(w, value.`colorScheme`)
+                }
+            }
+            w.name("input_modes")
+            w.beginArray(value.`inputModes`.size, 0, -1)
+            for (e0 in value.`inputModes`) {
+                writeInputMode(w, e0)
+            }
+            w.endArray()
+            w.name("motion")
+            writeMotionPreference(w, value.`motion`)
+            if (value.`pinnedActions` != null) {
+                w.name("pinned_actions")
+                w.bool(value.`pinnedActions`)
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is Event.SurfaceActivated -> {
-            Wr.obj("SurfaceActivated" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
+            w.beginObject()
+            w.name("SurfaceActivated")
+            w.beginObject()
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BackRequested -> {
-            Wr.obj("BackRequested" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
+            w.beginObject()
+            w.name("BackRequested")
+            w.beginObject()
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.OverlayDismissed -> {
-            Wr.obj("OverlayDismissed" to Wr.obj("kind" to writeOverlayKind(value.`kind`), "surface_id" to JsonPrimitive(value.`surfaceId`)))
+            w.beginObject()
+            w.name("OverlayDismissed")
+            w.beginObject()
+            w.name("kind")
+            writeOverlayKind(w, value.`kind`)
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.ValueChanged -> {
-            Wr.obj(
-                "ValueChanged" to
-                    Wr.obj(
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                        "value" to writeInputValue(value.`value`),
-                    ),
-            )
+            w.beginObject()
+            w.name("ValueChanged")
+            w.beginObject()
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.name("value")
+            writeInputValue(w, value.`value`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.InputSubmitted -> {
-            Wr.obj(
-                "InputSubmitted" to
-                    Wr.obj(
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("InputSubmitted")
+            w.beginObject()
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.InputFocusEnded -> {
-            Wr.obj(
-                "InputFocusEnded" to
-                    Wr.obj(
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("InputFocusEnded")
+            w.beginObject()
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.DeepLinkOpened -> {
-            Wr.obj("DeepLinkOpened" to Wr.obj("uri" to JsonPrimitive(value.`uri`)))
+            w.beginObject()
+            w.name("DeepLinkOpened")
+            w.beginObject()
+            w.name("uri")
+            w.string(value.`uri`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         Event.AppBackgrounded -> {
-            JsonPrimitive("AppBackgrounded")
+            w.string("AppBackgrounded")
         }
 
         is Event.RefreshRequested -> {
-            Wr.obj("RefreshRequested" to Wr.obj("surface_id" to JsonPrimitive(value.`surfaceId`)))
+            w.beginObject()
+            w.name("RefreshRequested")
+            w.beginObject()
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.BackgroundBudgetObserved -> {
-            Wr.obj(
-                "BackgroundBudgetObserved" to
-                    Wr.obj("runs" to Wr.number(value.`runs`.toString()), "window_secs" to Wr.number(value.`windowSecs`.toString())),
-            )
+            w.beginObject()
+            w.name("BackgroundBudgetObserved")
+            w.beginObject()
+            w.name("runs")
+            w.number(value.`runs`.toString())
+            w.name("window_secs")
+            w.number(value.`windowSecs`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         Event.PresentationInvalidated -> {
-            JsonPrimitive("PresentationInvalidated")
+            w.string("PresentationInvalidated")
         }
 
         is Event.BleGattReady -> {
-            Wr.obj("BleGattReady" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`)))
+            w.beginObject()
+            w.name("BleGattReady")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.UserPresenceSecretCreated -> {
-            Wr.obj("UserPresenceSecretCreated" to Wr.obj("secret" to JsonArray(value.`secret`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("UserPresenceSecretCreated")
+            w.beginObject()
+            w.name("secret")
+            w.beginArray(value.`secret`.size, 0, -1)
+            for (e0 in value.`secret`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Event.UserPresenceSecretRevealed -> {
-            Wr.obj("UserPresenceSecretRevealed" to Wr.obj("secret" to JsonArray(value.`secret`.map { e0 -> Wr.number(e0.toString()) })))
+            w.beginObject()
+            w.name("UserPresenceSecretRevealed")
+            w.beginObject()
+            w.name("secret")
+            w.beginArray(value.`secret`.size, 0, -1)
+            for (e0 in value.`secret`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         Event.UserPresenceCheckCancelled -> {
-            JsonPrimitive("UserPresenceCheckCancelled")
+            w.string("UserPresenceCheckCancelled")
         }
 
         Event.UserPresenceSecretMissing -> {
-            JsonPrimitive("UserPresenceSecretMissing")
+            w.string("UserPresenceSecretMissing")
         }
 
         Event.WakeupFired -> {
-            JsonPrimitive("WakeupFired")
+            w.string("WakeupFired")
         }
 
         is Event.ApplicationMenuAvailabilityChanged -> {
-            Wr.obj("ApplicationMenuAvailabilityChanged" to Wr.obj("available" to JsonPrimitive(value.`available`)))
+            w.beginObject()
+            w.name("ApplicationMenuAvailabilityChanged")
+            w.beginObject()
+            w.name("available")
+            w.bool(value.`available`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.StatusItemAvailabilityChanged -> {
-            Wr.obj("StatusItemAvailabilityChanged" to Wr.obj("available" to JsonPrimitive(value.`available`)))
+            w.beginObject()
+            w.name("StatusItemAvailabilityChanged")
+            w.beginObject()
+            w.name("available")
+            w.bool(value.`available`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.FilePickerCapabilitiesChanged -> {
-            Wr.obj("FilePickerCapabilitiesChanged" to Wr.obj("correlated_results" to JsonPrimitive(value.`correlatedResults`)))
+            w.beginObject()
+            w.name("FilePickerCapabilitiesChanged")
+            w.beginObject()
+            w.name("correlated_results")
+            w.bool(value.`correlatedResults`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.FilePickCompleted -> {
-            Wr.obj(
-                "FilePickCompleted" to
-                    Wr.obj("outcome" to writeFilePickOutcome(value.`outcome`), "request_id" to JsonPrimitive(value.`requestId`)),
-            )
+            w.beginObject()
+            w.name("FilePickCompleted")
+            w.beginObject()
+            w.name("outcome")
+            writeFilePickOutcome(w, value.`outcome`)
+            w.name("request_id")
+            w.string(value.`requestId`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.HardwareCapabilitiesReported -> {
-            Wr.obj("HardwareCapabilitiesReported" to Wr.obj("capabilities" to writeDeviceCapabilities(value.`capabilities`)))
+            w.beginObject()
+            w.name("HardwareCapabilitiesReported")
+            w.beginObject()
+            w.name("capabilities")
+            writeDeviceCapabilities(w, value.`capabilities`)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.PermissionRequired -> {
-            Wr.obj("PermissionRequired" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+            w.beginObject()
+            w.name("PermissionRequired")
+            w.beginObject()
+            w.name("transport")
+            w.string(value.`transport`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Event.PermissionGranted -> {
-            Wr.obj("PermissionGranted" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+            w.beginObject()
+            w.name("PermissionGranted")
+            w.beginObject()
+            w.name("transport")
+            w.string(value.`transport`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
     }
+}

@@ -620,434 +620,775 @@ internal fun readCommand(v: WireValue): Command {
     }
 }
 
-internal fun writeCommand(value: Command): JsonElement =
+internal fun writeCommand(
+    w: WireOutput,
+    value: Command,
+) {
     when (value) {
         is Command.QrDisplay -> {
-            Wr.obj("QrDisplay" to Wr.obj("data" to JsonPrimitive(value.`data`)))
+            w.beginObject()
+            w.name("QrDisplay")
+            w.beginObject()
+            w.name("data")
+            w.string(value.`data`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         Command.QrRequestScan -> {
-            JsonPrimitive("QrRequestScan")
+            w.string("QrRequestScan")
         }
 
         is Command.ScheduleWakeup -> {
-            Wr.obj(
-                "ScheduleWakeup" to
-                    Wr.obj(
-                        "deadline_secs" to Wr.number(value.`deadlineSecs`.toString()),
-                        "delay_millis" to Wr.number(value.`delayMillis`.toString()),
-                        "earliest_millis" to value.`earliestMillis`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                        "earliest_secs" to Wr.number(value.`earliestSecs`.toString()),
-                        "min_interval_secs" to Wr.number(value.`minIntervalSecs`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("ScheduleWakeup")
+            w.beginObject()
+            w.name("deadline_secs")
+            w.number(value.`deadlineSecs`.toString())
+            w.name("delay_millis")
+            w.number(value.`delayMillis`.toString())
+            if (value.`earliestMillis` != null) {
+                w.name("earliest_millis")
+                if (value.`earliestMillis` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`earliestMillis`.toString())
+                }
+            }
+            w.name("earliest_secs")
+            w.number(value.`earliestSecs`.toString())
+            w.name("min_interval_secs")
+            w.number(value.`minIntervalSecs`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Command.BleStartAdvertising -> {
-            Wr.obj(
-                "BleStartAdvertising" to
-                    Wr.obj(
-                        "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }),
-                        "service_uuid" to JsonPrimitive(value.`serviceUuid`),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleStartAdvertising")
+            w.beginObject()
+            w.name("payload")
+            w.beginArray(value.`payload`.size, 0, -1)
+            for (e0 in value.`payload`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("service_uuid")
+            w.string(value.`serviceUuid`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.BleStartScanning -> {
-            Wr.obj("BleStartScanning" to Wr.obj("service_uuid" to JsonPrimitive(value.`serviceUuid`)))
+            w.beginObject()
+            w.name("BleStartScanning")
+            w.beginObject()
+            w.name("service_uuid")
+            w.string(value.`serviceUuid`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.BleConnect -> {
-            Wr.obj("BleConnect" to Wr.obj("device_id" to JsonPrimitive(value.`deviceId`)))
+            w.beginObject()
+            w.name("BleConnect")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.BleWriteCharacteristic -> {
-            Wr.obj(
-                "BleWriteCharacteristic" to
-                    Wr.obj(
-                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
-                        "device_id" to JsonPrimitive(value.`deviceId`),
-                        "direction" to writeBleLinkDirection(value.`direction`),
-                        "uuid" to JsonPrimitive(value.`uuid`),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleWriteCharacteristic")
+            w.beginObject()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.name("uuid")
+            w.string(value.`uuid`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.BleReadCharacteristic -> {
-            Wr.obj(
-                "BleReadCharacteristic" to
-                    Wr.obj(
-                        "device_id" to JsonPrimitive(value.`deviceId`),
-                        "direction" to writeBleLinkDirection(value.`direction`),
-                        "uuid" to JsonPrimitive(value.`uuid`),
-                    ),
-            )
+            w.beginObject()
+            w.name("BleReadCharacteristic")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.name("uuid")
+            w.string(value.`uuid`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.BleDisconnect -> {
-            Wr.obj(
-                "BleDisconnect" to
-                    Wr.obj("device_id" to JsonPrimitive(value.`deviceId`), "direction" to writeBleLinkDirection(value.`direction`)),
-            )
+            w.beginObject()
+            w.name("BleDisconnect")
+            w.beginObject()
+            w.name("device_id")
+            w.string(value.`deviceId`, 0, -1)
+            w.name("direction")
+            writeBleLinkDirection(w, value.`direction`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.NfcActivate -> {
-            Wr.obj(
-                "NfcActivate" to
-                    Wr.obj(
-                        "apdus" to JsonArray(value.`apdus`.map { e0 -> JsonArray(e0.map { e1 -> Wr.number(e1.toString()) }) }),
-                        "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("NfcActivate")
+            w.beginObject()
+            w.name("apdus")
+            w.beginArray(value.`apdus`.size, 0, -1)
+            for (e0 in value.`apdus`) {
+                w.beginArray(e0.size, 0, -1)
+                for (e1 in e0) {
+                    w.number(e1.toString())
+                }
+                w.endArray()
+            }
+            w.endArray()
+            w.name("payload")
+            w.beginArray(value.`payload`.size, 0, -1)
+            for (e0 in value.`payload`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         Command.NfcDeactivate -> {
-            JsonPrimitive("NfcDeactivate")
+            w.string("NfcDeactivate")
         }
 
         is Command.NfcSendApdu -> {
-            Wr.obj(
-                "NfcSendApdu" to
-                    Wr.obj(
-                        "apdus" to JsonArray(value.`apdus`.map { e0 -> JsonArray(e0.map { e1 -> Wr.number(e1.toString()) }) }),
-                        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("NfcSendApdu")
+            w.beginObject()
+            w.name("apdus")
+            w.beginArray(value.`apdus`.size, 0, -1)
+            for (e0 in value.`apdus`) {
+                w.beginArray(e0.size, 0, -1)
+                for (e1 in e0) {
+                    w.number(e1.toString())
+                }
+                w.endArray()
+            }
+            w.endArray()
+            w.name("data")
+            w.beginArray(value.`data`.size, 0, -1)
+            for (e0 in value.`data`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Command.AudioEmitChallenge -> {
-            Wr.obj(
-                "AudioEmitChallenge" to
-                    Wr.obj(
-                        "sample_rate" to Wr.number(value.`sampleRate`.toString()),
-                        "samples" to JsonArray(value.`samples`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("AudioEmitChallenge")
+            w.beginObject()
+            w.name("sample_rate")
+            w.number(value.`sampleRate`.toString())
+            w.name("samples")
+            w.beginArray(value.`samples`.size, 0, -1)
+            for (e0 in value.`samples`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Command.AudioListenForResponse -> {
-            Wr.obj(
-                "AudioListenForResponse" to
-                    Wr.obj(
-                        "sample_rate" to Wr.number(value.`sampleRate`.toString()),
-                        "timeout_ms" to Wr.number(value.`timeoutMs`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("AudioListenForResponse")
+            w.beginObject()
+            w.name("sample_rate")
+            w.number(value.`sampleRate`.toString())
+            w.name("timeout_ms")
+            w.number(value.`timeoutMs`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         Command.AudioStop -> {
-            JsonPrimitive("AudioStop")
+            w.string("AudioStop")
         }
 
         Command.AccelerometerStart -> {
-            JsonPrimitive("AccelerometerStart")
+            w.string("AccelerometerStart")
         }
 
         Command.AccelerometerStop -> {
-            JsonPrimitive("AccelerometerStop")
+            w.string("AccelerometerStop")
         }
 
         is Command.RelayEscrowDeposit -> {
-            Wr.obj(
-                "RelayEscrowDeposit" to
-                    Wr.obj(
-                        "encrypted_card" to JsonArray(value.`encryptedCard`.map { e0 -> Wr.number(e0.toString()) }),
-                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
-                        "slot_hash" to JsonArray(value.`slotHash`.map { e0 -> Wr.number(e0.toString()) }),
-                        "ttl_seconds" to Wr.number(value.`ttlSeconds`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("RelayEscrowDeposit")
+            w.beginObject()
+            w.name("encrypted_card")
+            w.beginArray(value.`encryptedCard`.size, 0, -1)
+            for (e0 in value.`encryptedCard`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("gate_hash")
+            w.beginArray(value.`gateHash`.size, 0, -1)
+            for (e0 in value.`gateHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("slot_hash")
+            w.beginArray(value.`slotHash`.size, 0, -1)
+            for (e0 in value.`slotHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("ttl_seconds")
+            w.number(value.`ttlSeconds`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Command.RelayEscrowCheck -> {
-            Wr.obj(
-                "RelayEscrowCheck" to
-                    Wr.obj(
-                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
-                        "suggested_interval_ms" to Wr.number(value.`suggestedIntervalMs`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("RelayEscrowCheck")
+            w.beginObject()
+            w.name("gate_hash")
+            w.beginArray(value.`gateHash`.size, 0, -1)
+            for (e0 in value.`gateHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("suggested_interval_ms")
+            w.number(value.`suggestedIntervalMs`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Command.RelayEscrowRetrieve -> {
-            Wr.obj(
-                "RelayEscrowRetrieve" to
-                    Wr.obj(
-                        "gate_hash" to JsonArray(value.`gateHash`.map { e0 -> Wr.number(e0.toString()) }),
-                        "slot_hash" to JsonArray(value.`slotHash`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("RelayEscrowRetrieve")
+            w.beginObject()
+            w.name("gate_hash")
+            w.beginArray(value.`gateHash`.size, 0, -1)
+            for (e0 in value.`gateHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("slot_hash")
+            w.beginArray(value.`slotHash`.size, 0, -1)
+            for (e0 in value.`slotHash`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         is Command.ShowShareSheet -> {
-            Wr.obj("ShowShareSheet" to Wr.obj("url" to JsonPrimitive(value.`url`)))
+            w.beginObject()
+            w.name("ShowShareSheet")
+            w.beginObject()
+            w.name("url")
+            w.string(value.`url`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         Command.BleStopScanning -> {
-            JsonPrimitive("BleStopScanning")
+            w.string("BleStopScanning")
         }
 
         is Command.DirectSend -> {
-            Wr.obj(
-                "DirectSend" to
-                    Wr.obj(
-                        "endpoint" to writeDirectEndpoint(value.`endpoint`),
-                        "is_initiator" to JsonPrimitive(value.`isInitiator`),
-                        "payload" to JsonArray(value.`payload`.map { e0 -> Wr.number(e0.toString()) }),
-                    ),
-            )
+            w.beginObject()
+            w.name("DirectSend")
+            w.beginObject()
+            w.name("endpoint")
+            writeDirectEndpoint(w, value.`endpoint`)
+            w.name("is_initiator")
+            w.bool(value.`isInitiator`)
+            w.name("payload")
+            w.beginArray(value.`payload`.size, 0, -1)
+            for (e0 in value.`payload`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+            w.endObject()
         }
 
         Command.ImagePickFromLibrary -> {
-            JsonPrimitive("ImagePickFromLibrary")
+            w.string("ImagePickFromLibrary")
         }
 
         Command.ImageCaptureFromCamera -> {
-            JsonPrimitive("ImageCaptureFromCamera")
+            w.string("ImageCaptureFromCamera")
         }
 
         Command.ImagePickFromFile -> {
-            JsonPrimitive("ImagePickFromFile")
+            w.string("ImagePickFromFile")
         }
 
         is Command.SwitchCamera -> {
-            Wr.obj("SwitchCamera" to Wr.obj("use_front" to JsonPrimitive(value.`useFront`)))
+            w.beginObject()
+            w.name("SwitchCamera")
+            w.beginObject()
+            w.name("use_front")
+            w.bool(value.`useFront`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.FilePickFromUser -> {
-            Wr.obj(
-                "FilePickFromUser" to
-                    Wr.obj(
-                        "accepted_extensions" to JsonArray(value.`acceptedExtensions`.map { e0 -> JsonPrimitive(e0) }),
-                        "accepted_mime_types" to JsonArray(value.`acceptedMimeTypes`.map { e0 -> JsonPrimitive(e0) }),
-                        "max_bytes" to value.`maxBytes`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                        "purpose" to writeFilePickPurpose(value.`purpose`),
-                    ),
-            )
+            w.beginObject()
+            w.name("FilePickFromUser")
+            w.beginObject()
+            w.name("accepted_extensions")
+            w.beginArray(value.`acceptedExtensions`.size, 0, -1)
+            for (e0 in value.`acceptedExtensions`) {
+                w.string(e0, 0, -1)
+            }
+            w.endArray()
+            w.name("accepted_mime_types")
+            w.beginArray(value.`acceptedMimeTypes`.size, 0, -1)
+            for (e0 in value.`acceptedMimeTypes`) {
+                w.string(e0, 0, -1)
+            }
+            w.endArray()
+            if (value.`maxBytes` != null) {
+                w.name("max_bytes")
+                if (value.`maxBytes` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`maxBytes`.toString())
+                }
+            }
+            w.name("purpose")
+            writeFilePickPurpose(w, value.`purpose`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetScreenBrightness -> {
-            Wr.obj(
-                "SetScreenBrightness" to
-                    Wr.obj(
-                        "level" to value.`level`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                    ),
-            )
+            w.beginObject()
+            w.name("SetScreenBrightness")
+            w.beginObject()
+            if (value.`level` != null) {
+                w.name("level")
+                if (value.`level` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`level`.toString())
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetIdleTimerDisabled -> {
-            Wr.obj("SetIdleTimerDisabled" to Wr.obj("disabled" to JsonPrimitive(value.`disabled`)))
+            w.beginObject()
+            w.name("SetIdleTimerDisabled")
+            w.beginObject()
+            w.name("disabled")
+            w.bool(value.`disabled`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetOrientationLock -> {
-            Wr.obj(
-                "SetOrientationLock" to
-                    Wr.obj("orientation" to value.`orientation`?.let { f -> (f?.let { n0 -> writeOrientation(n0) } ?: JsonNull) }),
-            )
+            w.beginObject()
+            w.name("SetOrientationLock")
+            w.beginObject()
+            if (value.`orientation` != null) {
+                w.name("orientation")
+                if (value.`orientation` == null) {
+                    w.nullValue()
+                } else {
+                    writeOrientation(w, value.`orientation`)
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is Command.DirectSendCard -> {
-            Wr.obj(
-                "DirectSendCard" to
-                    Wr.obj(
-                        "ciphertext" to JsonArray(value.`ciphertext`.map { e0 -> Wr.number(e0.toString()) }),
-                        "is_initiator" to JsonPrimitive(value.`isInitiator`),
-                    ),
-            )
+            w.beginObject()
+            w.name("DirectSendCard")
+            w.beginObject()
+            w.name("ciphertext")
+            w.beginArray(value.`ciphertext`.size, 0, -1)
+            for (e0 in value.`ciphertext`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("is_initiator")
+            w.bool(value.`isInitiator`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.LocationRequest -> {
-            Wr.obj("LocationRequest" to Wr.obj("timeout_ms" to Wr.number(value.`timeoutMs`.toString())))
+            w.beginObject()
+            w.name("LocationRequest")
+            w.beginObject()
+            w.name("timeout_ms")
+            w.number(value.`timeoutMs`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is Command.Celebrate -> {
-            Wr.obj(
-                "Celebrate" to
-                    Wr.obj(
-                        "animation" to writeAnimationToken(value.`animation`),
-                        "haptic" to writeHapticPattern(value.`haptic`),
-                        "sound" to writeSoundToken(value.`sound`),
-                    ),
-            )
+            w.beginObject()
+            w.name("Celebrate")
+            w.beginObject()
+            w.name("animation")
+            writeAnimationToken(w, value.`animation`)
+            w.name("haptic")
+            writeHapticPattern(w, value.`haptic`)
+            w.name("sound")
+            writeSoundToken(w, value.`sound`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetContextBar -> {
-            Wr.obj(
-                "SetContextBar" to
-                    Wr.obj(
-                        "bar" to writeContextBar(value.`bar`),
-                        "revision" to Wr.number(value.`revision`.toString()),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("SetContextBar")
+            w.beginObject()
+            w.name("bar")
+            writeContextBar(w, value.`bar`)
+            w.name("revision")
+            w.number(value.`revision`.toString())
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetNavigation -> {
-            Wr.obj(
-                "SetNavigation" to
-                    Wr.obj(
-                        "navigation" to writeNavigationSpec(value.`navigation`),
-                        "revision" to Wr.number(value.`revision`.toString()),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("SetNavigation")
+            w.beginObject()
+            w.name("navigation")
+            writeNavigationSpec(w, value.`navigation`)
+            w.name("revision")
+            w.number(value.`revision`.toString())
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.PresentOverlay -> {
-            Wr.obj(
-                "PresentOverlay" to
-                    Wr.obj(
-                        "overlay" to writeOverlaySpec(value.`overlay`),
-                        "revision" to Wr.number(value.`revision`.toString()),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("PresentOverlay")
+            w.beginObject()
+            w.name("overlay")
+            writeOverlaySpec(w, value.`overlay`)
+            w.name("revision")
+            w.number(value.`revision`.toString())
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.DismissOverlay -> {
-            Wr.obj(
-                "DismissOverlay" to
-                    Wr.obj(
-                        "kind" to writeOverlayKind(value.`kind`),
-                        "revision" to Wr.number(value.`revision`.toString()),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("DismissOverlay")
+            w.beginObject()
+            w.name("kind")
+            writeOverlayKind(w, value.`kind`)
+            w.name("revision")
+            w.number(value.`revision`.toString())
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetPresentationProfile -> {
-            Wr.obj("SetPresentationProfile" to Wr.obj("profile" to writePresentationProfile(value.`profile`)))
+            w.beginObject()
+            w.name("SetPresentationProfile")
+            w.beginObject()
+            w.name("profile")
+            writePresentationProfile(w, value.`profile`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.ReplaceSurface -> {
-            Wr.obj("ReplaceSurface" to Wr.obj("surface" to writeSurfaceSpec(value.`surface`)))
+            w.beginObject()
+            w.name("ReplaceSurface")
+            w.beginObject()
+            w.name("surface")
+            writeSurfaceSpec(w, value.`surface`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.PresentAlert -> {
-            Wr.obj("PresentAlert" to Wr.obj("alert" to writeAlertSpec(value.`alert`)))
+            w.beginObject()
+            w.name("PresentAlert")
+            w.beginObject()
+            w.name("alert")
+            writeAlertSpec(w, value.`alert`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.ShowToast -> {
-            Wr.obj("ShowToast" to Wr.obj("toast" to writeToastSpec(value.`toast`)))
+            w.beginObject()
+            w.name("ShowToast")
+            w.beginObject()
+            w.name("toast")
+            writeToastSpec(w, value.`toast`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.OpenExternalUrl -> {
-            Wr.obj("OpenExternalUrl" to Wr.obj("url" to JsonPrimitive(value.`url`)))
+            w.beginObject()
+            w.name("OpenExternalUrl")
+            w.beginObject()
+            w.name("url")
+            w.string(value.`url`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.ExportFile -> {
-            Wr.obj("ExportFile" to Wr.obj("file" to writeExportFileSpec(value.`file`)))
+            w.beginObject()
+            w.name("ExportFile")
+            w.beginObject()
+            w.name("file")
+            writeExportFileSpec(w, value.`file`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.EmitDocument -> {
-            Wr.obj("EmitDocument" to Wr.obj("document" to writeDocumentSpec(value.`document`)))
+            w.beginObject()
+            w.name("EmitDocument")
+            w.beginObject()
+            w.name("document")
+            writeDocumentSpec(w, value.`document`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.FinishInvocation -> {
-            Wr.obj("FinishInvocation" to Wr.obj("outcome" to writeInvocationOutcome(value.`outcome`)))
+            w.beginObject()
+            w.name("FinishInvocation")
+            w.beginObject()
+            w.name("outcome")
+            writeInvocationOutcome(w, value.`outcome`)
+            w.endObject()
+            w.endObject()
         }
 
         Command.PerformNativeBack -> {
-            JsonPrimitive("PerformNativeBack")
+            w.string("PerformNativeBack")
         }
 
         Command.ResetApplication -> {
-            JsonPrimitive("ResetApplication")
+            w.string("ResetApplication")
         }
 
         Command.ReloadTheme -> {
-            JsonPrimitive("ReloadTheme")
+            w.string("ReloadTheme")
         }
 
         is Command.PostNotification -> {
-            Wr.obj("PostNotification" to Wr.obj("notification" to writeNotificationSpec(value.`notification`)))
+            w.beginObject()
+            w.name("PostNotification")
+            w.beginObject()
+            w.name("notification")
+            writeNotificationSpec(w, value.`notification`)
+            w.endObject()
+            w.endObject()
         }
 
         Command.RequestBiometricUnlock -> {
-            JsonPrimitive("RequestBiometricUnlock")
+            w.string("RequestBiometricUnlock")
         }
 
         is Command.ForgetStoredSecret -> {
-            Wr.obj("ForgetStoredSecret" to Wr.obj("handle" to JsonPrimitive(value.`handle`)))
+            w.beginObject()
+            w.name("ForgetStoredSecret")
+            w.beginObject()
+            w.name("handle")
+            w.string(value.`handle`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.CreateUserPresenceSecret -> {
-            Wr.obj(
-                "CreateUserPresenceSecret" to
-                    Wr.obj("binding" to writeUserPresenceBinding(value.`binding`), "prompt" to JsonPrimitive(value.`prompt`)),
-            )
+            w.beginObject()
+            w.name("CreateUserPresenceSecret")
+            w.beginObject()
+            w.name("binding")
+            writeUserPresenceBinding(w, value.`binding`)
+            w.name("prompt")
+            w.string(value.`prompt`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.RevealUserPresenceSecret -> {
-            Wr.obj("RevealUserPresenceSecret" to Wr.obj("prompt" to JsonPrimitive(value.`prompt`)))
+            w.beginObject()
+            w.name("RevealUserPresenceSecret")
+            w.beginObject()
+            w.name("prompt")
+            w.string(value.`prompt`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SaveRestorableState -> {
-            Wr.obj("SaveRestorableState" to Wr.obj("state" to JsonPrimitive(value.`state`)))
+            w.beginObject()
+            w.name("SaveRestorableState")
+            w.beginObject()
+            w.name("state")
+            w.string(value.`state`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetApplicationMenu -> {
-            Wr.obj(
-                "SetApplicationMenu" to
-                    Wr.obj(
-                        "menus" to JsonArray(value.`menus`.map { e0 -> writeApplicationMenuSpec(e0) }),
-                        "revision" to Wr.number(value.`revision`.toString()),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("SetApplicationMenu")
+            w.beginObject()
+            w.name("menus")
+            w.beginArray(value.`menus`.size, 0, -1)
+            for (e0 in value.`menus`) {
+                writeApplicationMenuSpec(w, e0)
+            }
+            w.endArray()
+            w.name("revision")
+            w.number(value.`revision`.toString())
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.SetStatusItem -> {
-            Wr.obj(
-                "SetStatusItem" to
-                    Wr.obj(
-                        "item" to value.`item`?.let { f -> (f?.let { n0 -> writeStatusItemSpec(n0) } ?: JsonNull) },
-                        "revision" to Wr.number(value.`revision`.toString()),
-                        "surface_id" to JsonPrimitive(value.`surfaceId`),
-                    ),
-            )
+            w.beginObject()
+            w.name("SetStatusItem")
+            w.beginObject()
+            if (value.`item` != null) {
+                w.name("item")
+                if (value.`item` == null) {
+                    w.nullValue()
+                } else {
+                    writeStatusItemSpec(w, value.`item`)
+                }
+            }
+            w.name("revision")
+            w.number(value.`revision`.toString())
+            w.name("surface_id")
+            w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.PickFile -> {
-            Wr.obj(
-                "PickFile" to
-                    Wr.obj(
-                        "accepted_extensions" to JsonArray(value.`acceptedExtensions`.map { e0 -> JsonPrimitive(e0) }),
-                        "accepted_mime_types" to JsonArray(value.`acceptedMimeTypes`.map { e0 -> JsonPrimitive(e0) }),
-                        "max_bytes" to Wr.number(value.`maxBytes`.toString()),
-                        "request_id" to JsonPrimitive(value.`requestId`),
-                        "title" to JsonPrimitive(value.`title`),
-                    ),
-            )
+            w.beginObject()
+            w.name("PickFile")
+            w.beginObject()
+            w.name("accepted_extensions")
+            w.beginArray(value.`acceptedExtensions`.size, 0, -1)
+            for (e0 in value.`acceptedExtensions`) {
+                w.string(e0, 0, -1)
+            }
+            w.endArray()
+            w.name("accepted_mime_types")
+            w.beginArray(value.`acceptedMimeTypes`.size, 0, -1)
+            for (e0 in value.`acceptedMimeTypes`) {
+                w.string(e0, 0, -1)
+            }
+            w.endArray()
+            w.name("max_bytes")
+            w.number(value.`maxBytes`.toString())
+            w.name("request_id")
+            w.string(value.`requestId`, 0, -1)
+            w.name("title")
+            w.string(value.`title`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.CancelFilePick -> {
-            Wr.obj("CancelFilePick" to Wr.obj("request_id" to JsonPrimitive(value.`requestId`)))
+            w.beginObject()
+            w.name("CancelFilePick")
+            w.beginObject()
+            w.name("request_id")
+            w.string(value.`requestId`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.RequestPermission -> {
-            Wr.obj("RequestPermission" to Wr.obj("transport" to JsonPrimitive(value.`transport`)))
+            w.beginObject()
+            w.name("RequestPermission")
+            w.beginObject()
+            w.name("transport")
+            w.string(value.`transport`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.CameraViewport -> {
-            Wr.obj("CameraViewport" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`)))
+            w.beginObject()
+            w.name("CameraViewport")
+            w.beginObject()
+            w.name("preview_id")
+            w.string(value.`previewId`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.CameraCapture -> {
-            Wr.obj(
-                "CameraCapture" to
-                    Wr.obj(
-                        "preview_id" to JsonPrimitive(value.`previewId`),
-                        "purpose" to writeCameraPurpose(value.`purpose`),
-                    ),
-            )
+            w.beginObject()
+            w.name("CameraCapture")
+            w.beginObject()
+            w.name("preview_id")
+            w.string(value.`previewId`, 0, -1)
+            w.name("purpose")
+            writeCameraPurpose(w, value.`purpose`)
+            w.endObject()
+            w.endObject()
         }
 
         is Command.CameraStop -> {
-            Wr.obj("CameraStop" to Wr.obj("preview_id" to JsonPrimitive(value.`previewId`)))
+            w.beginObject()
+            w.name("CameraStop")
+            w.beginObject()
+            w.name("preview_id")
+            w.string(value.`previewId`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         Command.BleStopAdvertising -> {
-            JsonPrimitive("BleStopAdvertising")
+            w.string("BleStopAdvertising")
         }
     }
+}

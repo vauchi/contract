@@ -4,7 +4,6 @@
 package app.vauchi.contract
 
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.JsonElement
 
 /** A refused wire message. Diagnostics must never contain payload values. */
 class ContractJsonException internal constructor(
@@ -15,15 +14,15 @@ class ContractJsonException internal constructor(
 object ContractJson {
     fun decodeCommand(json: String): Command = decode(json, ::readCommand)
 
-    fun encodeCommand(value: Command): String = encode(writeCommand(value), ::readCommand)
+    fun encodeCommand(value: Command): String = encode(value, ::writeCommand)
 
     fun decodeEvent(json: String): Event = decode(json, ::readEvent)
 
-    fun encodeEvent(value: Event): String = encode(writeEvent(value), ::readEvent)
+    fun encodeEvent(value: Event): String = encode(value, ::writeEvent)
 
     fun decodeNode(json: String): PresentationNode = decode(json, ::readPresentationNode)
 
-    fun encodeNode(value: PresentationNode): String = encode(writePresentationNode(value), ::readPresentationNode)
+    fun encodeNode(value: PresentationNode): String = encode(value, ::writePresentationNode)
 
     private fun <T> decode(
         json: String,
@@ -38,13 +37,11 @@ object ContractJson {
         }
 
     private fun <T> encode(
-        json: JsonElement,
-        read: (WireValue) -> T,
+        value: T,
+        write: (WireOutput, T) -> Unit,
     ): String {
-        // Validate constructed values too: public constructors cannot enforce
-        // identifier, finite-number and cross-field schema constraints.
-        val text = json.toString()
-        decode(text, read)
-        return text
+        val output = WireOutput()
+        write(output, value)
+        return output.finish()
     }
 }

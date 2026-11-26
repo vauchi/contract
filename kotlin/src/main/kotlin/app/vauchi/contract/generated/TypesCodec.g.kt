@@ -18,11 +18,23 @@ internal fun readAccessibilitySpec(v: WireValue): AccessibilitySpec {
     )
 }
 
-internal fun writeAccessibilitySpec(value: AccessibilitySpec): JsonElement =
-    Wr.obj(
-        "description" to value.`description`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "label" to JsonPrimitive(value.`label`),
-    )
+internal fun writeAccessibilitySpec(
+    w: WireOutput,
+    value: AccessibilitySpec,
+) {
+    w.beginObject()
+    if (value.`description` != null) {
+        w.name("description")
+        if (value.`description` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`description`, 0, -1)
+        }
+    }
+    w.name("label")
+    w.string(value.`label`, 0, -1)
+    w.endObject()
+}
 
 internal fun readActionSpec(v: WireValue): ActionSpec {
     v.objectFields(setOf("accessibility_label", "enabled", "icon_token", "interaction_id", "label", "shortcut", "tone"), false)
@@ -37,23 +49,53 @@ internal fun readActionSpec(v: WireValue): ActionSpec {
     )
 }
 
-internal fun writeActionSpec(value: ActionSpec): JsonElement =
-    Wr.obj(
-        "accessibility_label" to JsonPrimitive(value.`accessibilityLabel`),
-        "enabled" to JsonPrimitive(value.`enabled`),
-        "icon_token" to value.`iconToken`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "interaction_id" to JsonPrimitive(value.`interactionId`),
-        "label" to JsonPrimitive(value.`label`),
-        "shortcut" to value.`shortcut`?.let { f -> (f?.let { n0 -> writeStandardShortcut(n0) } ?: JsonNull) },
-        "tone" to value.`tone`?.let { f -> writeActionTone(f) },
-    )
+internal fun writeActionSpec(
+    w: WireOutput,
+    value: ActionSpec,
+) {
+    w.beginObject()
+    w.name("accessibility_label")
+    w.string(value.`accessibilityLabel`, 0, -1)
+    w.name("enabled")
+    w.bool(value.`enabled`)
+    if (value.`iconToken` != null) {
+        w.name("icon_token")
+        if (value.`iconToken` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`iconToken`, 0, -1)
+        }
+    }
+    w.name("interaction_id")
+    w.string(Rd.identifier(value.`interactionId`), 0, -1)
+    w.name("label")
+    w.string(value.`label`, 0, -1)
+    if (value.`shortcut` != null) {
+        w.name("shortcut")
+        if (value.`shortcut` == null) {
+            w.nullValue()
+        } else {
+            writeStandardShortcut(w, value.`shortcut`)
+        }
+    }
+    if (value.`tone` != null) {
+        w.name("tone")
+        writeActionTone(w, value.`tone`)
+    }
+    w.endObject()
+}
 
 internal fun readActionTone(v: WireValue): ActionTone {
     val wire = Rd.string(v)
     return ActionTone.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeActionTone(value: ActionTone): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeActionTone(
+    w: WireOutput,
+    value: ActionTone,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readAlertSpec(v: WireValue): AlertSpec {
     v.objectFields(setOf("message", "title"), false)
@@ -63,22 +105,41 @@ internal fun readAlertSpec(v: WireValue): AlertSpec {
     )
 }
 
-internal fun writeAlertSpec(value: AlertSpec): JsonElement =
-    Wr.obj("message" to JsonPrimitive(value.`message`), "title" to JsonPrimitive(value.`title`))
+internal fun writeAlertSpec(
+    w: WireOutput,
+    value: AlertSpec,
+) {
+    w.beginObject()
+    w.name("message")
+    w.string(value.`message`, 0, -1)
+    w.name("title")
+    w.string(value.`title`, 0, -1)
+    w.endObject()
+}
 
 internal fun readAnimationToken(v: WireValue): AnimationToken {
     val wire = Rd.string(v)
     return AnimationToken.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeAnimationToken(value: AnimationToken): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeAnimationToken(
+    w: WireOutput,
+    value: AnimationToken,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readApplicationMenuRole(v: WireValue): ApplicationMenuRole {
     val wire = Rd.string(v)
     return ApplicationMenuRole.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeApplicationMenuRole(value: ApplicationMenuRole): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeApplicationMenuRole(
+    w: WireOutput,
+    value: ApplicationMenuRole,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readApplicationMenuSpec(v: WireValue): ApplicationMenuSpec {
     v.objectFields(setOf("items", "label", "role"), false)
@@ -89,26 +150,47 @@ internal fun readApplicationMenuSpec(v: WireValue): ApplicationMenuSpec {
     )
 }
 
-internal fun writeApplicationMenuSpec(value: ApplicationMenuSpec): JsonElement =
-    Wr.obj(
-        "items" to JsonArray(value.`items`.map { e0 -> writeActionSpec(e0) }),
-        "label" to JsonPrimitive(value.`label`),
-        "role" to writeApplicationMenuRole(value.`role`),
-    )
+internal fun writeApplicationMenuSpec(
+    w: WireOutput,
+    value: ApplicationMenuSpec,
+) {
+    w.beginObject()
+    w.name("items")
+    w.beginArray(value.`items`.size, 0, -1)
+    for (e0 in value.`items`) {
+        writeActionSpec(w, e0)
+    }
+    w.endArray()
+    w.name("label")
+    w.string(value.`label`, 0, -1)
+    w.name("role")
+    writeApplicationMenuRole(w, value.`role`)
+    w.endObject()
+}
 
 internal fun readAudioCapability(v: WireValue): AudioCapability {
     val wire = Rd.string(v)
     return AudioCapability.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeAudioCapability(value: AudioCapability): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeAudioCapability(
+    w: WireOutput,
+    value: AudioCapability,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readBiometricType(v: WireValue): BiometricType {
     val wire = Rd.string(v)
     return BiometricType.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeBiometricType(value: BiometricType): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeBiometricType(
+    w: WireOutput,
+    value: BiometricType,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readBleAdvertisementObservation(v: WireValue): BleAdvertisementObservation {
     v.objectFields(setOf("id", "rssi", "service_uuids"), false)
@@ -119,19 +201,35 @@ internal fun readBleAdvertisementObservation(v: WireValue): BleAdvertisementObse
     )
 }
 
-internal fun writeBleAdvertisementObservation(value: BleAdvertisementObservation): JsonElement =
-    Wr.obj(
-        "id" to JsonPrimitive(value.`id`),
-        "rssi" to Wr.number(value.`rssi`.toString()),
-        "service_uuids" to JsonArray(value.`serviceUuids`.map { e0 -> writeBleServiceUuid(e0) }),
-    )
+internal fun writeBleAdvertisementObservation(
+    w: WireOutput,
+    value: BleAdvertisementObservation,
+) {
+    w.beginObject()
+    w.name("id")
+    w.string(Rd.noControls(value.`id`), 1, 128)
+    w.name("rssi")
+    w.number(value.`rssi`.toString())
+    w.name("service_uuids")
+    w.beginArray(value.`serviceUuids`.size, 0, 32)
+    for (e0 in value.`serviceUuids`) {
+        writeBleServiceUuid(w, e0)
+    }
+    w.endArray()
+    w.endObject()
+}
 
 internal fun readBleLinkDirection(v: WireValue): BleLinkDirection {
     val wire = Rd.string(v)
     return BleLinkDirection.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeBleLinkDirection(value: BleLinkDirection): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeBleLinkDirection(
+    w: WireOutput,
+    value: BleLinkDirection,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readBleServiceUuid(v: WireValue): BleServiceUuid {
     val (tag, payload) = v.variant()
@@ -158,20 +256,68 @@ internal fun readBleServiceUuid(v: WireValue): BleServiceUuid {
     }
 }
 
-internal fun writeBleServiceUuid(value: BleServiceUuid): JsonElement =
+internal fun writeBleServiceUuid(
+    w: WireOutput,
+    value: BleServiceUuid,
+) {
     when (value) {
-        is BleServiceUuid.Uuid16 -> Wr.obj("Uuid16" to JsonArray(value.value.map { e0 -> Wr.number(e0.toString()) }))
-        is BleServiceUuid.Uuid32 -> Wr.obj("Uuid32" to JsonArray(value.value.map { e0 -> Wr.number(e0.toString()) }))
-        is BleServiceUuid.Uuid128 -> Wr.obj("Uuid128" to JsonArray(value.value.map { e0 -> Wr.number(e0.toString()) }))
-        is BleServiceUuid.Normalized -> Wr.obj("Normalized" to JsonArray(value.value.map { e0 -> Wr.number(e0.toString()) }))
+        is BleServiceUuid.Uuid16 -> {
+            w.beginObject()
+            w.name("Uuid16")
+            w.beginArray(value.value.size, 2, 2)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
+
+        is BleServiceUuid.Uuid32 -> {
+            w.beginObject()
+            w.name("Uuid32")
+            w.beginArray(value.value.size, 4, 4)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
+
+        is BleServiceUuid.Uuid128 -> {
+            w.beginObject()
+            w.name("Uuid128")
+            w.beginArray(value.value.size, 16, 16)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
+
+        is BleServiceUuid.Normalized -> {
+            w.beginObject()
+            w.name("Normalized")
+            w.beginArray(value.value.size, 16, 16)
+            for (e0 in value.value) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.endObject()
+        }
     }
+}
 
 internal fun readCameraPurpose(v: WireValue): CameraPurpose {
     val wire = Rd.string(v)
     return CameraPurpose.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeCameraPurpose(value: CameraPurpose): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeCameraPurpose(
+    w: WireOutput,
+    value: CameraPurpose,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readChoiceOption(v: WireValue): ChoiceOption {
     v.objectFields(setOf("id", "label"), false)
@@ -181,15 +327,29 @@ internal fun readChoiceOption(v: WireValue): ChoiceOption {
     )
 }
 
-internal fun writeChoiceOption(value: ChoiceOption): JsonElement =
-    Wr.obj("id" to JsonPrimitive(value.`id`), "label" to JsonPrimitive(value.`label`))
+internal fun writeChoiceOption(
+    w: WireOutput,
+    value: ChoiceOption,
+) {
+    w.beginObject()
+    w.name("id")
+    w.string(value.`id`, 0, -1)
+    w.name("label")
+    w.string(value.`label`, 0, -1)
+    w.endObject()
+}
 
 internal fun readColorScheme(v: WireValue): ColorScheme {
     val wire = Rd.string(v)
     return ColorScheme.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeColorScheme(value: ColorScheme): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeColorScheme(
+    w: WireOutput,
+    value: ColorScheme,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readContextBar(v: WireValue): ContextBar {
     v.objectFields(setOf("back", "info", "navigation", "pinned", "primary", "secondary"), false)
@@ -203,15 +363,61 @@ internal fun readContextBar(v: WireValue): ContextBar {
     )
 }
 
-internal fun writeContextBar(value: ContextBar): JsonElement =
-    Wr.obj(
-        "back" to value.`back`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-        "info" to value.`info`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-        "navigation" to value.`navigation`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-        "pinned" to value.`pinned`?.let { f -> JsonArray(f.map { e0 -> writeActionSpec(e0) }) },
-        "primary" to value.`primary`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-        "secondary" to value.`secondary`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-    )
+internal fun writeContextBar(
+    w: WireOutput,
+    value: ContextBar,
+) {
+    w.beginObject()
+    if (value.`back` != null) {
+        w.name("back")
+        if (value.`back` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`back`)
+        }
+    }
+    if (value.`info` != null) {
+        w.name("info")
+        if (value.`info` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`info`)
+        }
+    }
+    if (value.`navigation` != null) {
+        w.name("navigation")
+        if (value.`navigation` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`navigation`)
+        }
+    }
+    if (value.`pinned` != null) {
+        w.name("pinned")
+        w.beginArray(value.`pinned`.size, 0, -1)
+        for (e0 in value.`pinned`) {
+            writeActionSpec(w, e0)
+        }
+        w.endArray()
+    }
+    if (value.`primary` != null) {
+        w.name("primary")
+        if (value.`primary` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`primary`)
+        }
+    }
+    if (value.`secondary` != null) {
+        w.name("secondary")
+        if (value.`secondary` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`secondary`)
+        }
+    }
+    w.endObject()
+}
 
 internal fun readDeviceCapabilities(v: WireValue): DeviceCapabilities {
     v.objectFields(
@@ -276,23 +482,59 @@ internal fun readDeviceCapabilities(v: WireValue): DeviceCapabilities {
     )
 }
 
-internal fun writeDeviceCapabilities(value: DeviceCapabilities): JsonElement =
-    Wr.obj(
-        "audio" to writeAudioCapability(value.`audio`),
-        "biometric_type" to value.`biometricType`?.let { f -> (f?.let { n0 -> writeBiometricType(n0) } ?: JsonNull) },
-        "camera_count" to value.`cameraCount`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-        "can_seal_user_presence" to JsonPrimitive(value.`canSealUserPresence`),
-        "device_name" to value.`deviceName`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "has_accelerometer" to JsonPrimitive(value.`hasAccelerometer`),
-        "has_biometrics" to JsonPrimitive(value.`hasBiometrics`),
-        "has_ble" to JsonPrimitive(value.`hasBle`),
-        "has_camera" to JsonPrimitive(value.`hasCamera`),
-        "has_internet" to JsonPrimitive(value.`hasInternet`),
-        "has_nfc" to JsonPrimitive(value.`hasNfc`),
-        "has_secure_enclave" to JsonPrimitive(value.`hasSecureEnclave`),
-        "has_usb_port" to JsonPrimitive(value.`hasUsbPort`),
-        "platform" to writePlatform(value.`platform`),
-    )
+internal fun writeDeviceCapabilities(
+    w: WireOutput,
+    value: DeviceCapabilities,
+) {
+    w.beginObject()
+    w.name("audio")
+    writeAudioCapability(w, value.`audio`)
+    if (value.`biometricType` != null) {
+        w.name("biometric_type")
+        if (value.`biometricType` == null) {
+            w.nullValue()
+        } else {
+            writeBiometricType(w, value.`biometricType`)
+        }
+    }
+    if (value.`cameraCount` != null) {
+        w.name("camera_count")
+        if (value.`cameraCount` == null) {
+            w.nullValue()
+        } else {
+            w.number(value.`cameraCount`.toString())
+        }
+    }
+    w.name("can_seal_user_presence")
+    w.bool(value.`canSealUserPresence`)
+    if (value.`deviceName` != null) {
+        w.name("device_name")
+        if (value.`deviceName` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`deviceName`, 0, -1)
+        }
+    }
+    w.name("has_accelerometer")
+    w.bool(value.`hasAccelerometer`)
+    w.name("has_biometrics")
+    w.bool(value.`hasBiometrics`)
+    w.name("has_ble")
+    w.bool(value.`hasBle`)
+    w.name("has_camera")
+    w.bool(value.`hasCamera`)
+    w.name("has_internet")
+    w.bool(value.`hasInternet`)
+    w.name("has_nfc")
+    w.bool(value.`hasNfc`)
+    w.name("has_secure_enclave")
+    w.bool(value.`hasSecureEnclave`)
+    w.name("has_usb_port")
+    w.bool(value.`hasUsbPort`)
+    w.name("platform")
+    writePlatform(w, value.`platform`)
+    w.endObject()
+}
 
 internal fun readDirectEndpoint(v: WireValue): DirectEndpoint {
     v.objectFields(setOf("browse_timeout_ms", "fallback_host", "io_timeout_ms", "port", "service_type"), false)
@@ -305,14 +547,23 @@ internal fun readDirectEndpoint(v: WireValue): DirectEndpoint {
     )
 }
 
-internal fun writeDirectEndpoint(value: DirectEndpoint): JsonElement =
-    Wr.obj(
-        "browse_timeout_ms" to Wr.number(value.`browseTimeoutMs`.toString()),
-        "fallback_host" to JsonPrimitive(value.`fallbackHost`),
-        "io_timeout_ms" to Wr.number(value.`ioTimeoutMs`.toString()),
-        "port" to Wr.number(value.`port`.toString()),
-        "service_type" to JsonPrimitive(value.`serviceType`),
-    )
+internal fun writeDirectEndpoint(
+    w: WireOutput,
+    value: DirectEndpoint,
+) {
+    w.beginObject()
+    w.name("browse_timeout_ms")
+    w.number(value.`browseTimeoutMs`.toString())
+    w.name("fallback_host")
+    w.string(value.`fallbackHost`, 0, -1)
+    w.name("io_timeout_ms")
+    w.number(value.`ioTimeoutMs`.toString())
+    w.name("port")
+    w.number(value.`port`.toString())
+    w.name("service_type")
+    w.string(value.`serviceType`, 0, -1)
+    w.endObject()
+}
 
 internal fun readDocumentSpec(v: WireValue): DocumentSpec {
     v.objectFields(setOf("data", "media_type", "schema"), false)
@@ -323,12 +574,23 @@ internal fun readDocumentSpec(v: WireValue): DocumentSpec {
     )
 }
 
-internal fun writeDocumentSpec(value: DocumentSpec): JsonElement =
-    Wr.obj(
-        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
-        "media_type" to JsonPrimitive(value.`mediaType`),
-        "schema" to JsonPrimitive(value.`schema`),
-    )
+internal fun writeDocumentSpec(
+    w: WireOutput,
+    value: DocumentSpec,
+) {
+    w.beginObject()
+    w.name("data")
+    w.beginArray(value.`data`.size, 0, -1)
+    for (e0 in value.`data`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("media_type")
+    w.string(value.`mediaType`, 0, -1)
+    w.name("schema")
+    w.string(value.`schema`, 0, -1)
+    w.endObject()
+}
 
 internal fun readExportFileSpec(v: WireValue): ExportFileSpec {
     v.objectFields(setOf("data", "mime_type", "suggested_name"), false)
@@ -339,19 +601,35 @@ internal fun readExportFileSpec(v: WireValue): ExportFileSpec {
     )
 }
 
-internal fun writeExportFileSpec(value: ExportFileSpec): JsonElement =
-    Wr.obj(
-        "data" to JsonArray(value.`data`.map { e0 -> Wr.number(e0.toString()) }),
-        "mime_type" to JsonPrimitive(value.`mimeType`),
-        "suggested_name" to JsonPrimitive(value.`suggestedName`),
-    )
+internal fun writeExportFileSpec(
+    w: WireOutput,
+    value: ExportFileSpec,
+) {
+    w.beginObject()
+    w.name("data")
+    w.beginArray(value.`data`.size, 0, -1)
+    for (e0 in value.`data`) {
+        w.number(e0.toString())
+    }
+    w.endArray()
+    w.name("mime_type")
+    w.string(value.`mimeType`, 0, -1)
+    w.name("suggested_name")
+    w.string(value.`suggestedName`, 0, -1)
+    w.endObject()
+}
 
 internal fun readFilePickFailure(v: WireValue): FilePickFailure {
     val wire = Rd.string(v)
     return FilePickFailure.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeFilePickFailure(value: FilePickFailure): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeFilePickFailure(
+    w: WireOutput,
+    value: FilePickFailure,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readFilePickOutcome(v: WireValue): FilePickOutcome {
     if (v.json is JsonPrimitive && v.json.isString) {
@@ -389,26 +667,42 @@ internal fun readFilePickOutcome(v: WireValue): FilePickOutcome {
     }
 }
 
-internal fun writeFilePickOutcome(value: FilePickOutcome): JsonElement =
+internal fun writeFilePickOutcome(
+    w: WireOutput,
+    value: FilePickOutcome,
+) {
     when (value) {
         FilePickOutcome.Cancelled -> {
-            JsonPrimitive("cancelled")
+            w.string("cancelled")
         }
 
         is FilePickOutcome.Selected -> {
-            Wr.obj(
-                "selected" to
-                    Wr.obj(
-                        "bytes" to JsonArray(value.`bytes`.map { e0 -> Wr.number(e0.toString()) }),
-                        "filename" to JsonPrimitive(value.`filename`),
-                    ),
-            )
+            w.beginObject()
+            w.name("selected")
+            w.beginObject()
+            w.name("bytes")
+            w.beginArray(value.`bytes`.size, 0, -1)
+            for (e0 in value.`bytes`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+            w.name("filename")
+            w.string(value.`filename`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is FilePickOutcome.Failed -> {
-            Wr.obj("failed" to Wr.obj("code" to writeFilePickFailure(value.`code`)))
+            w.beginObject()
+            w.name("failed")
+            w.beginObject()
+            w.name("code")
+            writeFilePickFailure(w, value.`code`)
+            w.endObject()
+            w.endObject()
         }
     }
+}
 
 internal fun readFilePickPurpose(v: WireValue): FilePickPurpose {
     if (v.json is JsonPrimitive && v.json.isString) {
@@ -436,26 +730,54 @@ internal fun readFilePickPurpose(v: WireValue): FilePickPurpose {
     }
 }
 
-internal fun writeFilePickPurpose(value: FilePickPurpose): JsonElement =
+internal fun writeFilePickPurpose(
+    w: WireOutput,
+    value: FilePickPurpose,
+) {
     when (value) {
-        FilePickPurpose.ImportContacts -> JsonPrimitive("ImportContacts")
-        FilePickPurpose.ImportBackup -> JsonPrimitive("ImportBackup")
-        is FilePickPurpose.Other -> Wr.obj("Other" to Wr.obj("label_key" to JsonPrimitive(value.`labelKey`)))
+        FilePickPurpose.ImportContacts -> {
+            w.string("ImportContacts")
+        }
+
+        FilePickPurpose.ImportBackup -> {
+            w.string("ImportBackup")
+        }
+
+        is FilePickPurpose.Other -> {
+            w.beginObject()
+            w.name("Other")
+            w.beginObject()
+            w.name("label_key")
+            w.string(value.`labelKey`, 0, -1)
+            w.endObject()
+            w.endObject()
+        }
     }
+}
 
 internal fun readHapticPattern(v: WireValue): HapticPattern {
     val wire = Rd.string(v)
     return HapticPattern.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeHapticPattern(value: HapticPattern): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeHapticPattern(
+    w: WireOutput,
+    value: HapticPattern,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readInputMode(v: WireValue): InputMode {
     val wire = Rd.string(v)
     return InputMode.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeInputMode(value: InputMode): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeInputMode(
+    w: WireOutput,
+    value: InputMode,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readInputValue(v: WireValue): InputValue {
     val (tag, payload) = v.variant()
@@ -482,27 +804,68 @@ internal fun readInputValue(v: WireValue): InputValue {
     }
 }
 
-internal fun writeInputValue(value: InputValue): JsonElement =
+internal fun writeInputValue(
+    w: WireOutput,
+    value: InputValue,
+) {
     when (value) {
-        is InputValue.Text -> Wr.obj("text" to JsonPrimitive(value.value))
-        is InputValue.Boolean -> Wr.obj("boolean" to JsonPrimitive(value.value))
-        is InputValue.Choice -> Wr.obj("choice" to (value.value?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull))
-        is InputValue.Number -> Wr.obj("number" to Wr.number(value.value.toString()))
+        is InputValue.Text -> {
+            w.beginObject()
+            w.name("text")
+            w.string(value.value, 0, -1)
+            w.endObject()
+        }
+
+        is InputValue.Boolean -> {
+            w.beginObject()
+            w.name("boolean")
+            w.bool(value.value)
+            w.endObject()
+        }
+
+        is InputValue.Choice -> {
+            w.beginObject()
+            w.name("choice")
+            if (value.value == null) {
+                w.nullValue()
+            } else {
+                w.string(value.value, 0, -1)
+            }
+            w.endObject()
+        }
+
+        is InputValue.Number -> {
+            w.beginObject()
+            w.name("number")
+            w.number(value.value.toString())
+            w.endObject()
+        }
     }
+}
 
 internal fun readInvocationOutcome(v: WireValue): InvocationOutcome {
     val wire = Rd.string(v)
     return InvocationOutcome.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeInvocationOutcome(value: InvocationOutcome): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeInvocationOutcome(
+    w: WireOutput,
+    value: InvocationOutcome,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readMotionPreference(v: WireValue): MotionPreference {
     val wire = Rd.string(v)
     return MotionPreference.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeMotionPreference(value: MotionPreference): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeMotionPreference(
+    w: WireOutput,
+    value: MotionPreference,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readNavigationItem(v: WireValue): NavigationItem {
     v.objectFields(setOf("accessibility_label", "badge_count", "icon_token", "interaction_id", "label", "selected"), false)
@@ -516,15 +879,31 @@ internal fun readNavigationItem(v: WireValue): NavigationItem {
     )
 }
 
-internal fun writeNavigationItem(value: NavigationItem): JsonElement =
-    Wr.obj(
-        "accessibility_label" to JsonPrimitive(value.`accessibilityLabel`),
-        "badge_count" to Wr.number(value.`badgeCount`.toString()),
-        "icon_token" to value.`iconToken`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "interaction_id" to JsonPrimitive(value.`interactionId`),
-        "label" to JsonPrimitive(value.`label`),
-        "selected" to JsonPrimitive(value.`selected`),
-    )
+internal fun writeNavigationItem(
+    w: WireOutput,
+    value: NavigationItem,
+) {
+    w.beginObject()
+    w.name("accessibility_label")
+    w.string(value.`accessibilityLabel`, 0, -1)
+    w.name("badge_count")
+    w.number(value.`badgeCount`.toString())
+    if (value.`iconToken` != null) {
+        w.name("icon_token")
+        if (value.`iconToken` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`iconToken`, 0, -1)
+        }
+    }
+    w.name("interaction_id")
+    w.string(Rd.identifier(value.`interactionId`), 0, -1)
+    w.name("label")
+    w.string(value.`label`, 0, -1)
+    w.name("selected")
+    w.bool(value.`selected`)
+    w.endObject()
+}
 
 internal fun readNavigationSpec(v: WireValue): NavigationSpec {
     v.objectFields(setOf("items"), false)
@@ -533,15 +912,31 @@ internal fun readNavigationSpec(v: WireValue): NavigationSpec {
     )
 }
 
-internal fun writeNavigationSpec(value: NavigationSpec): JsonElement =
-    Wr.obj("items" to JsonArray(value.`items`.map { e0 -> writeNavigationItem(e0) }))
+internal fun writeNavigationSpec(
+    w: WireOutput,
+    value: NavigationSpec,
+) {
+    w.beginObject()
+    w.name("items")
+    w.beginArray(value.`items`.size, 0, -1)
+    for (e0 in value.`items`) {
+        writeNavigationItem(w, e0)
+    }
+    w.endArray()
+    w.endObject()
+}
 
 internal fun readNetworkCost(v: WireValue): NetworkCost {
     val wire = Rd.string(v)
     return NetworkCost.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeNetworkCost(value: NetworkCost): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeNetworkCost(
+    w: WireOutput,
+    value: NetworkCost,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readNotificationSpec(v: WireValue): NotificationSpec {
     v.objectFields(
@@ -560,38 +955,81 @@ internal fun readNotificationSpec(v: WireValue): NotificationSpec {
     )
 }
 
-internal fun writeNotificationSpec(value: NotificationSpec): JsonElement =
-    Wr.obj(
-        "body" to JsonPrimitive(value.`body`),
-        "category_id" to JsonPrimitive(value.`categoryId`),
-        "category_options" to JsonArray(value.`categoryOptions`.map { e0 -> JsonPrimitive(e0) }),
-        "channel_id" to JsonPrimitive(value.`channelId`),
-        "deep_link_uri" to value.`deepLinkUri`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "notification_id" to value.`notificationId`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "title" to JsonPrimitive(value.`title`),
-        "urgency" to writeNotificationUrgency(value.`urgency`),
-    )
+internal fun writeNotificationSpec(
+    w: WireOutput,
+    value: NotificationSpec,
+) {
+    w.beginObject()
+    w.name("body")
+    w.string(value.`body`, 0, -1)
+    w.name("category_id")
+    w.string(value.`categoryId`, 0, -1)
+    w.name("category_options")
+    w.beginArray(value.`categoryOptions`.size, 0, -1)
+    for (e0 in value.`categoryOptions`) {
+        w.string(e0, 0, -1)
+    }
+    w.endArray()
+    w.name("channel_id")
+    w.string(value.`channelId`, 0, -1)
+    if (value.`deepLinkUri` != null) {
+        w.name("deep_link_uri")
+        if (value.`deepLinkUri` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`deepLinkUri`, 0, -1)
+        }
+    }
+    if (value.`notificationId` != null) {
+        w.name("notification_id")
+        if (value.`notificationId` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`notificationId`, 0, -1)
+        }
+    }
+    w.name("title")
+    w.string(value.`title`, 0, -1)
+    w.name("urgency")
+    writeNotificationUrgency(w, value.`urgency`)
+    w.endObject()
+}
 
 internal fun readNotificationUrgency(v: WireValue): NotificationUrgency {
     val wire = Rd.string(v)
     return NotificationUrgency.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeNotificationUrgency(value: NotificationUrgency): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeNotificationUrgency(
+    w: WireOutput,
+    value: NotificationUrgency,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readOrientation(v: WireValue): Orientation {
     val wire = Rd.string(v)
     return Orientation.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeOrientation(value: Orientation): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeOrientation(
+    w: WireOutput,
+    value: Orientation,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readOverlayKind(v: WireValue): OverlayKind {
     val wire = Rd.string(v)
     return OverlayKind.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeOverlayKind(value: OverlayKind): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeOverlayKind(
+    w: WireOutput,
+    value: OverlayKind,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readOverlaySpec(v: WireValue): OverlaySpec {
     v.objectFields(setOf("body", "close_label", "items", "kind", "title"), false)
@@ -604,35 +1042,81 @@ internal fun readOverlaySpec(v: WireValue): OverlaySpec {
     )
 }
 
-internal fun writeOverlaySpec(value: OverlaySpec): JsonElement =
-    Wr.obj(
-        "body" to value.`body`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "close_label" to value.`closeLabel`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "items" to JsonArray(value.`items`.map { e0 -> writeActionSpec(e0) }),
-        "kind" to writeOverlayKind(value.`kind`),
-        "title" to value.`title`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-    )
+internal fun writeOverlaySpec(
+    w: WireOutput,
+    value: OverlaySpec,
+) {
+    w.beginObject()
+    if (value.`body` != null) {
+        w.name("body")
+        if (value.`body` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`body`, 0, -1)
+        }
+    }
+    if (value.`closeLabel` != null) {
+        w.name("close_label")
+        if (value.`closeLabel` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`closeLabel`, 0, -1)
+        }
+    }
+    w.name("items")
+    w.beginArray(value.`items`.size, 0, -1)
+    for (e0 in value.`items`) {
+        writeActionSpec(w, e0)
+    }
+    w.endArray()
+    w.name("kind")
+    writeOverlayKind(w, value.`kind`)
+    if (value.`title` != null) {
+        w.name("title")
+        if (value.`title` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`title`, 0, -1)
+        }
+    }
+    w.endObject()
+}
 
 internal fun readPaneLayout(v: WireValue): PaneLayout {
     val wire = Rd.string(v)
     return PaneLayout.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePaneLayout(value: PaneLayout): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePaneLayout(
+    w: WireOutput,
+    value: PaneLayout,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPlatform(v: WireValue): Platform {
     val wire = Rd.string(v)
     return Platform.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePlatform(value: Platform): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePlatform(
+    w: WireOutput,
+    value: Platform,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationAxis(v: WireValue): PresentationAxis {
     val wire = Rd.string(v)
     return PresentationAxis.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationAxis(value: PresentationAxis): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationAxis(
+    w: WireOutput,
+    value: PresentationAxis,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationColors(v: WireValue): PresentationColors {
     v.objectFields(
@@ -672,23 +1156,71 @@ internal fun readPresentationColors(v: WireValue): PresentationColors {
     )
 }
 
-internal fun writePresentationColors(value: PresentationColors): JsonElement =
-    Wr.obj(
-        "accent" to JsonPrimitive(value.`accent`),
-        "background" to JsonPrimitive(value.`background`),
-        "border" to JsonPrimitive(value.`border`),
-        "error" to JsonPrimitive(value.`error`),
-        "focus_ring" to value.`focusRing`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "success" to JsonPrimitive(value.`success`),
-        "surface" to JsonPrimitive(value.`surface`),
-        "surface_elevated" to value.`surfaceElevated`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "surface_input" to value.`surfaceInput`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "surface_muted" to value.`surfaceMuted`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "text" to JsonPrimitive(value.`text`),
-        "text_muted" to JsonPrimitive(value.`textMuted`),
-        "text_on_accent" to value.`textOnAccent`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "warning" to JsonPrimitive(value.`warning`),
-    )
+internal fun writePresentationColors(
+    w: WireOutput,
+    value: PresentationColors,
+) {
+    w.beginObject()
+    w.name("accent")
+    w.string(value.`accent`, 0, -1)
+    w.name("background")
+    w.string(value.`background`, 0, -1)
+    w.name("border")
+    w.string(value.`border`, 0, -1)
+    w.name("error")
+    w.string(value.`error`, 0, -1)
+    if (value.`focusRing` != null) {
+        w.name("focus_ring")
+        if (value.`focusRing` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`focusRing`, 0, -1)
+        }
+    }
+    w.name("success")
+    w.string(value.`success`, 0, -1)
+    w.name("surface")
+    w.string(value.`surface`, 0, -1)
+    if (value.`surfaceElevated` != null) {
+        w.name("surface_elevated")
+        if (value.`surfaceElevated` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`surfaceElevated`, 0, -1)
+        }
+    }
+    if (value.`surfaceInput` != null) {
+        w.name("surface_input")
+        if (value.`surfaceInput` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`surfaceInput`, 0, -1)
+        }
+    }
+    if (value.`surfaceMuted` != null) {
+        w.name("surface_muted")
+        if (value.`surfaceMuted` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`surfaceMuted`, 0, -1)
+        }
+    }
+    w.name("text")
+    w.string(value.`text`, 0, -1)
+    w.name("text_muted")
+    w.string(value.`textMuted`, 0, -1)
+    if (value.`textOnAccent` != null) {
+        w.name("text_on_accent")
+        if (value.`textOnAccent` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`textOnAccent`, 0, -1)
+        }
+    }
+    w.name("warning")
+    w.string(value.`warning`, 0, -1)
+    w.endObject()
+}
 
 internal fun readPresentationFonts(v: WireValue): PresentationFonts {
     v.objectFields(setOf("body", "display", "mono"), false)
@@ -699,29 +1231,55 @@ internal fun readPresentationFonts(v: WireValue): PresentationFonts {
     )
 }
 
-internal fun writePresentationFonts(value: PresentationFonts): JsonElement =
-    Wr.obj("body" to JsonPrimitive(value.`body`), "display" to JsonPrimitive(value.`display`), "mono" to JsonPrimitive(value.`mono`))
+internal fun writePresentationFonts(
+    w: WireOutput,
+    value: PresentationFonts,
+) {
+    w.beginObject()
+    w.name("body")
+    w.string(value.`body`, 0, -1)
+    w.name("display")
+    w.string(value.`display`, 0, -1)
+    w.name("mono")
+    w.string(value.`mono`, 0, -1)
+    w.endObject()
+}
 
 internal fun readPresentationImageShape(v: WireValue): PresentationImageShape {
     val wire = Rd.string(v)
     return PresentationImageShape.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationImageShape(value: PresentationImageShape): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationImageShape(
+    w: WireOutput,
+    value: PresentationImageShape,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationInputKind(v: WireValue): PresentationInputKind {
     val wire = Rd.string(v)
     return PresentationInputKind.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationInputKind(value: PresentationInputKind): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationInputKind(
+    w: WireOutput,
+    value: PresentationInputKind,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationListStyle(v: WireValue): PresentationListStyle {
     val wire = Rd.string(v)
     return PresentationListStyle.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationListStyle(value: PresentationListStyle): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationListStyle(
+    w: WireOutput,
+    value: PresentationListStyle,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationNode(v: WireValue): PresentationNode {
     if (v.json is JsonPrimitive && v.json.isString) {
@@ -1049,204 +1607,480 @@ internal fun readPresentationNode(v: WireValue): PresentationNode {
     }
 }
 
-internal fun writePresentationNode(value: PresentationNode): JsonElement =
+internal fun writePresentationNode(
+    w: WireOutput,
+    value: PresentationNode,
+) {
     when (value) {
         PresentationNode.Divider -> {
-            JsonPrimitive("Divider")
+            w.string("Divider")
         }
 
         is PresentationNode.Text -> {
-            Wr.obj(
-                "Text" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "content" to JsonPrimitive(value.`content`),
-                        "id" to value.`id`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "style" to writePresentationTextStyle(value.`style`),
-                    ),
-            )
+            w.beginObject()
+            w.name("Text")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("content")
+            w.string(value.`content`, 0, -1)
+            if (value.`id` != null) {
+                w.name("id")
+                if (value.`id` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(Rd.identifier(value.`id`), 0, -1)
+                }
+            }
+            w.name("style")
+            writePresentationTextStyle(w, value.`style`)
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Input -> {
-            Wr.obj(
-                "Input" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "enabled" to JsonPrimitive(value.`enabled`),
-                        "input_kind" to writePresentationInputKind(value.`inputKind`),
-                        "label" to JsonPrimitive(value.`label`),
-                        "max_length" to value.`maxLength`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                        "placeholder" to value.`placeholder`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "validation_error" to
-                            value.`validationError`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "value" to JsonPrimitive(value.`value`),
-                    ),
-            )
+            w.beginObject()
+            w.name("Input")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("enabled")
+            w.bool(value.`enabled`)
+            w.name("input_kind")
+            writePresentationInputKind(w, value.`inputKind`)
+            w.name("label")
+            w.string(value.`label`, 0, -1)
+            if (value.`maxLength` != null) {
+                w.name("max_length")
+                if (value.`maxLength` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`maxLength`.toString())
+                }
+            }
+            if (value.`placeholder` != null) {
+                w.name("placeholder")
+                if (value.`placeholder` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`placeholder`, 0, -1)
+                }
+            }
+            if (value.`validationError` != null) {
+                w.name("validation_error")
+                if (value.`validationError` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`validationError`, 0, -1)
+                }
+            }
+            w.name("value")
+            w.string(value.`value`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Toggle -> {
-            Wr.obj(
-                "Toggle" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "enabled" to JsonPrimitive(value.`enabled`),
-                        "label" to JsonPrimitive(value.`label`),
-                        "value" to JsonPrimitive(value.`value`),
-                    ),
-            )
+            w.beginObject()
+            w.name("Toggle")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("enabled")
+            w.bool(value.`enabled`)
+            w.name("label")
+            w.string(value.`label`, 0, -1)
+            w.name("value")
+            w.bool(value.`value`)
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Choice -> {
-            Wr.obj(
-                "Choice" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "enabled" to JsonPrimitive(value.`enabled`),
-                        "label" to JsonPrimitive(value.`label`),
-                        "options" to JsonArray(value.`options`.map { e0 -> writeChoiceOption(e0) }),
-                        "selected" to value.`selected`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                    ),
-            )
+            w.beginObject()
+            w.name("Choice")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("enabled")
+            w.bool(value.`enabled`)
+            w.name("label")
+            w.string(value.`label`, 0, -1)
+            w.name("options")
+            w.beginArray(value.`options`.size, 0, -1)
+            for (e0 in value.`options`) {
+                writeChoiceOption(w, e0)
+            }
+            w.endArray()
+            if (value.`selected` != null) {
+                w.name("selected")
+                if (value.`selected` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`selected`, 0, -1)
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Group -> {
-            Wr.obj(
-                "Group" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "axis" to writePresentationAxis(value.`axis`),
-                        "children" to JsonArray(value.`children`.map { e0 -> writePresentationNode(e0) }),
-                        "id" to value.`id`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "label" to value.`label`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                    ),
-            )
+            w.beginObject()
+            w.name("Group")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("axis")
+            writePresentationAxis(w, value.`axis`)
+            w.name("children")
+            w.beginArray(value.`children`.size, 0, -1)
+            for (e0 in value.`children`) {
+                writePresentationNode(w, e0)
+            }
+            w.endArray()
+            if (value.`id` != null) {
+                w.name("id")
+                if (value.`id` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(Rd.identifier(value.`id`), 0, -1)
+                }
+            }
+            if (value.`label` != null) {
+                w.name("label")
+                if (value.`label` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`label`, 0, -1)
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.List -> {
-            Wr.obj(
-                "List" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "id" to JsonPrimitive(value.`id`),
-                        "label" to value.`label`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "paging" to value.`paging`?.let { f -> (f?.let { n0 -> writePresentationPaging(n0) } ?: JsonNull) },
-                        "rows" to JsonArray(value.`rows`.map { e0 -> writePresentationRow(e0) }),
-                        "search_placeholder" to
-                            value.`searchPlaceholder`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "searchable" to JsonPrimitive(value.`searchable`),
-                        "style" to value.`style`?.let { f -> writePresentationListStyle(f) },
-                    ),
-            )
+            w.beginObject()
+            w.name("List")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("id")
+            w.string(Rd.identifier(value.`id`), 0, -1)
+            if (value.`label` != null) {
+                w.name("label")
+                if (value.`label` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`label`, 0, -1)
+                }
+            }
+            if (value.`paging` != null) {
+                w.name("paging")
+                if (value.`paging` == null) {
+                    w.nullValue()
+                } else {
+                    writePresentationPaging(w, value.`paging`)
+                }
+            }
+            w.name("rows")
+            w.beginArray(value.`rows`.size, 0, -1)
+            for (e0 in value.`rows`) {
+                writePresentationRow(w, e0)
+            }
+            w.endArray()
+            if (value.`searchPlaceholder` != null) {
+                w.name("search_placeholder")
+                if (value.`searchPlaceholder` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`searchPlaceholder`, 0, -1)
+                }
+            }
+            w.name("searchable")
+            w.bool(value.`searchable`)
+            if (value.`style` != null) {
+                w.name("style")
+                writePresentationListStyle(w, value.`style`)
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Image -> {
-            Wr.obj(
-                "Image" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "activation" to value.`activation`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-                        "brightness" to Wr.number(value.`brightness`.toString()),
-                        "data" to
-                            value.`data`?.let { f ->
-                                (f?.let { n0 -> JsonArray(n0.map { e1 -> Wr.number(e1.toString()) }) } ?: JsonNull)
-                            },
-                        "fallback_text" to value.`fallbackText`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "id" to value.`id`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "shape" to writePresentationImageShape(value.`shape`),
-                        "size" to
-                            value.`size`?.let { f ->
-                                (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull)
-                            },
-                    ),
-            )
+            w.beginObject()
+            w.name("Image")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            if (value.`activation` != null) {
+                w.name("activation")
+                if (value.`activation` == null) {
+                    w.nullValue()
+                } else {
+                    writeActionSpec(w, value.`activation`)
+                }
+            }
+            w.name("brightness")
+            w.number(value.`brightness`.toString())
+            if (value.`data` != null) {
+                w.name("data")
+                if (value.`data` == null) {
+                    w.nullValue()
+                } else {
+                    w.beginArray(value.`data`.size, 0, -1)
+                    for (e0 in value.`data`) {
+                        w.number(e0.toString())
+                    }
+                    w.endArray()
+                }
+            }
+            if (value.`fallbackText` != null) {
+                w.name("fallback_text")
+                if (value.`fallbackText` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`fallbackText`, 0, -1)
+                }
+            }
+            if (value.`id` != null) {
+                w.name("id")
+                if (value.`id` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(Rd.identifier(value.`id`), 0, -1)
+                }
+            }
+            w.name("shape")
+            writePresentationImageShape(w, value.`shape`)
+            if (value.`size` != null) {
+                w.name("size")
+                if (value.`size` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`size`.toString())
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Status -> {
-            Wr.obj(
-                "Status" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "activation" to value.`activation`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-                        "badge" to value.`badge`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "detail" to value.`detail`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "icon_token" to value.`iconToken`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "id" to value.`id`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "title" to JsonPrimitive(value.`title`),
-                        "tone" to writePresentationTone(value.`tone`),
-                    ),
-            )
+            w.beginObject()
+            w.name("Status")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            if (value.`activation` != null) {
+                w.name("activation")
+                if (value.`activation` == null) {
+                    w.nullValue()
+                } else {
+                    writeActionSpec(w, value.`activation`)
+                }
+            }
+            if (value.`badge` != null) {
+                w.name("badge")
+                if (value.`badge` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`badge`, 0, -1)
+                }
+            }
+            if (value.`detail` != null) {
+                w.name("detail")
+                if (value.`detail` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`detail`, 0, -1)
+                }
+            }
+            if (value.`iconToken` != null) {
+                w.name("icon_token")
+                if (value.`iconToken` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`iconToken`, 0, -1)
+                }
+            }
+            if (value.`id` != null) {
+                w.name("id")
+                if (value.`id` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(Rd.identifier(value.`id`), 0, -1)
+                }
+            }
+            w.name("title")
+            w.string(value.`title`, 0, -1)
+            w.name("tone")
+            writePresentationTone(w, value.`tone`)
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Qr -> {
-            Wr.obj(
-                "Qr" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "capture_placeholder" to value.`capturePlaceholder`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "capture_submit_label" to value.`captureSubmitLabel`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "error_correction" to
-                            value.`errorCorrection`?.let { f -> (f?.let { n0 -> writePresentationQrErrorCorrection(n0) } ?: JsonNull) },
-                        "id" to JsonPrimitive(value.`id`),
-                        "label" to value.`label`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "payloads" to JsonArray(value.`payloads`.map { e0 -> JsonPrimitive(e0) }),
-                        "placement" to
-                            value.`placement`?.let { f -> (f?.let { n0 -> writeQrPlacement(n0) } ?: JsonNull) },
-                        "purpose" to writePresentationQrPurpose(value.`purpose`),
-                        "size" to
-                            value.`size`?.let { f ->
-                                (
-                                    f?.let { n0 -> writePresentationQrSize(n0) }
-                                        ?: JsonNull
-                                )
-                            },
-                    ),
-            )
+            w.beginObject()
+            w.name("Qr")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            if (value.`capturePlaceholder` != null) {
+                w.name("capture_placeholder")
+                if (value.`capturePlaceholder` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`capturePlaceholder`, 0, -1)
+                }
+            }
+            if (value.`captureSubmitLabel` != null) {
+                w.name("capture_submit_label")
+                if (value.`captureSubmitLabel` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`captureSubmitLabel`, 0, -1)
+                }
+            }
+            if (value.`errorCorrection` != null) {
+                w.name("error_correction")
+                if (value.`errorCorrection` == null) {
+                    w.nullValue()
+                } else {
+                    writePresentationQrErrorCorrection(w, value.`errorCorrection`)
+                }
+            }
+            w.name("id")
+            w.string(Rd.identifier(value.`id`), 0, -1)
+            if (value.`label` != null) {
+                w.name("label")
+                if (value.`label` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`label`, 0, -1)
+                }
+            }
+            w.name("payloads")
+            w.beginArray(value.`payloads`.size, 0, -1)
+            for (e0 in value.`payloads`) {
+                w.string(e0, 0, -1)
+            }
+            w.endArray()
+            if (value.`placement` != null) {
+                w.name("placement")
+                if (value.`placement` == null) {
+                    w.nullValue()
+                } else {
+                    writeQrPlacement(w, value.`placement`)
+                }
+            }
+            w.name("purpose")
+            writePresentationQrPurpose(w, value.`purpose`)
+            if (value.`size` != null) {
+                w.name("size")
+                if (value.`size` == null) {
+                    w.nullValue()
+                } else {
+                    writePresentationQrSize(w, value.`size`)
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Confirmation -> {
-            Wr.obj(
-                "Confirmation" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "cancel" to writeActionSpec(value.`cancel`),
-                        "confirm" to writeActionSpec(value.`confirm`),
-                        "id" to JsonPrimitive(value.`id`),
-                        "warning" to JsonPrimitive(value.`warning`),
-                    ),
-            )
+            w.beginObject()
+            w.name("Confirmation")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("cancel")
+            writeActionSpec(w, value.`cancel`)
+            w.name("confirm")
+            writeActionSpec(w, value.`confirm`)
+            w.name("id")
+            w.string(Rd.identifier(value.`id`), 0, -1)
+            w.name("warning")
+            w.string(value.`warning`, 0, -1)
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Slider -> {
-            Wr.obj(
-                "Slider" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "binding_id" to JsonPrimitive(value.`bindingId`),
-                        "label" to JsonPrimitive(value.`label`),
-                        "maximum" to Wr.number(value.`maximum`.toString()),
-                        "maximum_icon" to value.`maximumIcon`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "minimum" to Wr.number(value.`minimum`.toString()),
-                        "minimum_icon" to value.`minimumIcon`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "step" to value.`step`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                        "value" to Wr.number(value.`value`.toString()),
-                    ),
-            )
+            w.beginObject()
+            w.name("Slider")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            w.name("binding_id")
+            w.string(Rd.identifier(value.`bindingId`), 0, -1)
+            w.name("label")
+            w.string(value.`label`, 0, -1)
+            w.name("maximum")
+            w.number(value.`maximum`.toString())
+            if (value.`maximumIcon` != null) {
+                w.name("maximum_icon")
+                if (value.`maximumIcon` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`maximumIcon`, 0, -1)
+                }
+            }
+            w.name("minimum")
+            w.number(value.`minimum`.toString())
+            if (value.`minimumIcon` != null) {
+                w.name("minimum_icon")
+                if (value.`minimumIcon` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`minimumIcon`, 0, -1)
+                }
+            }
+            if (value.`step` != null) {
+                w.name("step")
+                if (value.`step` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`step`.toString())
+                }
+            }
+            w.name("value")
+            w.number(value.`value`.toString())
+            w.endObject()
+            w.endObject()
         }
 
         is PresentationNode.Progress -> {
-            Wr.obj(
-                "Progress" to
-                    Wr.obj(
-                        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-                        "label" to value.`label`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-                        "value" to value.`value`?.let { f -> (f?.let { n0 -> Wr.number(n0.toString()) } ?: JsonNull) },
-                    ),
-            )
+            w.beginObject()
+            w.name("Progress")
+            w.beginObject()
+            w.name("accessibility")
+            writeAccessibilitySpec(w, value.`accessibility`)
+            if (value.`label` != null) {
+                w.name("label")
+                if (value.`label` == null) {
+                    w.nullValue()
+                } else {
+                    w.string(value.`label`, 0, -1)
+                }
+            }
+            if (value.`value` != null) {
+                w.name("value")
+                if (value.`value` == null) {
+                    w.nullValue()
+                } else {
+                    w.number(value.`value`.toString())
+                }
+            }
+            w.endObject()
+            w.endObject()
         }
     }
+}
 
 internal fun readPresentationPaging(v: WireValue): PresentationPaging {
     v.objectFields(setOf("offset", "total_count", "window"), false)
@@ -1257,12 +2091,19 @@ internal fun readPresentationPaging(v: WireValue): PresentationPaging {
     )
 }
 
-internal fun writePresentationPaging(value: PresentationPaging): JsonElement =
-    Wr.obj(
-        "offset" to Wr.number(value.`offset`.toString()),
-        "total_count" to Wr.number(value.`totalCount`.toString()),
-        "window" to Wr.number(value.`window`.toString()),
-    )
+internal fun writePresentationPaging(
+    w: WireOutput,
+    value: PresentationPaging,
+) {
+    w.beginObject()
+    w.name("offset")
+    w.number(value.`offset`.toString())
+    w.name("total_count")
+    w.number(value.`totalCount`.toString())
+    w.name("window")
+    w.number(value.`window`.toString())
+    w.endObject()
+}
 
 internal fun readPresentationProfile(v: WireValue): PresentationProfile {
     v.objectFields(setOf("active_surface", "detail_surface", "pane_layout", "primary_surface", "window_class", "window_title"), false)
@@ -1277,36 +2118,73 @@ internal fun readPresentationProfile(v: WireValue): PresentationProfile {
     )
 }
 
-internal fun writePresentationProfile(value: PresentationProfile): JsonElement =
-    Wr.obj(
-        "active_surface" to JsonPrimitive(value.`activeSurface`),
-        "detail_surface" to value.`detailSurface`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "pane_layout" to writePaneLayout(value.`paneLayout`),
-        "primary_surface" to JsonPrimitive(value.`primarySurface`),
-        "window_class" to writeWindowClass(value.`windowClass`),
-        "window_title" to value.`windowTitle`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-    )
+internal fun writePresentationProfile(
+    w: WireOutput,
+    value: PresentationProfile,
+) {
+    w.beginObject()
+    w.name("active_surface")
+    w.string(Rd.identifier(value.`activeSurface`), 0, -1)
+    if (value.`detailSurface` != null) {
+        w.name("detail_surface")
+        if (value.`detailSurface` == null) {
+            w.nullValue()
+        } else {
+            w.string(Rd.identifier(value.`detailSurface`), 0, -1)
+        }
+    }
+    w.name("pane_layout")
+    writePaneLayout(w, value.`paneLayout`)
+    w.name("primary_surface")
+    w.string(Rd.identifier(value.`primarySurface`), 0, -1)
+    w.name("window_class")
+    writeWindowClass(w, value.`windowClass`)
+    if (value.`windowTitle` != null) {
+        w.name("window_title")
+        if (value.`windowTitle` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`windowTitle`, 0, -1)
+        }
+    }
+    w.endObject()
+}
 
 internal fun readPresentationQrErrorCorrection(v: WireValue): PresentationQrErrorCorrection {
     val wire = Rd.string(v)
     return PresentationQrErrorCorrection.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationQrErrorCorrection(value: PresentationQrErrorCorrection): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationQrErrorCorrection(
+    w: WireOutput,
+    value: PresentationQrErrorCorrection,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationQrPurpose(v: WireValue): PresentationQrPurpose {
     val wire = Rd.string(v)
     return PresentationQrPurpose.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationQrPurpose(value: PresentationQrPurpose): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationQrPurpose(
+    w: WireOutput,
+    value: PresentationQrPurpose,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationQrSize(v: WireValue): PresentationQrSize {
     val wire = Rd.string(v)
     return PresentationQrSize.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationQrSize(value: PresentationQrSize): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationQrSize(
+    w: WireOutput,
+    value: PresentationQrSize,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationRow(v: WireValue): PresentationRow {
     v.objectFields(
@@ -1355,41 +2233,105 @@ internal fun readPresentationRow(v: WireValue): PresentationRow {
     )
 }
 
-internal fun writePresentationRow(value: PresentationRow): JsonElement =
-    Wr.obj(
-        "accessibility" to writeAccessibilitySpec(value.`accessibility`),
-        "activation" to value.`activation`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-        "controls" to JsonArray(value.`controls`.map { e0 -> writePresentationNode(e0) }),
-        "detail" to value.`detail`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "enabled" to JsonPrimitive(value.`enabled`),
-        "fallback_text" to value.`fallbackText`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "icon_token" to value.`iconToken`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "image_data" to
-            value.`imageData`?.let { f ->
-                (
-                    f?.let { n0 -> JsonArray(n0.map { e1 -> Wr.number(e1.toString()) }) }
-                        ?: JsonNull
-                )
-            },
-        "info" to value.`info`?.let { f -> (f?.let { n0 -> writeActionSpec(n0) } ?: JsonNull) },
-        "secondary_actions" to
-            JsonArray(
-                value.`secondaryActions`.map { e0 ->
-                    writeActionSpec(e0)
-                },
-            ),
-        "selected" to JsonPrimitive(value.`selected`),
-        "subtitle" to
-            value.`subtitle`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "title" to JsonPrimitive(value.`title`),
-    )
+internal fun writePresentationRow(
+    w: WireOutput,
+    value: PresentationRow,
+) {
+    w.beginObject()
+    w.name("accessibility")
+    writeAccessibilitySpec(w, value.`accessibility`)
+    if (value.`activation` != null) {
+        w.name("activation")
+        if (value.`activation` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`activation`)
+        }
+    }
+    w.name("controls")
+    w.beginArray(value.`controls`.size, 0, -1)
+    for (e0 in value.`controls`) {
+        writePresentationNode(w, e0)
+    }
+    w.endArray()
+    if (value.`detail` != null) {
+        w.name("detail")
+        if (value.`detail` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`detail`, 0, -1)
+        }
+    }
+    w.name("enabled")
+    w.bool(value.`enabled`)
+    if (value.`fallbackText` != null) {
+        w.name("fallback_text")
+        if (value.`fallbackText` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`fallbackText`, 0, -1)
+        }
+    }
+    if (value.`iconToken` != null) {
+        w.name("icon_token")
+        if (value.`iconToken` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`iconToken`, 0, -1)
+        }
+    }
+    if (value.`imageData` != null) {
+        w.name("image_data")
+        if (value.`imageData` == null) {
+            w.nullValue()
+        } else {
+            w.beginArray(value.`imageData`.size, 0, -1)
+            for (e0 in value.`imageData`) {
+                w.number(e0.toString())
+            }
+            w.endArray()
+        }
+    }
+    if (value.`info` != null) {
+        w.name("info")
+        if (value.`info` == null) {
+            w.nullValue()
+        } else {
+            writeActionSpec(w, value.`info`)
+        }
+    }
+    w.name("secondary_actions")
+    w.beginArray(value.`secondaryActions`.size, 0, -1)
+    for (e0 in value.`secondaryActions`) {
+        writeActionSpec(w, e0)
+    }
+    w.endArray()
+    w.name("selected")
+    w.bool(value.`selected`)
+    if (value.`subtitle` != null) {
+        w.name("subtitle")
+        if (value.`subtitle` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`subtitle`, 0, -1)
+        }
+    }
+    w.name("title")
+    w.string(value.`title`, 0, -1)
+    w.endObject()
+}
 
 internal fun readPresentationTextStyle(v: WireValue): PresentationTextStyle {
     val wire = Rd.string(v)
     return PresentationTextStyle.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationTextStyle(value: PresentationTextStyle): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationTextStyle(
+    w: WireOutput,
+    value: PresentationTextStyle,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readPresentationTokens(v: WireValue): PresentationTokens {
     v.objectFields(
@@ -1407,23 +2349,45 @@ internal fun readPresentationTokens(v: WireValue): PresentationTokens {
     )
 }
 
-internal fun writePresentationTokens(value: PresentationTokens): JsonElement =
-    Wr.obj(
-        "colors" to writePresentationColors(value.`colors`),
-        "corner_radius" to Wr.number(value.`cornerRadius`.toString()),
-        "fonts" to value.`fonts`?.let { f -> (f?.let { n0 -> writePresentationFonts(n0) } ?: JsonNull) },
-        "minimum_target_size" to Wr.number(value.`minimumTargetSize`.toString()),
-        "spacing_large" to Wr.number(value.`spacingLarge`.toString()),
-        "spacing_medium" to Wr.number(value.`spacingMedium`.toString()),
-        "spacing_small" to Wr.number(value.`spacingSmall`.toString()),
-    )
+internal fun writePresentationTokens(
+    w: WireOutput,
+    value: PresentationTokens,
+) {
+    w.beginObject()
+    w.name("colors")
+    writePresentationColors(w, value.`colors`)
+    w.name("corner_radius")
+    w.number(value.`cornerRadius`.toString())
+    if (value.`fonts` != null) {
+        w.name("fonts")
+        if (value.`fonts` == null) {
+            w.nullValue()
+        } else {
+            writePresentationFonts(w, value.`fonts`)
+        }
+    }
+    w.name("minimum_target_size")
+    w.number(value.`minimumTargetSize`.toString())
+    w.name("spacing_large")
+    w.number(value.`spacingLarge`.toString())
+    w.name("spacing_medium")
+    w.number(value.`spacingMedium`.toString())
+    w.name("spacing_small")
+    w.number(value.`spacingSmall`.toString())
+    w.endObject()
+}
 
 internal fun readPresentationTone(v: WireValue): PresentationTone {
     val wire = Rd.string(v)
     return PresentationTone.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writePresentationTone(value: PresentationTone): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writePresentationTone(
+    w: WireOutput,
+    value: PresentationTone,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readQrPlacement(v: WireValue): QrPlacement {
     v.objectFields(setOf("size", "x", "y"), true)
@@ -1436,22 +2400,44 @@ internal fun readQrPlacement(v: WireValue): QrPlacement {
     )
 }
 
-internal fun writeQrPlacement(value: QrPlacement): JsonElement =
-    Wr.obj("size" to Wr.number(value.`size`.toString()), "x" to Wr.number(value.`x`.toString()), "y" to Wr.number(value.`y`.toString()))
+internal fun writeQrPlacement(
+    w: WireOutput,
+    value: QrPlacement,
+) {
+    val checked = Rd.qrPlacement(value)
+    w.beginObject()
+    w.name("size")
+    w.number(checked.`size`.toString())
+    w.name("x")
+    w.number(checked.`x`.toString())
+    w.name("y")
+    w.number(checked.`y`.toString())
+    w.endObject()
+}
 
 internal fun readSoundToken(v: WireValue): SoundToken {
     val wire = Rd.string(v)
     return SoundToken.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeSoundToken(value: SoundToken): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeSoundToken(
+    w: WireOutput,
+    value: SoundToken,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readStandardShortcut(v: WireValue): StandardShortcut {
     val wire = Rd.string(v)
     return StandardShortcut.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeStandardShortcut(value: StandardShortcut): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeStandardShortcut(
+    w: WireOutput,
+    value: StandardShortcut,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readStatusItemSpec(v: WireValue): StatusItemSpec {
     v.objectFields(setOf("items", "show_window_label", "tooltip"), false)
@@ -1462,19 +2448,35 @@ internal fun readStatusItemSpec(v: WireValue): StatusItemSpec {
     )
 }
 
-internal fun writeStatusItemSpec(value: StatusItemSpec): JsonElement =
-    Wr.obj(
-        "items" to JsonArray(value.`items`.map { e0 -> writeActionSpec(e0) }),
-        "show_window_label" to JsonPrimitive(value.`showWindowLabel`),
-        "tooltip" to JsonPrimitive(value.`tooltip`),
-    )
+internal fun writeStatusItemSpec(
+    w: WireOutput,
+    value: StatusItemSpec,
+) {
+    w.beginObject()
+    w.name("items")
+    w.beginArray(value.`items`.size, 0, -1)
+    for (e0 in value.`items`) {
+        writeActionSpec(w, e0)
+    }
+    w.endArray()
+    w.name("show_window_label")
+    w.string(value.`showWindowLabel`, 0, -1)
+    w.name("tooltip")
+    w.string(value.`tooltip`, 0, -1)
+    w.endObject()
+}
 
 internal fun readSurfaceLayout(v: WireValue): SurfaceLayout {
     val wire = Rd.string(v)
     return SurfaceLayout.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeSurfaceLayout(value: SurfaceLayout): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeSurfaceLayout(
+    w: WireOutput,
+    value: SurfaceLayout,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readSurfaceSpec(v: WireValue): SurfaceSpec {
     v.objectFields(setOf("accessibility_label", "layout", "nodes", "revision", "subtitle", "surface_id", "title", "tokens"), false)
@@ -1490,17 +2492,39 @@ internal fun readSurfaceSpec(v: WireValue): SurfaceSpec {
     )
 }
 
-internal fun writeSurfaceSpec(value: SurfaceSpec): JsonElement =
-    Wr.obj(
-        "accessibility_label" to JsonPrimitive(value.`accessibilityLabel`),
-        "layout" to writeSurfaceLayout(value.`layout`),
-        "nodes" to JsonArray(value.`nodes`.map { e0 -> writePresentationNode(e0) }),
-        "revision" to Wr.number(value.`revision`.toString()),
-        "subtitle" to value.`subtitle`?.let { f -> (f?.let { n0 -> JsonPrimitive(n0) } ?: JsonNull) },
-        "surface_id" to JsonPrimitive(value.`surfaceId`),
-        "title" to JsonPrimitive(value.`title`),
-        "tokens" to writePresentationTokens(value.`tokens`),
-    )
+internal fun writeSurfaceSpec(
+    w: WireOutput,
+    value: SurfaceSpec,
+) {
+    w.beginObject()
+    w.name("accessibility_label")
+    w.string(value.`accessibilityLabel`, 0, -1)
+    w.name("layout")
+    writeSurfaceLayout(w, value.`layout`)
+    w.name("nodes")
+    w.beginArray(value.`nodes`.size, 0, -1)
+    for (e0 in value.`nodes`) {
+        writePresentationNode(w, e0)
+    }
+    w.endArray()
+    w.name("revision")
+    w.number(value.`revision`.toString())
+    if (value.`subtitle` != null) {
+        w.name("subtitle")
+        if (value.`subtitle` == null) {
+            w.nullValue()
+        } else {
+            w.string(value.`subtitle`, 0, -1)
+        }
+    }
+    w.name("surface_id")
+    w.string(Rd.identifier(value.`surfaceId`), 0, -1)
+    w.name("title")
+    w.string(value.`title`, 0, -1)
+    w.name("tokens")
+    writePresentationTokens(w, value.`tokens`)
+    w.endObject()
+}
 
 internal fun readToastSpec(v: WireValue): ToastSpec {
     v.objectFields(setOf("message"), false)
@@ -1509,18 +2533,36 @@ internal fun readToastSpec(v: WireValue): ToastSpec {
     )
 }
 
-internal fun writeToastSpec(value: ToastSpec): JsonElement = Wr.obj("message" to JsonPrimitive(value.`message`))
+internal fun writeToastSpec(
+    w: WireOutput,
+    value: ToastSpec,
+) {
+    w.beginObject()
+    w.name("message")
+    w.string(value.`message`, 0, -1)
+    w.endObject()
+}
 
 internal fun readUserPresenceBinding(v: WireValue): UserPresenceBinding {
     val wire = Rd.string(v)
     return UserPresenceBinding.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeUserPresenceBinding(value: UserPresenceBinding): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeUserPresenceBinding(
+    w: WireOutput,
+    value: UserPresenceBinding,
+) {
+    w.string(value.wireValue)
+}
 
 internal fun readWindowClass(v: WireValue): WindowClass {
     val wire = Rd.string(v)
     return WindowClass.entries.firstOrNull { it.wireValue == wire } ?: refused()
 }
 
-internal fun writeWindowClass(value: WindowClass): JsonElement = JsonPrimitive(value.wireValue)
+internal fun writeWindowClass(
+    w: WireOutput,
+    value: WindowClass,
+) {
+    w.string(value.wireValue)
+}

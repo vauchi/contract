@@ -30,6 +30,10 @@ codec_spec = importlib.util.spec_from_file_location("kotlin_codec", Path(__file_
 codec = importlib.util.module_from_spec(codec_spec)
 codec_spec.loader.exec_module(codec)
 
+writer_spec = importlib.util.spec_from_file_location("kotlin_writer", Path(__file__).with_name("kotlin-writer.py"))
+writer = importlib.util.module_from_spec(writer_spec)
+writer_spec.loader.exec_module(writer)
+
 
 def nullable(name):
     return name if name.endswith("?") else name + "?"
@@ -168,7 +172,7 @@ class Generator:
         result = {"Types.g.kt": self.file(blocks)}
         for name, schema in self.model.roots.items():
             result[f"{name}.g.kt"] = self.file([self.emit_union(name, schema)])
-        result.update(codec.Codec(self, reference, literal, property_name).generate())
+        result.update(codec.Codec(self, reference, literal, property_name, writer.Writer).generate())
         result["ContractInfo.g.kt"] = self.file([[
             "object ContractInfo {",
             f"    const val VERSION: kotlin.String = {literal(self.version)}",

@@ -7,12 +7,13 @@ import json
 
 
 class Codec:
-    def __init__(self, generator, reference, literal, property_name):
+    def __init__(self, generator, reference, literal, property_name, writer):
         self.generator = generator
         self.model = generator.model
         self.reference = reference
         self.literal = literal
         self.property_name = property_name
+        self.writer = writer(self)
 
     @staticmethod
     def nonnull(schema):
@@ -140,20 +141,7 @@ class Codec:
                         lines += [f"            {construct}({self.read(payload, 'payload', name + '.' + wire)})"]
                     lines.append("        }")
             lines += ["        else -> refused()", "    }"]
-        lines += ["}", "", f"internal fun write{name}(value: {name}): JsonElement ="]
-        if kind == "struct":
-            lines += ["    " + self.write_object(schema)]
-        elif kind == "enum":
-            lines += ["    JsonPrimitive(value.wireValue)"]
-        else:
-            lines += ["    when (value) {"]
-            for variant in self.model.variants(schema, name):
-                for wire in variant.get("enum", []):
-                    lines += [f"        {name}.{self.reference.pascal(wire)} -> JsonPrimitive({self.literal(wire)})"]
-                for wire, payload in variant.get("properties", {}).items():
-                    write = self.write_object(payload) if payload.get("type") == "object" else self.write(payload, "value.value")
-                    lines += [f"        is {name}.{self.reference.pascal(wire)} -> Wr.obj({self.literal(wire)} to {write})"]
-            lines += ["    }"]
+        lines += ["}", "", *self.writer.emit(name, schema, kind)]
         return lines
 
     def generate(self):
