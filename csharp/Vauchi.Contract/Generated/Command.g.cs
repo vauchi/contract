@@ -418,7 +418,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("BleStartAdvertising");
                 w.WriteStartObject();
                 w.WritePropertyName("payload");
-                Wr.Bytes(w, Payload);
+                Wr.Bytes(w, Payload, 0, -1);
                 w.WritePropertyName("service_uuid");
                 w.WriteStringValue(ServiceUuid);
                 w.WriteEndObject();
@@ -572,7 +572,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("BleWriteCharacteristic");
                 w.WriteStartObject();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WritePropertyName("device_id");
                 w.WriteStringValue(DeviceId);
                 w.WritePropertyName("direction");
@@ -747,14 +747,16 @@ namespace Vauchi.Contract
                 w.WritePropertyName("NfcActivate");
                 w.WriteStartObject();
                 w.WritePropertyName("apdus");
+                if (Apdus is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Apdus.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Apdus)
                 {
-                    Wr.Bytes(w, e0);
+                    Wr.Bytes(w, e0, 0, -1);
                 }
                 w.WriteEndArray();
                 w.WritePropertyName("payload");
-                Wr.Bytes(w, Payload);
+                Wr.Bytes(w, Payload, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -806,14 +808,16 @@ namespace Vauchi.Contract
                 w.WritePropertyName("NfcSendApdu");
                 w.WriteStartObject();
                 w.WritePropertyName("apdus");
+                if (Apdus is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Apdus.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Apdus)
                 {
-                    Wr.Bytes(w, e0);
+                    Wr.Bytes(w, e0, 0, -1);
                 }
                 w.WriteEndArray();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -867,6 +871,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("sample_rate");
                 w.WriteNumberValue(SampleRate);
                 w.WritePropertyName("samples");
+                if (Samples is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Samples.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Samples)
                 {
@@ -994,11 +1000,11 @@ namespace Vauchi.Contract
                 w.WritePropertyName("RelayEscrowDeposit");
                 w.WriteStartObject();
                 w.WritePropertyName("encrypted_card");
-                Wr.Bytes(w, EncryptedCard);
+                Wr.Bytes(w, EncryptedCard, 0, -1);
                 w.WritePropertyName("gate_hash");
-                Wr.Bytes(w, GateHash);
+                Wr.Bytes(w, GateHash, 0, -1);
                 w.WritePropertyName("slot_hash");
-                Wr.Bytes(w, SlotHash);
+                Wr.Bytes(w, SlotHash, 0, -1);
                 w.WritePropertyName("ttl_seconds");
                 w.WriteNumberValue(TtlSeconds);
                 w.WriteEndObject();
@@ -1055,7 +1061,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("RelayEscrowCheck");
                 w.WriteStartObject();
                 w.WritePropertyName("gate_hash");
-                Wr.Bytes(w, GateHash);
+                Wr.Bytes(w, GateHash, 0, -1);
                 w.WritePropertyName("suggested_interval_ms");
                 w.WriteNumberValue(SuggestedIntervalMs);
                 w.WriteEndObject();
@@ -1107,9 +1113,9 @@ namespace Vauchi.Contract
                 w.WritePropertyName("RelayEscrowRetrieve");
                 w.WriteStartObject();
                 w.WritePropertyName("gate_hash");
-                Wr.Bytes(w, GateHash);
+                Wr.Bytes(w, GateHash, 0, -1);
                 w.WritePropertyName("slot_hash");
-                Wr.Bytes(w, SlotHash);
+                Wr.Bytes(w, SlotHash, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1219,7 +1225,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("is_initiator");
                 w.WriteBooleanValue(IsInitiator);
                 w.WritePropertyName("payload");
-                Wr.Bytes(w, Payload);
+                Wr.Bytes(w, Payload, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1335,6 +1341,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("FilePickFromUser");
                 w.WriteStartObject();
                 w.WritePropertyName("accepted_extensions");
+                if (AcceptedExtensions is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(AcceptedExtensions.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in AcceptedExtensions)
                 {
@@ -1342,6 +1350,8 @@ namespace Vauchi.Contract
                 }
                 w.WriteEndArray();
                 w.WritePropertyName("accepted_mime_types");
+                if (AcceptedMimeTypes is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(AcceptedMimeTypes.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in AcceptedMimeTypes)
                 {
@@ -1570,7 +1580,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("DirectSendCard");
                 w.WriteStartObject();
                 w.WritePropertyName("ciphertext");
-                Wr.Bytes(w, Ciphertext);
+                Wr.Bytes(w, Ciphertext, 0, -1);
                 w.WritePropertyName("is_initiator");
                 w.WriteBooleanValue(IsInitiator);
                 w.WriteEndObject();
@@ -2533,6 +2543,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("SetApplicationMenu");
                 w.WriteStartObject();
                 w.WritePropertyName("menus");
+                if (Menus is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Menus.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Menus)
                 {
@@ -2691,6 +2703,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("PickFile");
                 w.WriteStartObject();
                 w.WritePropertyName("accepted_extensions");
+                if (AcceptedExtensions is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(AcceptedExtensions.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in AcceptedExtensions)
                 {
@@ -2698,6 +2712,8 @@ namespace Vauchi.Contract
                 }
                 w.WriteEndArray();
                 w.WritePropertyName("accepted_mime_types");
+                if (AcceptedMimeTypes is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(AcceptedMimeTypes.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in AcceptedMimeTypes)
                 {

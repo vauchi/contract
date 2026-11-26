@@ -455,7 +455,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("BleDeviceDiscovered");
                 w.WriteStartObject();
                 w.WritePropertyName("adv_data");
-                Wr.Bytes(w, AdvData);
+                Wr.Bytes(w, AdvData, 0, -1);
                 w.WritePropertyName("id");
                 w.WriteStringValue(Id);
                 w.WritePropertyName("rssi");
@@ -581,7 +581,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("BleCharacteristicRead");
                 w.WriteStartObject();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WritePropertyName("device_id");
                 w.WriteStringValue(DeviceId);
                 w.WritePropertyName("direction");
@@ -655,7 +655,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("BleCharacteristicNotified");
                 w.WriteStartObject();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WritePropertyName("device_id");
                 w.WriteStringValue(DeviceId);
                 w.WritePropertyName("direction");
@@ -765,7 +765,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("NfcDataReceived");
                 w.WriteStartObject();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -806,7 +806,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("NfcApduReceived");
                 w.WriteStartObject();
                 w.WritePropertyName("bytes");
-                Wr.Bytes(w, Bytes);
+                Wr.Bytes(w, Bytes, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -901,6 +901,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("sample_rate");
                 w.WriteNumberValue(SampleRate);
                 w.WritePropertyName("samples");
+                if (Samples is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Samples.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Samples)
                 {
@@ -1283,7 +1285,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("RelayEscrowReady");
                 w.WriteStartObject();
                 w.WritePropertyName("gate_hash");
-                Wr.Bytes(w, GateHash);
+                Wr.Bytes(w, GateHash, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1333,7 +1335,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("RelayEscrowFailed");
                 w.WriteStartObject();
                 w.WritePropertyName("gate_hash");
-                Wr.Bytes(w, GateHash);
+                Wr.Bytes(w, GateHash, 0, -1);
                 w.WritePropertyName("reason");
                 w.WriteStringValue(Reason);
                 w.WriteEndObject();
@@ -1376,7 +1378,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("LinkOpened");
                 w.WriteStartObject();
                 w.WritePropertyName("peer_public_key");
-                Wr.Bytes(w, PeerPublicKey);
+                Wr.Bytes(w, PeerPublicKey, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1426,9 +1428,9 @@ namespace Vauchi.Contract
                 w.WritePropertyName("RelayEscrowBlobReceived");
                 w.WriteStartObject();
                 w.WritePropertyName("blob");
-                Wr.Bytes(w, Blob);
+                Wr.Bytes(w, Blob, 0, -1);
                 w.WritePropertyName("gate_hash");
-                Wr.Bytes(w, GateHash);
+                Wr.Bytes(w, GateHash, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1471,7 +1473,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("DirectPayloadReceived");
                 w.WriteStartObject();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1514,7 +1516,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("ImageReceived");
                 w.WriteStartObject();
                 w.WritePropertyName("data");
-                Wr.Bytes(w, Data);
+                Wr.Bytes(w, Data, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1566,7 +1568,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("FilePickedFromUser");
                 w.WriteStartObject();
                 w.WritePropertyName("bytes");
-                Wr.Bytes(w, Bytes);
+                Wr.Bytes(w, Bytes, 0, -1);
                 w.WritePropertyName("filename");
                 w.WriteStringValue(Filename);
                 w.WriteEndObject();
@@ -1665,7 +1667,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("DirectCardReceived");
                 w.WriteStartObject();
                 w.WritePropertyName("ciphertext");
-                Wr.Bytes(w, Ciphertext);
+                Wr.Bytes(w, Ciphertext, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -1823,6 +1825,8 @@ namespace Vauchi.Contract
                     }
                 }
                 w.WritePropertyName("input_modes");
+                if (InputModes is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(InputModes.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in InputModes)
                 {
@@ -2371,7 +2375,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("UserPresenceSecretCreated");
                 w.WriteStartObject();
                 w.WritePropertyName("secret");
-                Wr.Bytes(w, Secret);
+                Wr.Bytes(w, Secret, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
@@ -2412,7 +2416,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("UserPresenceSecretRevealed");
                 w.WriteStartObject();
                 w.WritePropertyName("secret");
-                Wr.Bytes(w, Secret);
+                Wr.Bytes(w, Secret, 0, -1);
                 w.WriteEndObject();
                 w.WriteEndObject();
             }

@@ -252,8 +252,21 @@ namespace Vauchi.Contract
 
     internal static class Wr
     {
-        internal static void Bytes(Utf8JsonWriter w, byte[] bytes)
+        internal static void ArrayLength(int count, int minimum, int maximum)
         {
+            if (count < minimum || (maximum >= 0 && count > maximum))
+            {
+                throw new ContractJsonException("array length outside schema bounds");
+            }
+        }
+
+        internal static void Bytes(Utf8JsonWriter w, byte[] bytes, int minimum, int maximum)
+        {
+            if (bytes is null)
+            {
+                throw new ContractJsonException("a required array is null");
+            }
+            ArrayLength(bytes.Length, minimum, maximum);
             w.WriteStartArray();
             foreach (byte value in bytes)
             {

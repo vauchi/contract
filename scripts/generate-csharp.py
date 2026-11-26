@@ -277,7 +277,7 @@ class Generator:
                     "byte[]",
                     False,
                     lambda r: f"Rd.Bytes(ref {r}, {low}, {high})",
-                    lambda v, d: [f"Wr.Bytes(w, {v});"],
+                    lambda v, d: [f"Wr.Bytes(w, {v}, {low}, {high});"],
                 )
             inner = self.type_of(items, f"{where}[]")
 
@@ -288,7 +288,12 @@ class Generator:
             def write(value, depth):
                 name = f"e{depth}"
                 body = inner.write(name, depth + 1)
-                return ["w.WriteStartArray();", f"foreach (var {name} in {value})", "{", *[f"    {line}" for line in body], "}", "w.WriteEndArray();"]
+                return [
+                    f"if ({value} is null) throw new ContractJsonException(\"a required array is null\");",
+                    f"Wr.ArrayLength({value}.Count, {low}, {high});",
+                    "w.WriteStartArray();", f"foreach (var {name} in {value})", "{",
+                    *[f"    {line}" for line in body], "}", "w.WriteEndArray();",
+                ]
 
             return Type(f"IReadOnlyList<{inner.cs}>", False, read, write)
         raise Unsupported(f"{where}: unsupported schema {json.dumps(schema)[:120]}")

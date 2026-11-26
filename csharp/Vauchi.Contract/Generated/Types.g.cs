@@ -381,6 +381,8 @@ namespace Vauchi.Contract
         {
             w.WriteStartObject();
             w.WritePropertyName("items");
+            if (Items is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Items.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in Items)
             {
@@ -534,6 +536,8 @@ namespace Vauchi.Contract
             w.WritePropertyName("rssi");
             w.WriteNumberValue(Rssi);
             w.WritePropertyName("service_uuids");
+            if (ServiceUuids is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(ServiceUuids.Count, 0, 32);
             w.WriteStartArray();
             foreach (var e0 in ServiceUuids)
             {
@@ -613,7 +617,7 @@ namespace Vauchi.Contract
             {
                 w.WriteStartObject();
                 w.WritePropertyName("Uuid16");
-                Wr.Bytes(w, Value);
+                Wr.Bytes(w, Value, 2, 2);
                 w.WriteEndObject();
             }
         }
@@ -629,7 +633,7 @@ namespace Vauchi.Contract
             {
                 w.WriteStartObject();
                 w.WritePropertyName("Uuid32");
-                Wr.Bytes(w, Value);
+                Wr.Bytes(w, Value, 4, 4);
                 w.WriteEndObject();
             }
         }
@@ -645,7 +649,7 @@ namespace Vauchi.Contract
             {
                 w.WriteStartObject();
                 w.WritePropertyName("Uuid128");
-                Wr.Bytes(w, Value);
+                Wr.Bytes(w, Value, 16, 16);
                 w.WriteEndObject();
             }
         }
@@ -661,7 +665,7 @@ namespace Vauchi.Contract
             {
                 w.WriteStartObject();
                 w.WritePropertyName("Normalized");
-                Wr.Bytes(w, Value);
+                Wr.Bytes(w, Value, 16, 16);
                 w.WriteEndObject();
             }
         }
@@ -890,6 +894,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("pinned");
                 if (Pinned is { } x0)
                 {
+                    if (x0 is null) throw new ContractJsonException("a required array is null");
+                    Wr.ArrayLength(x0.Count, 0, -1);
                     w.WriteStartArray();
                     foreach (var e1 in x0)
                     {
@@ -1336,7 +1342,7 @@ namespace Vauchi.Contract
         {
             w.WriteStartObject();
             w.WritePropertyName("data");
-            Wr.Bytes(w, Data);
+            Wr.Bytes(w, Data, 0, -1);
             w.WritePropertyName("media_type");
             w.WriteStringValue(MediaType);
             w.WritePropertyName("schema");
@@ -1395,7 +1401,7 @@ namespace Vauchi.Contract
         {
             w.WriteStartObject();
             w.WritePropertyName("data");
-            Wr.Bytes(w, Data);
+            Wr.Bytes(w, Data, 0, -1);
             w.WritePropertyName("mime_type");
             w.WriteStringValue(MimeType);
             w.WritePropertyName("suggested_name");
@@ -1508,7 +1514,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("selected");
                 w.WriteStartObject();
                 w.WritePropertyName("bytes");
-                Wr.Bytes(w, Bytes);
+                Wr.Bytes(w, Bytes, 0, -1);
                 w.WritePropertyName("filename");
                 w.WriteStringValue(Filename);
                 w.WriteEndObject();
@@ -2003,6 +2009,8 @@ namespace Vauchi.Contract
         {
             w.WriteStartObject();
             w.WritePropertyName("items");
+            if (Items is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Items.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in Items)
             {
@@ -2142,6 +2150,8 @@ namespace Vauchi.Contract
             w.WritePropertyName("category_id");
             w.WriteStringValue(CategoryId);
             w.WritePropertyName("category_options");
+            if (CategoryOptions is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(CategoryOptions.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in CategoryOptions)
             {
@@ -2364,6 +2374,8 @@ namespace Vauchi.Contract
                 }
             }
             w.WritePropertyName("items");
+            if (Items is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Items.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in Items)
             {
@@ -3292,6 +3304,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("label");
                 w.WriteStringValue(Label);
                 w.WritePropertyName("options");
+                if (Options is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Options.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Options)
                 {
@@ -3385,6 +3399,8 @@ namespace Vauchi.Contract
                 w.WritePropertyName("axis");
                 global::Vauchi.Contract.PresentationAxisJson.Write(w, Axis);
                 w.WritePropertyName("children");
+                if (Children is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Children.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Children)
                 {
@@ -3545,6 +3561,8 @@ namespace Vauchi.Contract
                     }
                 }
                 w.WritePropertyName("rows");
+                if (Rows is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Rows.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Rows)
                 {
@@ -3695,7 +3713,7 @@ namespace Vauchi.Contract
                     w.WritePropertyName("data");
                     if (Data is { } x0)
                     {
-                        Wr.Bytes(w, x0);
+                        Wr.Bytes(w, x0, 0, -1);
                     }
                     else
                     {
@@ -4079,6 +4097,8 @@ namespace Vauchi.Contract
                     }
                 }
                 w.WritePropertyName("payloads");
+                if (Payloads is null) throw new ContractJsonException("a required array is null");
+                Wr.ArrayLength(Payloads.Count, 0, -1);
                 w.WriteStartArray();
                 foreach (var e0 in Payloads)
                 {
@@ -4827,6 +4847,8 @@ namespace Vauchi.Contract
                 }
             }
             w.WritePropertyName("controls");
+            if (Controls is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Controls.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in Controls)
             {
@@ -4876,7 +4898,7 @@ namespace Vauchi.Contract
                 w.WritePropertyName("image_data");
                 if (ImageData is { } x0)
                 {
-                    Wr.Bytes(w, x0);
+                    Wr.Bytes(w, x0, 0, -1);
                 }
                 else
                 {
@@ -4896,6 +4918,8 @@ namespace Vauchi.Contract
                 }
             }
             w.WritePropertyName("secondary_actions");
+            if (SecondaryActions is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(SecondaryActions.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in SecondaryActions)
             {
@@ -5284,6 +5308,8 @@ namespace Vauchi.Contract
         {
             w.WriteStartObject();
             w.WritePropertyName("items");
+            if (Items is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Items.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in Items)
             {
@@ -5427,6 +5453,8 @@ namespace Vauchi.Contract
             w.WritePropertyName("layout");
             global::Vauchi.Contract.SurfaceLayoutJson.Write(w, Layout);
             w.WritePropertyName("nodes");
+            if (Nodes is null) throw new ContractJsonException("a required array is null");
+            Wr.ArrayLength(Nodes.Count, 0, -1);
             w.WriteStartArray();
             foreach (var e0 in Nodes)
             {
