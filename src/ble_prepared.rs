@@ -5,10 +5,19 @@ use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt;
 
+mod central;
 mod gatt;
+mod peripheral;
+pub use central::{
+    BleCentralSpec, BleCharacteristicWriteSpec, BleGattRetrySpec, BleSubscriptionSpec, BleWriteMode,
+};
 pub use gatt::{
     BleGattCharacteristicSpec, BleGattDescriptorSpec, BleGattPermissions, BleGattProperties,
     BleGattServiceSpec,
+};
+pub use peripheral::{
+    BleAdvertisedUuid, BleAdvertisementSpec, BleAdvertisingMode, BleAdvertisingParameters,
+    BleAdvertisingTxPower, BleDescriptorWriteCondition, BlePeripheralSpec,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]

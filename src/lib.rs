@@ -42,8 +42,11 @@ pub mod network_cost;
 pub mod schema;
 pub use ble_observation::{BleAdvertisementObservation, BleObservationError, BleServiceUuid};
 pub use ble_prepared::{
-    BleAttributeValue, BleGattCharacteristicSpec, BleGattDescriptorSpec, BleGattPermissions,
-    BleGattProperties, BleGattServiceSpec, BlePreparationError,
+    BleAdvertisedUuid, BleAdvertisementSpec, BleAdvertisingMode, BleAdvertisingParameters,
+    BleAdvertisingTxPower, BleAttributeValue, BleCentralSpec, BleCharacteristicWriteSpec,
+    BleDescriptorWriteCondition, BleGattCharacteristicSpec, BleGattDescriptorSpec,
+    BleGattPermissions, BleGattProperties, BleGattRetrySpec, BleGattServiceSpec, BlePeripheralSpec,
+    BlePreparationError, BleSubscriptionSpec, BleWriteMode,
 };
 pub use camera::CameraPurpose;
 pub use command_target::CommandTarget;
