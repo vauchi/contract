@@ -5,7 +5,7 @@
 package app.vauchi.contract
 
 object ContractInfo {
-    const val VERSION: kotlin.String = "0.101.0"
+    const val VERSION: kotlin.String = "0.102.0"
 
     fun protocolConformanceV1(): kotlin.String =
         ContractInfo::class.java

@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Mattia Egloff <mattia.egloff@pm.me>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+[advisories]
+version = 2
+
+[licenses]
+version = 2
+# These licenses are already approved in Vauchi's core/deny.toml policy.
+allow = ["AGPL-3.0-or-later", "MIT", "Apache-2.0", "Unicode-3.0"]
+confidence-threshold = 0.8
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+deny = [{ name = "openssl" }, { name = "openssl-sys" }]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
