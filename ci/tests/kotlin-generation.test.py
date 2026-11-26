@@ -48,21 +48,25 @@ class KotlinGenerationTests(unittest.TestCase):
             if name in variant.get("properties", {})
         )
 
+    def assert_api(self, source, pattern):
+        self.assertIsNotNone(re.search(pattern, source), f"missing typed Kotlin API: {pattern}")
+
     def test_every_wire_variant_has_a_typed_kotlin_case(self):
         self.write()
 
         source = "\n".join(path.read_text(encoding="utf-8") for path in self.output.glob("*.kt"))
         for root, type_name in [("command", "Command"), ("event", "Event")]:
-            self.assertRegex(source, rf"sealed\s+interface\s+{type_name}\b")
+            self.assert_api(source, rf"sealed\s+interface\s+{type_name}\b")
             for variant in self.schema[root]["oneOf"]:
                 names = variant.get("enum", list(variant.get("properties", {})))
                 for name in names:
                     with self.subTest(type=type_name, variant=name):
-                        self.assertRegex(source, rf"\b(?:data\s+class|data\s+object)\s+{re.escape(name)}\b")
-        # Bytes and deadlines must keep Rust's unsigned ranges in the public
+                        self.assert_api(source, rf"\b(?:data\s+class|data\s+object)\s+{re.escape(name)}\b")
+        # Bytes, deadlines and revisions keep Rust's unsigned ranges in the public
         # API; a JsonObject or signed Long would erase that contract.
-        self.assertRegex(source, r"\bval\s+`?data`?\s*:\s*kotlin\.collections\.List<kotlin\.UByte>")
-        self.assertRegex(source, r"\bval\s+`?earliestSecs`?\s*:\s*kotlin\.ULong")
+        self.assert_api(source, r"\bval\s+`?data`?\s*:\s*kotlin\.collections\.List<kotlin\.UByte>")
+        self.assert_api(source, r"\bval\s+`?earliestSecs`?\s*:\s*kotlin\.UInt")
+        self.assert_api(source, r"\bval\s+`?revision`?\s*:\s*kotlin\.ULong")
 
     def test_an_unknown_schema_restriction_stops_instead_of_being_ignored(self):
         self.variant("event", "HardwareError")["properties"]["transport"]["pattern"] = "^[A-Z]+$"
