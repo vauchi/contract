@@ -46,6 +46,14 @@ lint:clippy:
   script:
     - cargo clippy --all-targets --features schema-gen -- -D warnings
 
+security:vet:
+  extends: [.rust-runner-readonly, .mr-or-main, .timeout-quick]
+  stage: lint
+  needs: []
+  script:
+    - command -v cargo-vet
+    - cargo vet --locked
+
 # The breaking-change check is pure Python; it is tested on every MR that
 # touches it, and on main, with seeded removals that must fail (CC-27).
 check:schema-breaking:
